@@ -40,10 +40,19 @@ Format:
 **Why:** Official brand asset. Note: the white wordmark is invisible on light backgrounds — works for dark mode/footer; a dark-text variant (or glyph + styled text wordmark) is needed for light mode. Open item.
 **Status:** Active
 
-## 2026-07-02 — Videos are self-hosted (Mux-style), built against a metadata list
-**Decision:** The Videos section (long-form recordings + short-form cuts, all public-safe) will use self-hosted streaming (Mux or similar video API), not YouTube/Vimeo embeds. Site builds against an in-repo video metadata list so hosting wiring can land later.
-**Alternatives considered:** YouTube/Vimeo embeds — ruled out in favor of control over player/branding.
+## 2026-07-02 — Video data & playback stack
+**Decision:** Video metadata comes from MurmurMD's existing GraphQL API (Apollo client, though any GraphQL library would do), querying the publicly accessible videos. Playback is the company's existing pipeline: CMAF/HLS `.m3u8` streams from S3 (`murmurmd.postvideos`, us-west-2), poster frames via the CloudFront image resizer (`d3ngaae513epof.cloudfront.net`). In the browser, `hls.js` handles playback (Safari plays HLS natively; shared `VideoPlayer` component handles both). Long-form videos are landscape 16:9; shorts are portrait 9:16, and the UI renders each accordingly. Until the GraphQL wiring lands, pages build against `lib/videos.ts`, a mock catalog shaped like the API response.
+**Known blocker:** The S3 stream URLs currently return no `Access-Control-Allow-Origin` header, so hls.js playback fails in Chrome/Firefox (Safari works natively). Needs a CORS policy on the bucket or fronting the streams with CloudFront + CORS.
 **Status:** Active
+
+## 2026-07-02 — Two video-browsing prototypes to compare
+**Decision:** Build two candidate Videos pages before committing to one: `/videos1` — a theater layout (large player up top) with Netflix-style scroll-snap carousel rows for Long-form and Shorts; `/videos2` — a filterable responsive grid (All / Long-form / Shorts) opening videos in a modal player. Whichever wins becomes `/videos`; the loser gets deleted.
+**Status:** Active
+
+## 2026-07-02 — Videos are self-hosted, built against a metadata list
+**Decision:** The Videos section (long-form recordings + short-form cuts, all public-safe) will use self-hosted streaming, not YouTube/Vimeo embeds. Site builds against an in-repo video metadata list so hosting wiring can land later.
+**Alternatives considered:** YouTube/Vimeo embeds — ruled out in favor of control over player/branding. Mux was floated as the hosting option.
+**Status:** Superseded by "Video data & playback stack" (same day) — the company's existing S3/CloudFront HLS pipeline and GraphQL API replace the Mux idea; the metadata-list interim approach carries forward.
 
 ## 2026-07-02 — Marketing site first; Auth0 login in a later phase
 **Decision:** Ship the public marketing/content site with no login. Physician login (Auth0 — the company's existing auth provider) and a gated web experience where physicians browse posts come in a post-launch phase.

@@ -45,9 +45,9 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - App feature callouts with example post/case/poll mockups (screenshots from the app when available; styled placeholders until then).
 
 ### Phase 4 — Videos
-- Video metadata model in-repo (title, description, type long/short, specialty tags, playback ID, thumbnail, date) — decoupled from hosting.
-- Self-hosted playback via Mux (or similar stream API) — player component wraps the playback ID.
-- `/videos` grid with long-form/short-form filter; `/videos/[slug]` watch pages.
+- Video metadata from MurmurMD's existing GraphQL API (Apollo) — publicly accessible videos only. Interim: in-repo mock catalog (`lib/videos.ts`) shaped like the API response.
+- Playback: existing CMAF/HLS pipeline (S3 `murmurmd.postvideos` streams, CloudFront poster frames) via the shared `hls.js`-based `VideoPlayer` component. Long-form = landscape 16:9, shorts = portrait 9:16.
+- Two browsing prototypes under evaluation: `/videos1` (theater + carousel rows) and `/videos2` (filterable grid + modal player). Winner becomes `/videos` with `/videos/[slug]` watch pages.
 - "Watch in the app" cross-link on each video.
 
 ### Phase 5 — Launch polish
@@ -63,5 +63,7 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - [ ] Contact email / preferred contact method for the footer
 - [ ] App Store link
 - [ ] App screenshots / example case & poll content
-- [ ] Video hosting account details (Mux or otherwise) + initial video list
+- [ ] CORS policy on the S3 video bucket (or CloudFront in front of streams) so hls.js works in Chrome/Firefox
+- [ ] GraphQL endpoint + schema/query for publicly accessible videos
+- [ ] Verdict on /videos1 vs /videos2
 - [ ] Domain name for the site

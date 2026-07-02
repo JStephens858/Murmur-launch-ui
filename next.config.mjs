@@ -8,6 +8,14 @@ const nextConfig = {
   turbopack: {
     root,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "d3ngaae513epof.cloudfront.net",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
