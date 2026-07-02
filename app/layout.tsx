@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 
+import ThemeLab from "@/components/ui/theme-lab";
 import { inter } from "@/lib/fonts";
 
 import { siteConfig } from "../config/site";
@@ -72,6 +73,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          {process.env.NODE_ENV === "development" && <ThemeLab />}
         </ThemeProvider>
       </body>
     </html>

@@ -1,0 +1,58 @@
+/*
+ * Theme lab — candidate looks, switchable in development via the floating
+ * ThemeLab picker (sets data-theme on <html>, persisted in localStorage).
+ *
+ * Backgrounds intentionally stay the paper/ink grays from the base palette
+ * in every variant; variants differ in accent economy: what color primary
+ * actions, links, and focus rings get, and how much pink is in play.
+ *
+ * To promote a winner: copy its values into :root/.dark in globals.css and
+ * delete the variant blocks. To try a new look: add a block here and an
+ * entry in components/ui/theme-lab.tsx.
+ */
+
+/* ── Teal-forward: deep-teal actions, pink reserved for the logo ───────── */
+html[data-theme="teal"] {
+  --primary: #0c7a80;
+  --primary-foreground: #ffffff;
+  --ring: #0c7a80;
+}
+html.dark[data-theme="teal"] {
+  --primary: #2cb8bf;
+  --primary-foreground: #14181d;
+  --ring: #2cb8bf;
+}
+
+/* ── Plum: pink actions, plum accents/links instead of teal ────────────── */
+html[data-theme="plum"] {
+  --accent: #f3e4ed;
+  --accent-foreground: #8a1e5c;
+  --ring: #8a1e5c;
+  --teal: #8a1e5c;
+  --teal-deep: #6d1849;
+}
+html.dark[data-theme="plum"] {
+  --accent: #3a1f31;
+  --accent-foreground: #d98bb8;
+  --ring: #d98bb8;
+  --teal: #d98bb8;
+  --teal-deep: #b04a86;
+}
+
+/* ── Ink: understated gray-on-gray, color only where it means something ── */
+html[data-theme="ink"] {
+  --primary: #232a33;
+  --primary-foreground: #ffffff;
+  --accent: #e7ebed;
+  --accent-foreground: #232a33;
+  --ring: #626d7c;
+  --radius: 0.375rem;
+}
+html.dark[data-theme="ink"] {
+  --primary: #edf1f3;
+  --primary-foreground: #14181d;
+  --accent: #232a33;
+  --accent-foreground: #edf1f3;
+  --ring: #9aa6b2;
+  --radius: 0.375rem;
+}

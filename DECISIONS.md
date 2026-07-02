@@ -16,6 +16,11 @@ Format:
 
 ---
 
+## 2026-07-02 — Theme lab for visual experiments
+**Decision:** Candidate looks are CSS-variable variant blocks in `styles/themes.css`, selected by `data-theme` on `<html>` via a dev-only floating picker (`components/ui/theme-lab.tsx`, localStorage-persisted, excluded from production). Backgrounds stay the paper/ink grays in every variant — Josh likes those — variants only change accent economy (primary buttons, links, rings, radius). Starter variants: teal-forward, plum accents, ink minimal. Winners get promoted into `:root`/`.dark` in `globals.css`; structural (layout-level) experiments still use branches/worktrees instead.
+**Why:** Iterating by editing `globals.css` in place makes side-by-side comparison impossible and reverting error-prone.
+**Status:** Active
+
 ## 2026-07-02 — GraphQL API calls: server-side, plain fetch, Auth0 bearer
 **Decision:** The website calls the MurmurMD GraphQL API (Apollo server, endpoint in `MURMUR_API_SERVER` env var; localhost:4000/api in dev) from the server side, passing the signed-in user's Auth0 access token as a Bearer header. `lib/murmur-api.ts` uses plain `fetch` with typed wrappers per query — no Apollo Client dependency until the query surface justifies it. First consumer: `getProfile` on `/account`. Optional `AUTH0_AUDIENCE`/`AUTH0_SCOPE` env vars are wired for when the API requires audience-scoped JWTs.
 **Status:** Active
