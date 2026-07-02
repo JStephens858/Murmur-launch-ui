@@ -16,6 +16,10 @@ Format:
 
 ---
 
+## 2026-07-02 — GraphQL API calls: server-side, plain fetch, Auth0 bearer
+**Decision:** The website calls the MurmurMD GraphQL API (Apollo server, endpoint in `MURMUR_API_SERVER` env var; localhost:4000/api in dev) from the server side, passing the signed-in user's Auth0 access token as a Bearer header. `lib/murmur-api.ts` uses plain `fetch` with typed wrappers per query — no Apollo Client dependency until the query surface justifies it. First consumer: `getProfile` on `/account`. Optional `AUTH0_AUDIENCE`/`AUTH0_SCOPE` env vars are wired for when the API requires audience-scoped JWTs.
+**Status:** Active
+
 ## 2026-07-02 — Auth0 plumbing pulled forward
 **Decision:** Auth0 wiring landed now rather than waiting for the post-launch physician-web phase: `@auth0/nextjs-auth0` v4, middleware-mounted routes under `/auth/*` (login, logout, callback, profile), `lib/auth0.ts` client, "Physician Login" in the navbar, and a session-gated `/account` page as the seed of the physician web experience. Credentials come from `.env.local` (gitignored; `.env.example` documents the shape). Placeholder tenant values until the real Regular-Web-Application client is configured — the login flow 500s on OIDC discovery until then, by design.
 **Why:** Auth0 is the company's existing auth provider; wiring it while the codebase is small is cheaper than retrofitting.
