@@ -9,6 +9,7 @@ export interface ProfileUser {
   username: string | null;
   firstName: string | null;
   lastName: string | null;
+  profilePicThumbnailUrl: string | null;
 }
 
 const GET_PROFILE_QUERY = /* GraphQL */ `
@@ -19,6 +20,7 @@ const GET_PROFILE_QUERY = /* GraphQL */ `
           username
           firstName
           lastName
+          profilePicThumbnailUrl
         }
       }
     }

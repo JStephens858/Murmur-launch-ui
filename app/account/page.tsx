@@ -40,13 +40,25 @@ export default async function AccountPage() {
     <main className="bg-background text-foreground min-h-screen w-full">
       <Navbar />
       <section className="max-w-container mx-auto flex flex-col gap-6 px-4 py-24">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-semibold sm:text-4xl">
-            Welcome{fullName ? `, ${fullName}` : ""}
-          </h1>
-          {profile?.username && (
-            <p className="text-muted-foreground">@{profile.username}</p>
+        <div className="flex items-center gap-4">
+          {profile?.profilePicThumbnailUrl && (
+            // Plain <img>: profile pics come from the API's media domain,
+            // which isn't in next/image's remotePatterns allowlist.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.profilePicThumbnailUrl}
+              alt=""
+              className="border-border/60 size-16 rounded-full border object-cover sm:size-20"
+            />
           )}
+          <div className="flex flex-col gap-1">
+            <h1 className="text-3xl font-semibold sm:text-4xl">
+              Welcome{fullName ? `, ${fullName}` : ""}
+            </h1>
+            {profile?.username && (
+              <p className="text-muted-foreground">@{profile.username}</p>
+            )}
+          </div>
         </div>
         <p className="text-muted-foreground max-w-2xl">
           You&apos;re signed in. The physician web experience — browsing posts
