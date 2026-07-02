@@ -2,10 +2,10 @@ import {
   BarChart3Icon,
   ClipboardCheckIcon,
   HeartPulseIcon,
-  LockIcon,
   MessagesSquareIcon,
   PlayIcon,
   ShieldCheckIcon,
+  TrendingUpIcon,
   UsersIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
@@ -63,10 +63,10 @@ const DEFAULT_ITEMS: ItemProps[] = [
     icon: <ShieldCheckIcon className="size-5 stroke-1" />,
   },
   {
-    title: "No PHI, ever",
+    title: "Insights for industry",
     description:
-      "Professional discussion without HIPAA-sensitive data — everything could be public",
-    icon: <LockIcon className="size-5 stroke-1" />,
+      "Partners commission videos and polls, and learn what physicians actually need",
+    icon: <TrendingUpIcon className="size-5 stroke-1" />,
   },
   {
     title: "A real community",

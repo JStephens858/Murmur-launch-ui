@@ -50,7 +50,7 @@ const DEFAULT_HERO_BADGE = (
 
 export default function Hero({
   title = "Where physicians talk medicine",
-  description = "MurmurMD is the professional community where physicians share cases, compare outcomes, run polls, and learn from each other — without HIPAA-sensitive data, ever.",
+  description = "MurmurMD is the professional community where physicians share cases, compare outcomes, run polls, and learn from each other.",
   // No app screenshots yet — re-enable the mockup once we have them.
   mockup = false,
   badge = DEFAULT_HERO_BADGE,

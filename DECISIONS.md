@@ -16,6 +16,11 @@ Format:
 
 ---
 
+## 2026-07-02 — No HIPAA/PHI messaging in site copy
+**Decision:** Site copy does not mention HIPAA, PHI, or the no-patient-data rule. The no-PHI constraint remains true (and stays documented internally in the product brief) but it's a compliance boundary, not a selling point, and shouldn't set a security/legal tone on the marketing site. The FAQ privacy entry and the "No PHI, ever" feature tile were removed; the feature grid gained an "Insights for industry" tile instead.
+**Why:** Josh: "While we don't accept HIPAA-affected information, it's not really a selling point — I was just telling you so we didn't go down the security path."
+**Status:** Active
+
 ## 2026-07-02 — Landing page structure (v1)
 **Decision:** Home page composition: Hero (no app mockup until screenshots exist) → feature grid (cases, outcomes, recommendations, polls, videos, verification, no-PHI, community) → "Two ways in" audience split (Physicians / Partners cards) → FAQ → Get-the-App CTA → footer. Launch UI's pricing, stats, and logos sections and brand SVGs were deleted (recoverable from git). The other tabs got real-copy starter pages (`/physicians`, `/partners`, `/get-the-app`, `/about`) to be expanded in Phase 3.
 **Status:** Active

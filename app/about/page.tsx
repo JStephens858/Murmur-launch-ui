@@ -8,7 +8,7 @@ import Navbar from "@/components/sections/navbar/default";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "MurmurMD is the professional community where physicians talk medicine — cases, outcomes, recommendations, and polls, without HIPAA-sensitive data.",
+    "MurmurMD is the professional community where physicians talk medicine — cases, outcomes, recommendations, and polls.",
 };
 
 export default function AboutPage() {
@@ -17,7 +17,7 @@ export default function AboutPage() {
       <Navbar />
       <Hero
         title="About MurmurMD"
-        description="We built MurmurMD because the best conversations in medicine happen between colleagues — and they deserve a better place than hallway run-ins and group texts. MurmurMD gives verified physicians a professional home to share cases, review outcomes, and learn from each other, with a simple rule: nothing HIPAA-sensitive, ever."
+        description="We built MurmurMD because the best conversations in medicine happen between colleagues — and they deserve a better place than hallway run-ins and group texts. MurmurMD gives verified physicians a professional home to share cases, review outcomes, and learn from each other."
         badge={false}
         buttons={false}
         mockup={false}

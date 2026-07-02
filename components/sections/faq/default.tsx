@@ -40,23 +40,6 @@ export default function FAQ({
       ),
     },
     {
-      question: "What about HIPAA and patient privacy?",
-      answer: (
-        <>
-          <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-            Nothing on MurmurMD includes HIPAA-sensitive data. The standard is
-            simple: everything posted on the platform could have been posted
-            publicly, legally. Cases are shared without
-            patient-identifying information.
-          </p>
-          <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-            That&apos;s a feature, not a limitation — it keeps the discussion
-            professional and lets physicians talk freely.
-          </p>
-        </>
-      ),
-    },
-    {
       question: "I'm not a physician — what can I do here?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
