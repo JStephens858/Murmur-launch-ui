@@ -3,7 +3,15 @@ import { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-import LaunchUI from "../../logos/launch-ui";
+import MurmurMD from "../../logos/murmurmd";
+import {
+  FacebookIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  TikTokIcon,
+  XIcon,
+  YouTubeIcon,
+} from "../../logos/social";
 import {
   Footer,
   FooterBottom,
@@ -22,48 +30,68 @@ interface FooterColumnProps {
   links: FooterLink[];
 }
 
+interface SocialLink {
+  name: string;
+  href: string;
+  icon: ReactNode;
+}
+
 interface FooterProps {
   logo?: ReactNode;
   name?: string;
   columns?: FooterColumnProps[];
+  socialLinks?: SocialLink[];
   copyright?: string;
   policies?: FooterLink[];
   showModeToggle?: boolean;
   className?: string;
 }
 
+const SOCIAL_ICON_CLASS = "size-5";
+
 export default function FooterSection({
-  logo = <LaunchUI />,
-  name = "Launch UI",
+  logo = <MurmurMD className="h-6" />,
+  name = "",
   columns = [
     {
-      title: "Product",
+      title: "Explore",
       links: [
-        { text: "Changelog", href: siteConfig.url },
-        { text: "Documentation", href: siteConfig.url },
+        { text: "Physicians", href: "/physicians" },
+        { text: "Partners", href: "/partners" },
+        { text: "Videos", href: "/videos" },
+        { text: "About", href: "/about" },
       ],
     },
     {
-      title: "Company",
+      title: "Get the App",
       links: [
-        { text: "About", href: siteConfig.url },
-        { text: "Careers", href: siteConfig.url },
-        { text: "Blog", href: siteConfig.url },
+        { text: "iOS App Store", href: siteConfig.appStoreUrl },
+        { text: "Physician verification", href: "/get-the-app" },
       ],
     },
     {
       title: "Contact",
       links: [
-        { text: "Discord", href: siteConfig.url },
-        { text: "Twitter", href: siteConfig.url },
-        { text: "GitHub", href: siteConfig.links.github },
+        { text: siteConfig.contactEmail, href: siteConfig.links.email },
+        {
+          text: "Partner inquiries",
+          href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
+        },
       ],
     },
   ],
-  copyright = "© 2026 Mikołaj Dobrucki. All rights reserved",
+  socialLinks = [
+    { name: "X", href: siteConfig.links.x, icon: <XIcon className={SOCIAL_ICON_CLASS} /> },
+    { name: "LinkedIn", href: siteConfig.links.linkedin, icon: <LinkedInIcon className={SOCIAL_ICON_CLASS} /> },
+    { name: "Instagram", href: siteConfig.links.instagram, icon: <InstagramIcon className={SOCIAL_ICON_CLASS} /> },
+    { name: "Facebook", href: siteConfig.links.facebook, icon: <FacebookIcon className={SOCIAL_ICON_CLASS} /> },
+    { name: "YouTube", href: siteConfig.links.youtube, icon: <YouTubeIcon className={SOCIAL_ICON_CLASS} /> },
+    { name: "TikTok", href: siteConfig.links.tiktok, icon: <TikTokIcon className={SOCIAL_ICON_CLASS} /> },
+  ],
+  copyright = "© 2026 MurmurMD. All rights reserved",
   policies = [
-    { text: "Privacy Policy", href: siteConfig.url },
-    { text: "Terms of Service", href: siteConfig.url },
+    { text: "Privacy Policy", href: "#" },
+    { text: "Terms of Service", href: "#" },
   ],
   showModeToggle = true,
   className,
@@ -73,10 +101,24 @@ export default function FooterSection({
       <div className="max-w-container mx-auto">
         <Footer>
           <FooterContent>
-            <FooterColumn className="col-span-2 sm:col-span-3 md:col-span-1">
+            <FooterColumn className="col-span-2 gap-4 sm:col-span-3 md:col-span-1">
               <div className="flex items-center gap-2">
                 {logo}
-                <h3 className="text-xl font-bold">{name}</h3>
+                {name && <h3 className="text-xl font-bold">{name}</h3>}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {socialLinks.map((social) => (
+                  <a
+                    key={social.name}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.name}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {social.icon}
+                  </a>
+                ))}
               </div>
             </FooterColumn>
             {columns.map((column) => (

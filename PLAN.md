@@ -63,7 +63,7 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - [ ] Contact email / preferred contact method for the footer
 - [ ] App Store link
 - [ ] App screenshots / example case & poll content
-- [ ] CORS policy on the S3 video bucket (or CloudFront in front of streams) so hls.js works in Chrome/Firefox
+- [x] CORS policy on the S3 video bucket — applied and verified 2026-07-02
 - [ ] GraphQL endpoint + schema/query for publicly accessible videos
 - [ ] Verdict on /videos1 vs /videos2
 - [ ] Domain name for the site

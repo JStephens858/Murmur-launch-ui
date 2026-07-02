@@ -4,10 +4,9 @@ import { type VariantProps } from "class-variance-authority";
 import { Menu } from "lucide-react";
 import { ReactNode } from "react";
 
-import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-import LaunchUI from "../../logos/launch-ui";
+import MurmurMD from "../../logos/murmurmd";
 import { Button, buttonVariants } from "../../ui/button";
 import {
   Navbar as NavbarComponent,
@@ -43,19 +42,20 @@ interface NavbarProps {
 }
 
 export default function Navbar({
-  logo = <LaunchUI />,
-  name = "Launch UI",
-  homeUrl = siteConfig.url,
+  logo = <MurmurMD className="h-7" />,
+  name = "",
+  homeUrl = "/",
   mobileLinks = [
-    { text: "Getting Started", href: siteConfig.url },
-    { text: "Components", href: siteConfig.url },
-    { text: "Documentation", href: siteConfig.url },
+    { text: "Physicians", href: "/physicians" },
+    { text: "Partners", href: "/partners" },
+    { text: "Get the App", href: "/get-the-app" },
+    { text: "Videos", href: "/videos" },
+    { text: "About", href: "/about" },
   ],
   actions = [
-    { text: "Sign in", href: siteConfig.url, isButton: false },
     {
-      text: "Get Started",
-      href: siteConfig.url,
+      text: "Get the App",
+      href: "/get-the-app",
       isButton: true,
       variant: "default",
     },
@@ -121,7 +121,8 @@ export default function Navbar({
                     href={homeUrl}
                     className="flex items-center gap-2 text-xl font-bold"
                   >
-                    <span>{name}</span>
+                    {logo}
+                    {name && <span>{name}</span>}
                   </a>
                   {mobileLinks.map((link) => (
                     <a

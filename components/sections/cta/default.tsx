@@ -18,13 +18,18 @@ interface CTAProps {
 const DEFAULT_CTA_BUTTONS: CTAButtonProps[] = [
   {
     href: siteConfig.getStartedUrl,
-    text: "Get Started",
+    text: "Get the App",
     variant: "default",
+  },
+  {
+    href: siteConfig.links.email,
+    text: "Contact Us",
+    variant: "glow",
   },
 ];
 
 export default function CTA({
-  title = "Start building",
+  title = "Join the conversation",
   buttons = DEFAULT_CTA_BUTTONS,
   className,
 }: CTAProps) {

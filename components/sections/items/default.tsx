@@ -1,12 +1,12 @@
 import {
-  BlocksIcon,
-  EclipseIcon,
-  FastForwardIcon,
-  LanguagesIcon,
-  MonitorSmartphoneIcon,
-  RocketIcon,
-  ScanFaceIcon,
-  SquarePenIcon,
+  BarChart3Icon,
+  ClipboardCheckIcon,
+  HeartPulseIcon,
+  LockIcon,
+  MessagesSquareIcon,
+  PlayIcon,
+  ShieldCheckIcon,
+  UsersIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -27,49 +27,57 @@ interface ItemsProps {
 
 const DEFAULT_ITEMS: ItemProps[] = [
   {
-    title: "Accessibility first",
-    description: "Fully WCAG 2.0 compliant, made with best a11y practices",
-    icon: <ScanFaceIcon className="size-5 stroke-1" />,
+    title: "Case discussions",
+    description:
+      "Share interesting cases and walk through decisions with peers who do the same procedures",
+    icon: <HeartPulseIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Responsive design",
-    description: "Looks and works great on any device and screen size",
-    icon: <MonitorSmartphoneIcon className="size-5 stroke-1" />,
+    title: "Outcome reviews",
+    description:
+      "Post follow-ups and see how treatment choices actually played out",
+    icon: <ClipboardCheckIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Light and dark mode",
-    description: "Seamless switching between color schemes, 6 themes included",
-    icon: <EclipseIcon className="size-5 stroke-1" />,
+    title: "Recommendations",
+    description:
+      "Ask for and give practical guidance on devices, technique, and practice",
+    icon: <MessagesSquareIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Easy to customize",
-    description: "Flexible options to match your product or brand",
-    icon: <BlocksIcon className="size-5 stroke-1" />,
+    title: "Polls",
+    description:
+      "Commission a poll and see where your colleagues actually stand",
+    icon: <BarChart3Icon className="size-5 stroke-1" />,
   },
   {
-    title: "Top-level performance",
-    description: "Made for lightning-fast load times and smooth interactions",
-    icon: <FastForwardIcon className="size-5 stroke-1" />,
+    title: "Video library",
+    description:
+      "Long-form conversations and short clips — in the app and on the web",
+    icon: <PlayIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Production ready",
-    description: "Thoroughly tested and launch-prepared",
-    icon: <RocketIcon className="size-5 stroke-1" />,
+    title: "Physicians only",
+    description:
+      "Every member is a verified physician. No patients, no PR, no noise",
+    icon: <ShieldCheckIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Made for localization",
-    description: "Easy to implement support for multiple languages and regions",
-    icon: <LanguagesIcon className="size-5 stroke-1" />,
+    title: "No PHI, ever",
+    description:
+      "Professional discussion without HIPAA-sensitive data — everything could be public",
+    icon: <LockIcon className="size-5 stroke-1" />,
   },
   {
-    title: "CMS friendly",
-    description: "Built to work with any headless content management system",
-    icon: <SquarePenIcon className="size-5 stroke-1" />,
+    title: "A real community",
+    description:
+      "Interventional cardiology at the core, with colleagues across specialties",
+    icon: <UsersIcon className="size-5 stroke-1" />,
   },
 ];
 
 export default function Items({
-  title = "Everything you need. Nothing you don't.",
+  title = "The conversation you wish happened at conferences",
   items = DEFAULT_ITEMS,
   className,
 }: ItemsProps) {

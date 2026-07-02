@@ -4,12 +4,10 @@ import { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-import Github from "../../logos/github";
 import { Badge } from "../../ui/badge";
 import Glow from "../../ui/glow";
 import { LinkButton, type LinkButtonProps } from "../../ui/link-button";
 import { Mockup, MockupFrame } from "../../ui/mockup";
-import Screenshot from "../../ui/screenshot";
 import { Section } from "../../ui/section";
 
 interface HeroButtonProps extends Omit<LinkButtonProps, "children"> {
@@ -28,45 +26,33 @@ interface HeroProps {
 const DEFAULT_HERO_BUTTONS: HeroButtonProps[] = [
   {
     href: siteConfig.getStartedUrl,
-    text: "Get Started",
+    text: "Get the App",
     variant: "default",
   },
   {
-    href: siteConfig.links.github,
-    text: "GitHub",
+    href: "/videos",
+    text: "Browse Videos",
     variant: "glow",
-    icon: <Github className="mr-2 size-4" />,
   },
 ];
 
 const DEFAULT_HERO_BADGE = (
   <Badge variant="outline" className="animate-appear">
     <span className="text-muted-foreground">
-      New version of Launch UI is out!
+      New: the MurmurMD video library
     </span>
-    <a href={siteConfig.getStartedUrl} className="flex items-center gap-1">
-      Get started
+    <a href="/videos" className="flex items-center gap-1">
+      Watch now
       <ArrowRightIcon className="size-3" />
     </a>
   </Badge>
 );
 
-const DEFAULT_HERO_MOCKUP = (
-  <Screenshot
-    srcLight="/dashboard-light.png"
-    srcDark="/dashboard-dark.png"
-    alt="Launch UI app screenshot"
-    width={1248}
-    height={765}
-    loading="eager"
-    className="w-full"
-  />
-);
-
 export default function Hero({
-  title = "Give your big idea the design it deserves",
-  description = "Professionally designed blocks and templates built with React, Shadcn/ui and Tailwind that will help your product stand out.",
-  mockup = DEFAULT_HERO_MOCKUP,
+  title = "Where physicians talk medicine",
+  description = "MurmurMD is the professional community where physicians share cases, compare outcomes, run polls, and learn from each other — without HIPAA-sensitive data, ever.",
+  // No app screenshots yet — re-enable the mockup once we have them.
+  mockup = false,
   badge = DEFAULT_HERO_BADGE,
   buttons = DEFAULT_HERO_BUTTONS,
   className,

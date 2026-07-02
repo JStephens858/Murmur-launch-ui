@@ -9,27 +9,26 @@ import { siteConfig } from "../config/site";
 
 export const metadata: Metadata = {
   title: {
-    default: siteConfig.name,
+    default: `${siteConfig.name} — Where physicians talk medicine`,
     template: `%s - ${siteConfig.name}`,
   },
   metadataBase: new URL(siteConfig.url),
   description: siteConfig.description,
   keywords: [
-    "Landing page template",
-    "Components",
-    "Shadcn",
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Radix UI",
+    "MurmurMD",
+    "physician community",
+    "interventional cardiology",
+    "medical cases",
+    "physician polls",
+    "medical market research",
   ],
   authors: [
     {
-      name: "Mikolaj Dobrucki",
-      url: "https://mikolajdobrucki.com",
+      name: "MurmurMD",
+      url: siteConfig.url,
     },
   ],
-  creator: "mikolajdobrucki",
+  creator: "MurmurMD",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -51,7 +50,6 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
-    creator: "@mikolajdobrucki",
   },
   icons: {
     icon: "/favicon.svg",
@@ -65,16 +63,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="dark"
-      style={{ colorScheme: "dark" }}
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} bg-background font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

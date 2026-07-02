@@ -16,6 +16,23 @@ Format:
 
 ---
 
+## 2026-07-02 — Landing page structure (v1)
+**Decision:** Home page composition: Hero (no app mockup until screenshots exist) → feature grid (cases, outcomes, recommendations, polls, videos, verification, no-PHI, community) → "Two ways in" audience split (Physicians / Partners cards) → FAQ → Get-the-App CTA → footer. Launch UI's pricing, stats, and logos sections and brand SVGs were deleted (recoverable from git). The other tabs got real-copy starter pages (`/physicians`, `/partners`, `/get-the-app`, `/about`) to be expanded in Phase 3.
+**Status:** Active
+
+## 2026-07-02 — Light mode is the default theme
+**Decision:** The site defaults to the light (paper/ink) palette; the template's forced-dark default was removed. Users can switch to dark or system via the footer toggle.
+**Why:** The brand palette is light-first.
+**Status:** Active
+
+## 2026-07-02 — /videos aliases the grid prototype for now
+**Decision:** Navigation links point at `/videos`, which re-exports the `/videos2` grid prototype until the videos1-vs-videos2 verdict. Nav never needs to change; only the alias does.
+**Status:** Active
+
+## 2026-07-02 — Logo file convention
+**Decision:** Theme-aware wordmark: `public/web_logo_light.png` renders on light backgrounds, `public/web_logo_dark.png` (white wordmark) on dark, via the `MurmurMD` logo component. The two files are currently identical — the light variant awaits a dark-text version from branding.
+**Status:** Active
+
 ## 2026-07-02 — Product & audience brief
 **Decision:** The site is MurmurMD's public web presence. MurmurMD is a social/professional media app for iOS (web portions coming) where physicians — currently mostly interventional cardiologists, plus thoracic surgeons, EPs, radiologists — share cases, review outcomes, give recommendations, and commission polls. No HIPAA-sensitive data ("everything posted could legally go on Twitter"). The app is physicians-only; unverified users are directed to this site, which must serve the general public, prospective physician users, and industry partners (medical device & related) who commission videos, polls, and market-research reports.
 **Status:** Active
@@ -42,7 +59,7 @@ Format:
 
 ## 2026-07-02 — Video data & playback stack
 **Decision:** Video metadata comes from MurmurMD's existing GraphQL API (Apollo client, though any GraphQL library would do), querying the publicly accessible videos. Playback is the company's existing pipeline: CMAF/HLS `.m3u8` streams from S3 (`murmurmd.postvideos`, us-west-2), poster frames via the CloudFront image resizer (`d3ngaae513epof.cloudfront.net`). In the browser, `hls.js` handles playback (Safari plays HLS natively; shared `VideoPlayer` component handles both). Long-form videos are landscape 16:9; shorts are portrait 9:16, and the UI renders each accordingly. Until the GraphQL wiring lands, pages build against `lib/videos.ts`, a mock catalog shaped like the API response.
-**Known blocker:** The S3 stream URLs currently return no `Access-Control-Allow-Origin` header, so hls.js playback fails in Chrome/Firefox (Safari works natively). Needs a CORS policy on the bucket or fronting the streams with CloudFront + CORS.
+**Update (same day):** CORS policy applied to the bucket (`AllowedOrigins: *`, GET/HEAD) and verified — cross-browser playback unblocked.
 **Status:** Active
 
 ## 2026-07-02 — Two video-browsing prototypes to compare
