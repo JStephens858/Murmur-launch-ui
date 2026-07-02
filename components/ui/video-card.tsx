@@ -4,8 +4,8 @@ import { Play } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
-import { formatDuration, type Video } from "@/lib/videos";
 import { cn } from "@/lib/utils";
+import { formatDuration, type Video } from "@/lib/videos";
 
 import { Badge } from "./badge";
 

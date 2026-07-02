@@ -8,6 +8,7 @@ import Footer from "@/components/sections/footer/default";
 import Navbar from "@/components/sections/navbar/default";
 import { VideoCard } from "@/components/ui/video-card";
 import { VideoPlayer } from "@/components/ui/video-player";
+import { cn } from "@/lib/utils";
 import {
   formatDuration,
   formatPublishedAt,
@@ -16,7 +17,6 @@ import {
   type Video,
   type VideoKind,
 } from "@/lib/videos";
-import { cn } from "@/lib/utils";
 
 type Filter = "ALL" | VideoKind;
 
@@ -30,8 +30,8 @@ export default function Videos2() {
   const [filter, setFilter] = React.useState<Filter>("ALL");
   const [active, setActive] = React.useState<Video | null>(null);
 
-  const visible =
-    filter === "ALL" ? videos : videos.filter((v) => v.kind === filter);
+  const showLong = filter !== "SHORT_FORM";
+  const showShort = filter !== "LONG_FORM";
 
   return (
     <main className="bg-background text-foreground min-h-screen w-full">
@@ -65,16 +65,41 @@ export default function Videos2() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {visible.map((video) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              showKind={filter === "ALL"}
-              onClick={() => setActive(video)}
-            />
-          ))}
-        </div>
+        {/* Landscape and portrait cards get separate grids: mixed in one row
+            they leave large gaps, and portrait tiles want more columns. */}
+        {showLong && (
+          <div className="flex flex-col gap-4">
+            {filter === "ALL" && (
+              <h2 className="text-xl font-semibold">Long-form</h2>
+            )}
+            <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {longFormVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  onClick={() => setActive(video)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {showShort && (
+          <div className="flex flex-col gap-4">
+            {filter === "ALL" && (
+              <h2 className="text-xl font-semibold">Shorts</h2>
+            )}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+              {shortFormVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  onClick={() => setActive(video)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </section>
       <Footer />
 

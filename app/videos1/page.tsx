@@ -14,8 +14,8 @@ import {
   formatPublishedAt,
   longFormVideos,
   shortFormVideos,
-  videos,
   type Video,
+  videos,
 } from "@/lib/videos";
 
 function CarouselRow({
