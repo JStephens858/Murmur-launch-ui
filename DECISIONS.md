@@ -16,6 +16,11 @@ Format:
 
 ---
 
+## 2026-07-02 — Auth0 plumbing pulled forward
+**Decision:** Auth0 wiring landed now rather than waiting for the post-launch physician-web phase: `@auth0/nextjs-auth0` v4, middleware-mounted routes under `/auth/*` (login, logout, callback, profile), `lib/auth0.ts` client, "Physician Login" in the navbar, and a session-gated `/account` page as the seed of the physician web experience. Credentials come from `.env.local` (gitignored; `.env.example` documents the shape). Placeholder tenant values until the real Regular-Web-Application client is configured — the login flow 500s on OIDC discovery until then, by design.
+**Why:** Auth0 is the company's existing auth provider; wiring it while the codebase is small is cheaper than retrofitting.
+**Status:** Active
+
 ## 2026-07-02 — No HIPAA/PHI messaging in site copy
 **Decision:** Site copy does not mention HIPAA, PHI, or the no-patient-data rule. The no-PHI constraint remains true (and stays documented internally in the product brief) but it's a compliance boundary, not a selling point, and shouldn't set a security/legal tone on the marketing site. The FAQ privacy entry and the "No PHI, ever" feature tile were removed; the feature grid gained an "Insights for industry" tile instead.
 **Why:** Josh: "While we don't accept HIPAA-affected information, it's not really a selling point — I was just telling you so we didn't go down the security path."

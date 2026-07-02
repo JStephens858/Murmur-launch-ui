@@ -51,8 +51,14 @@ export default function Navbar({
     { text: "Get the App", href: "/get-the-app" },
     { text: "Videos", href: "/videos" },
     { text: "About", href: "/about" },
+    { text: "Physician Login", href: "/auth/login?returnTo=/account" },
   ],
   actions = [
+    {
+      text: "Physician Login",
+      href: "/auth/login?returnTo=/account",
+      isButton: false,
+    },
     {
       text: "Get the App",
       href: "/get-the-app",

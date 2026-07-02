@@ -54,7 +54,8 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - Responsive/accessibility pass (AA contrast — deep teal for teal buttons), SEO metadata per page, analytics, deploy (likely Vercel), domain.
 
 ### Phase 6 (post-launch) — Physician web experience
-- Auth0 login; gated area where physicians browse posts and do some/most app actions on the web.
+- ~~Auth0 login~~ — plumbing landed early (2026-07-02): middleware routes under `/auth/*`, gated `/account` page, navbar login link. Needs real tenant credentials in `.env.local`.
+- Gated area where physicians browse posts and do some/most app actions on the web.
 - Architecture note for earlier phases: keep components server-friendly and content data-driven so the gated app can share the design system.
 
 ## Open items (waiting on Josh)
@@ -66,4 +67,5 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - [x] CORS policy on the S3 video bucket — applied and verified 2026-07-02
 - [ ] GraphQL endpoint + schema/query for publicly accessible videos
 - [ ] Verdict on /videos1 vs /videos2
+- [ ] Auth0 credentials: tenant domain + Regular Web Application client ID/secret into `.env.local`; callback/logout URLs whitelisted in the dashboard
 - [ ] Domain name for the site
