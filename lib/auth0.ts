@@ -8,4 +8,11 @@ import { Auth0Client } from "@auth0/nextjs-auth0/server";
  * The middleware mounts /auth/login, /auth/logout, /auth/callback,
  * /auth/profile, /auth/access-token, and /auth/backchannel-logout.
  */
-export const auth0 = new Auth0Client();
+export const auth0 = new Auth0Client({
+  authorizationParameters: {
+    // Set AUTH0_AUDIENCE to the API identifier if the GraphQL server
+    // requires a JWT access token minted for it.
+    audience: process.env.AUTH0_AUDIENCE,
+    scope: process.env.AUTH0_SCOPE ?? "openid profile email offline_access",
+  },
+});
