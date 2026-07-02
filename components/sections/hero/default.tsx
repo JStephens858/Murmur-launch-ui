@@ -60,7 +60,10 @@ export default function Hero({
   return (
     <Section
       className={cn(
-        "fade-bottom overflow-hidden pb-0 sm:pb-0 md:pb-0",
+        "overflow-hidden",
+        // The bottom fade exists to blend into the mockup screenshot; with no
+        // mockup it just washes out the buttons.
+        mockup !== false ? "fade-bottom pb-0 sm:pb-0 md:pb-0" : "pb-12 sm:pb-24",
         className,
       )}
     >
