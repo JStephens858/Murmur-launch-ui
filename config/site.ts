@@ -6,7 +6,7 @@ export const siteConfig = {
   // TODO: replace with a MurmurMD-branded OG image
   ogImage: "/og.jpg",
   description:
-    "MurmurMD is the professional community where physicians share cases, compare outcomes, run polls, and learn from each other.",
+    "MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.",
   // TODO: real App Store link
   appStoreUrl: "#app-store",
   contactEmail: "contact@murmurmd.com",
