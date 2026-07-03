@@ -47,7 +47,7 @@ export default function BackgroundLines() {
     };
 
     const draw = (now: number) => {
-      const t = now * 0.0000133; // slow tumble
+      const t = now * 0.0000067; // slow tumble
       ctx.clearRect(0, 0, width, height);
 
       const cx = width * 0.5;
