@@ -37,7 +37,7 @@ export default async function AccountPage() {
       : session.user.name;
 
   return (
-    <main className="bg-background text-foreground min-h-screen w-full">
+    <main className="text-foreground min-h-screen w-full">
       <Navbar />
       <section className="max-w-container mx-auto flex flex-col gap-6 px-4 py-24">
         <div className="flex items-center gap-4">

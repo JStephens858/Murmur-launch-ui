@@ -23,7 +23,7 @@ export default async function VideosPage() {
   }
 
   return (
-    <main className="bg-background text-foreground min-h-screen w-full">
+    <main className="text-foreground min-h-screen w-full">
       <Navbar />
       <section className="max-w-container mx-auto flex flex-col gap-8 px-4 py-12">
         <div className="flex flex-col gap-2">

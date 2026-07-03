@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="bg-background text-foreground min-h-screen w-full">
+    <main className="text-foreground min-h-screen w-full">
       <Navbar />
       <Hero
         title="About MurmurMD"

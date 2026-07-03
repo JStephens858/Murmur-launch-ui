@@ -68,7 +68,15 @@ export default function Hero({
       )}
     >
       <div className="max-w-container mx-auto flex flex-col gap-12 pt-16 sm:gap-24">
-        <div className="flex flex-col items-center gap-6 text-center sm:gap-12">
+        <div className="relative flex flex-col items-center gap-6 text-center sm:gap-12">
+          {/* With a mockup, the glow ships with it below; without one the
+              hero needs its own so the page top doesn't fall flat. */}
+          {mockup === false && (
+            <Glow
+              variant="center"
+              className="animate-appear-zoom opacity-0 delay-500"
+            />
+          )}
           {badge !== false && badge}
           <h1 className="animate-appear from-foreground to-foreground dark:to-muted-foreground relative z-10 inline-block bg-linear-to-r bg-clip-text text-3xl leading-tight font-semibold text-balance text-transparent drop-shadow-2xl sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight">
             {title}

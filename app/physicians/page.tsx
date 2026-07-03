@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function PhysiciansPage() {
   return (
-    <main className="bg-background text-foreground min-h-screen w-full">
+    <main className="text-foreground min-h-screen w-full">
       <Navbar />
       <Hero
         title="Built for physicians, by physicians"
