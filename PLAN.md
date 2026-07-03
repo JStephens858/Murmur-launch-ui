@@ -65,7 +65,7 @@ users, and industry partners. See `DECISIONS.md` for the reasoning behind each c
 - [ ] App Store link
 - [ ] App screenshots / example case & poll content
 - [x] CORS policy on the S3 video bucket — applied and verified 2026-07-02
-- [ ] GraphQL endpoint + schema/query for publicly accessible videos
+- [x] GraphQL endpoint + schema/query for publicly accessible videos — `getPublicVideosForSite` wired 2026-07-03; load-more pagination still to build
 - [ ] Verdict on /videos1 vs /videos2
 - [ ] Auth0 credentials: tenant domain + Regular Web Application client ID/secret into `.env.local`; callback/logout URLs whitelisted in the dashboard
 - [ ] Domain name for the site

@@ -16,6 +16,10 @@ Format:
 
 ---
 
+## 2026-07-03 — Real /videos page on getPublicVideosForSite
+**Decision:** `/videos` is now a real server-rendered page (grid + modal pattern from the videos2 prototype) fed by the `getPublicVideosForSite` GraphQL query — unauthenticated (Josh flipped it to `requiresUserData: false` in the Apollo server) with 5-minute ISR. Mapping conventions: video media element joined to post by `postId`; card title is `post.title`, falling back to the first line of `postText`; author joined via `creatorUserId`; `duration` is in **milliseconds**; preview prefers the CloudFront-resized `post.mediaPreviewUrl` over the raw S3 `mediaPreviewImageUrl`. Pagination cursors (`lastLongPostId`/`lastShortPostId`) are returned by the lib but load-more UI is not built yet. The `/videos1`/`/videos2` prototypes and mock catalog remain until a final look verdict, then get deleted.
+**Status:** Active
+
 ## 2026-07-02 — Theme lab for visual experiments
 **Decision:** Candidate looks are CSS-variable variant blocks in `styles/themes.css`, selected by `data-theme` on `<html>` via a dev-only floating picker (`components/ui/theme-lab.tsx`, localStorage-persisted, excluded from production). Backgrounds stay the paper/ink grays in every variant — Josh likes those — variants only change accent economy (primary buttons, links, rings, radius). Starter variants: teal-forward, plum accents, ink minimal. Winners get promoted into `:root`/`.dark` in `globals.css`; structural (layout-level) experiments still use branches/worktrees instead.
 **Why:** Iterating by editing `globals.css` in place makes side-by-side comparison impossible and reverting error-prone.
