@@ -229,33 +229,8 @@
     @apply border-border;
   }
   body {
+    /* Page wrappers stay transparent so the fixed background line art
+       (components/ui/background-lines.tsx) shows through. */
     @apply bg-background text-foreground;
-    /* Ambient brand washes at the top of the page; theme-aware via tokens.
-       Page wrappers must stay transparent for these to show through. */
-    background-image:
-      radial-gradient(
-        80rem 40rem at 15% -8rem,
-        color-mix(in oklab, var(--brand) 9%, transparent),
-        transparent 65%
-      ),
-      radial-gradient(
-        70rem 36rem at 85% -6rem,
-        color-mix(in oklab, var(--teal) 7%, transparent),
-        transparent 65%
-      );
-    background-repeat: no-repeat;
-  }
-  .dark body {
-    background-image:
-      radial-gradient(
-        80rem 40rem at 15% -8rem,
-        color-mix(in oklab, var(--brand) 13%, transparent),
-        transparent 65%
-      ),
-      radial-gradient(
-        70rem 36rem at 85% -6rem,
-        color-mix(in oklab, var(--teal) 10%, transparent),
-        transparent 65%
-      );
   }
 }

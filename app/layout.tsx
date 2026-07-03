@@ -3,6 +3,7 @@ import "@/app/globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 
+import BackgroundLines from "@/components/ui/background-lines";
 import ThemeLab from "@/components/ui/theme-lab";
 import { inter } from "@/lib/fonts";
 
@@ -71,6 +72,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <BackgroundLines />
           {children}
           {process.env.NODE_ENV === "development" && <ThemeLab />}
         </ThemeProvider>
