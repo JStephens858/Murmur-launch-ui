@@ -9,7 +9,7 @@ import { siteConfig } from "@/config/site";
 export const metadata: Metadata = {
   title: "Partners",
   description:
-    "Commission video content and physician polls, and get market-research reports from the MurmurMD community.",
+    "Partner with MurmurMD to support the physician community and better understand physicians' concerns, preferences, and unmet needs.",
 };
 
 export default function PartnersPage() {
@@ -17,8 +17,8 @@ export default function PartnersPage() {
     <main className="bg-background text-foreground min-h-screen w-full">
       <Navbar />
       <Hero
-        title="Hear what physicians really think"
-        description="Medical device and related companies work with MurmurMD to commission video content, run polls of our physician community, and receive market-research reports on what physicians are discussing — concerns, preferences, and unmet needs."
+        title="Working together for the community"
+        description="We partner with medical device and related companies that want to help the physician community thrive. Partnerships center on supporting education and understanding physician sentiment — the concerns, preferences, and unmet needs that matter to practicing doctors."
         badge={false}
         buttons={[
           {
@@ -26,11 +26,19 @@ export default function PartnersPage() {
             text: "Start a Conversation",
             variant: "default",
           },
-          { href: "/videos", text: "See Our Videos", variant: "glow" },
         ]}
         mockup={false}
       />
-      <CTA title="Let's build something together" />
+      <CTA
+        title="Let's work together"
+        buttons={[
+          {
+            href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
+            text: "Contact Us",
+            variant: "default",
+          },
+        ]}
+      />
       <Footer />
     </main>
   );

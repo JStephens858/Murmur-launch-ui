@@ -35,7 +35,7 @@ export default function Audiences({
       icon: <BriefcaseIcon className="size-6 stroke-1" />,
       title: "For industry partners",
       description:
-        "Commission video content and polls, and get market-research reports on what physicians are actually discussing — concerns, preferences, unmet needs.",
+        "We work with companies that want to help the physician community — and to better understand physicians' concerns, preferences, and unmet needs.",
       href: "/partners",
       linkText: "Partner with MurmurMD",
     },

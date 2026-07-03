@@ -5,7 +5,6 @@ import {
   MessagesSquareIcon,
   PlayIcon,
   ShieldCheckIcon,
-  TrendingUpIcon,
   UsersIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
@@ -47,7 +46,7 @@ const DEFAULT_ITEMS: ItemProps[] = [
   {
     title: "Polls",
     description:
-      "Commission a poll and see where your colleagues actually stand",
+      "Poll your colleagues and see where they actually stand",
     icon: <BarChart3Icon className="size-5 stroke-1" />,
   },
   {
@@ -61,12 +60,6 @@ const DEFAULT_ITEMS: ItemProps[] = [
     description:
       "Every member is a verified physician. No patients, no PR, no noise",
     icon: <ShieldCheckIcon className="size-5 stroke-1" />,
-  },
-  {
-    title: "Insights for industry",
-    description:
-      "Partners commission videos and polls, and learn what physicians actually need",
-    icon: <TrendingUpIcon className="size-5 stroke-1" />,
   },
   {
     title: "A real community",

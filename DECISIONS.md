@@ -16,6 +16,11 @@ Format:
 
 ---
 
+## 2026-07-03 — Partner messaging: community support, not influence or visibility
+**Decision:** Partner-facing copy is deliberately vague and community-first: "work together to help the community," supporting education, and understanding physician sentiment (concerns, preferences, unmet needs). Never say partners commission videos or polls, never frame reports as "seeing what doctors are discussing," and don't highlight that industry can observe the platform. Removed: the "Insights for industry" feature tile, commissioning/poll language on `/partners`, the home audiences card, and the FAQ; the Get-the-App button is gone from the partners page CTA (partners can't use the app). The physician-facing Polls tile stays but says "poll your colleagues," not "commission."
+**Why:** Josh: partners pay for video production but have no say over content (and that's being phased out); MurmurMD is a somewhat private community — industry visibility is known but shouldn't be highlighted. Highlighting partner influence undermines physician trust.
+**Status:** Active
+
 ## 2026-07-03 — Real /videos page on getPublicVideosForSite
 **Decision:** `/videos` is now a real server-rendered page (grid + modal pattern from the videos2 prototype) fed by the `getPublicVideosForSite` GraphQL query — unauthenticated (Josh flipped it to `requiresUserData: false` in the Apollo server) with 5-minute ISR. Mapping conventions: video media element joined to post by `postId`; card title is `post.title`, falling back to the first line of `postText`; author joined via `creatorUserId`; `duration` is in **milliseconds**; preview prefers the CloudFront-resized `post.mediaPreviewUrl` over the raw S3 `mediaPreviewImageUrl`. Pagination cursors (`lastLongPostId`/`lastShortPostId`) are returned by the lib but load-more UI is not built yet. The `/videos1`/`/videos2` prototypes and mock catalog remain until a final look verdict, then get deleted.
 **Status:** Active

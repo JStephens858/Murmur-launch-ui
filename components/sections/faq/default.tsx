@@ -69,17 +69,17 @@ export default function FAQ({
       ),
     },
     {
-      question: "What do industry partners get?",
+      question: "How do industry partners work with MurmurMD?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-          Medical device and related companies commission long-form and
-          short-form video content, run polls of the physician community, and
-          receive market-research reports on what physicians are discussing —
-          their concerns, preferences, and unmet needs. See{" "}
+          We partner with medical device and related companies that want to
+          help the physician community — supporting education and better
+          understanding physicians&apos; concerns, preferences, and unmet
+          needs. See{" "}
           <Link href="/partners" className="text-foreground underline">
             Partners
           </Link>{" "}
-          for details.
+          to start a conversation.
         </p>
       ),
     },

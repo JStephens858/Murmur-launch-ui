@@ -20,8 +20,7 @@ export const metadata: Metadata = {
     "physician community",
     "interventional cardiology",
     "medical cases",
-    "physician polls",
-    "medical market research",
+    "physician sentiment",
   ],
   authors: [
     {
