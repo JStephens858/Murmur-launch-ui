@@ -10,9 +10,8 @@ import * as React from "react";
  */
 
 const THEMES = [
-  { id: "", name: "Murmur (current)" },
-  { id: "teal", name: "Teal-forward" },
-  { id: "plum", name: "Plum accents" },
+  { id: "", name: "Murmur (plum)" },
+  { id: "teal", name: "Teal accents" },
   { id: "ink", name: "Ink minimal" },
 ];
 

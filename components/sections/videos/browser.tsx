@@ -101,8 +101,8 @@ export default function VideosBrowser({
             className={cn(
               "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
               filter === value
-                ? "border-transparent bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "glass-5 border-border/80 dark:border-border/35 dark:from-primary/25 dark:to-primary/10 text-foreground shadow-md"
+                : "border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {label}

@@ -25,7 +25,7 @@ export default function PartnersPage() {
           {
             href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
             text: "Start a Conversation",
-            variant: "default",
+            variant: "glow",
           },
         ]}
         mockup={false}
@@ -37,7 +37,7 @@ export default function PartnersPage() {
           {
             href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
             text: "Contact Us",
-            variant: "default",
+            variant: "glow",
           },
         ]}
       />

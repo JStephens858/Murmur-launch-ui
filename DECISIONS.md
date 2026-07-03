@@ -16,6 +16,16 @@ Format:
 
 ---
 
+## 2026-07-03 — Plum accents are the default
+**Decision:** The plum theme-lab variant is promoted into the base palette: accents, links, and focus rings use plum `#8A1E5C` (tint `#F3E4ED`) in light mode and `#D98BB8`/`#3A1F31` in dark; deep plum `#6D1849`/`#B04A86` as the strong variant. The `--teal`/`--teal-deep` tokens were renamed `--accent-alt`/`--accent-alt-deep` since their values are no longer teal. The old teal look remains in the theme lab as the "Teal accents" variant for comparison; teal-forward was dropped.
+**Why:** Josh compared the variants live via the theme lab and preferred plum with the pink brand.
+**Status:** Active
+
+## 2026-07-03 — One button style: the translucent "glow" variant
+**Decision:** All marketing CTAs standardize on the translucent glass button (`glow` variant) — hero buttons, navbar "Get the App", partners CTAs, and the videos-page filter pills (active state). The glow variant was strengthened to stand out: full-strength glass background, more visible border (`border-border/80` light, `/35` dark), and a stronger primary tint in dark mode. The pink gradient `default` variant remains in the codebase but is no longer used for CTAs; the App Store badge is exempt (Apple-mandated artwork).
+**Why:** Three competing button styles (gradient, translucent, pill fill) looked inconsistent; Josh picked the translucent one, made more solid.
+**Status:** Active
+
 ## 2026-07-03 — Partner messaging: community support, not influence or visibility
 **Decision:** Partner-facing copy is deliberately vague and community-first: "work together to help the community," supporting education, and understanding physician sentiment (concerns, preferences, unmet needs). Never say partners commission videos or polls, never frame reports as "seeing what doctors are discussing," and don't highlight that industry can observe the platform. Removed: the "Insights for industry" feature tile, commissioning/poll language on `/partners`, the home audiences card, and the FAQ; the Get-the-App button is gone from the partners page CTA (partners can't use the app). The physician-facing Polls tile stays but says "poll your colleagues," not "commission."
 **Why:** Josh: partners pay for video production but have no say over content (and that's being phased out); MurmurMD is a somewhat private community — industry visibility is known but shouldn't be highlighted. Highlighting partner influence undermines physician trust.
@@ -73,7 +83,7 @@ Format:
 ## 2026-07-02 — Brand palette, teal accent
 **Decision:** Palette: ink `#232A33` (headings/body), slate `#626D7C` (secondary text), gray `#B0BBBF` (borders), paper `#F4F6F7` (background), brand pink `#DE046C` (logo, primary CTA), teal `#119DA4` (accent/links) with deep teal `#0C7A80` for AA-contrast buttons. **Teal is the single accent; plum `#8A1E5C` is reserved and unused.**
 **Alternatives considered:** Plum as accent — ruled out per "use one accent, not both"; teal chosen for contrast against the pink and a clinical/trustworthy read.
-**Status:** Active
+**Status:** Superseded by "Plum accents are the default" (2026-07-03) — after seeing both live in the theme lab, plum won.
 
 ## 2026-07-02 — Keep dark mode
 **Decision:** Keep the template's light/dark toggle. The provided palette is the light theme; a dark variant will be derived from it (dark ink background, adjusted pink/teal).

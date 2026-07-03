@@ -58,7 +58,7 @@ export default function Navbar({
       text: "Get the App",
       href: "/get-the-app",
       isButton: true,
-      variant: "default",
+      variant: "glow",
     },
   ],
   showNavigation = true,

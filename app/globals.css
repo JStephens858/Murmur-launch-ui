@@ -10,8 +10,8 @@
   /* Colors */
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
-  --color-teal: var(--teal);
-  --color-teal-deep: var(--teal-deep);
+  --color-accent-alt: var(--accent-alt);
+  --color-accent-alt-deep: var(--accent-alt-deep);
   --color-light: var(--light);
   --color-light-foreground: var(--light-foreground);
   --color-background: var(--background);
@@ -120,13 +120,13 @@
 }
 
 :root {
-  /* MurmurMD brand — see DECISIONS.md "Brand palette, teal accent".
+  /* MurmurMD brand — see DECISIONS.md "Plum accents are the default".
      ink #232A33 · slate #626D7C · gray #B0BBBF · paper #F4F6F7
-     brand pink #DE046C · teal #119DA4 · teal-deep #0C7A80 (AA buttons) */
+     brand pink #DE046C · plum accent #8A1E5C (deep #6D1849) */
   --brand: #de046c;
   --brand-foreground: #f2559b;
-  --teal: #119da4;
-  --teal-deep: #0c7a80;
+  --accent-alt: #8a1e5c;
+  --accent-alt-deep: #6d1849;
 
   /* Customized shadcn/ui colors */
   --background: #f4f6f7;
@@ -141,13 +141,13 @@
   --secondary-foreground: #232a33;
   --muted: #e7ebed;
   --muted-foreground: #626d7c;
-  --accent: #dfeef0;
-  --accent-foreground: #0c7a80;
+  --accent: #f3e4ed;
+  --accent-foreground: #8a1e5c;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: #b0bbbf;
   --input: #b0bbbf;
-  --ring: #119da4;
+  --ring: #8a1e5c;
   --chart-1: #de046c;
   --chart-2: #119da4;
   --chart-3: #0c7a80;
@@ -158,10 +158,10 @@
   --sidebar-foreground: #232a33;
   --sidebar-primary: #de046c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #dfeef0;
-  --sidebar-accent-foreground: #0c7a80;
+  --sidebar-accent: #f3e4ed;
+  --sidebar-accent-foreground: #8a1e5c;
   --sidebar-border: #b0bbbf;
-  --sidebar-ring: #119da4;
+  --sidebar-ring: #8a1e5c;
 
   /* Illustrations colors */
   --light: var(--brand);
@@ -174,11 +174,11 @@
 
 .dark {
   /* MurmurMD dark — derived from the light palette: ink-black surfaces,
-     brightened pink/teal for contrast on dark backgrounds. */
+     brightened pink/plum for contrast on dark backgrounds. */
   --brand: #f2559b;
   --brand-foreground: #f58bb9;
-  --teal: #2cb8bf;
-  --teal-deep: #119da4;
+  --accent-alt: #d98bb8;
+  --accent-alt-deep: #b04a86;
 
   /* Customized shadcn/ui colors */
   --background: #14181d;
@@ -193,14 +193,14 @@
   --secondary-foreground: #edf1f3;
   --muted: #232a33;
   --muted-foreground: #9aa6b2;
-  --accent: #17343b;
-  --accent-foreground: #4fc4ca;
+  --accent: #3a1f31;
+  --accent-foreground: #d98bb8;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
   /* Stays light: dark-mode utilities apply alpha (border-border/10 etc.) */
   --border: #b0bbbf;
   --input: #323b44;
-  --ring: #2cb8bf;
+  --ring: #d98bb8;
   --chart-1: #f2559b;
   --chart-2: #2cb8bf;
   --chart-3: #119da4;
@@ -210,10 +210,10 @@
   --sidebar-foreground: #edf1f3;
   --sidebar-primary: #de046c;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #17343b;
-  --sidebar-accent-foreground: #4fc4ca;
+  --sidebar-accent: #3a1f31;
+  --sidebar-accent-foreground: #d98bb8;
   --sidebar-border: #323b44;
-  --sidebar-ring: #2cb8bf;
+  --sidebar-ring: #d98bb8;
 
   /* Illustrations colors */
   --light: var(--foreground);

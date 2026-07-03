@@ -5,8 +5,8 @@ import * as React from "react";
 /**
  * Ambient background: a slowly tumbling 3D wireframe knot drawn as thin
  * line strands on a fixed full-viewport canvas. Stroke colors come from
- * the theme tokens (--brand, --teal) so every theme-lab variant tints its
- * own art. Honors prefers-reduced-motion by rendering a single static
+ * the theme tokens (--brand, --accent-alt) so every theme-lab variant
+ * tints its own art. Honors prefers-reduced-motion by rendering a single static
  * frame. Sits behind all content (z-index -1; body background propagates
  * to the root, so the canvas isn't painted over).
  */
@@ -19,7 +19,7 @@ function readThemeColors() {
   const style = getComputedStyle(document.documentElement);
   return {
     brand: style.getPropertyValue("--brand").trim() || "#de046c",
-    teal: style.getPropertyValue("--teal").trim() || "#119da4",
+    accentAlt: style.getPropertyValue("--accent-alt").trim() || "#8a1e5c",
     dark: document.documentElement.classList.contains("dark"),
   };
 }
@@ -62,7 +62,7 @@ export default function BackgroundLines() {
 
       const gradient = ctx.createLinearGradient(cx - size, 0, cx + size, 0);
       gradient.addColorStop(0, colors.brand);
-      gradient.addColorStop(1, colors.teal);
+      gradient.addColorStop(1, colors.accentAlt);
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 1;
       ctx.globalAlpha = colors.dark ? 0.08 : 0.06;

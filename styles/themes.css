@@ -2,41 +2,29 @@
  * Theme lab — candidate looks, switchable in development via the floating
  * ThemeLab picker (sets data-theme on <html>, persisted in localStorage).
  *
- * Backgrounds intentionally stay the paper/ink grays from the base palette
- * in every variant; variants differ in accent economy: what color primary
- * actions, links, and focus rings get, and how much pink is in play.
+ * The base palette (globals.css) is the plum-accent look promoted on
+ * 2026-07-03. Variants below are kept for comparison. Backgrounds stay
+ * the paper/ink grays in every variant.
  *
  * To promote a winner: copy its values into :root/.dark in globals.css and
  * delete the variant blocks. To try a new look: add a block here and an
  * entry in components/ui/theme-lab.tsx.
  */
 
-/* ── Teal-forward: deep-teal actions, pink reserved for the logo ───────── */
+/* ── Teal accents: the pre-plum default, kept for comparison ───────────── */
 html[data-theme="teal"] {
-  --primary: #0c7a80;
-  --primary-foreground: #ffffff;
-  --ring: #0c7a80;
+  --accent: #dfeef0;
+  --accent-foreground: #0c7a80;
+  --ring: #119da4;
+  --accent-alt: #119da4;
+  --accent-alt-deep: #0c7a80;
 }
 html.dark[data-theme="teal"] {
-  --primary: #2cb8bf;
-  --primary-foreground: #14181d;
+  --accent: #17343b;
+  --accent-foreground: #4fc4ca;
   --ring: #2cb8bf;
-}
-
-/* ── Plum: pink actions, plum accents/links instead of teal ────────────── */
-html[data-theme="plum"] {
-  --accent: #f3e4ed;
-  --accent-foreground: #8a1e5c;
-  --ring: #8a1e5c;
-  --teal: #8a1e5c;
-  --teal-deep: #6d1849;
-}
-html.dark[data-theme="plum"] {
-  --accent: #3a1f31;
-  --accent-foreground: #d98bb8;
-  --ring: #d98bb8;
-  --teal: #d98bb8;
-  --teal-deep: #b04a86;
+  --accent-alt: #2cb8bf;
+  --accent-alt-deep: #119da4;
 }
 
 /* ── Ink: understated gray-on-gray, color only where it means something ── */
