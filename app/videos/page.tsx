@@ -39,10 +39,7 @@ export default async function VideosPage() {
             minutes.
           </p>
         ) : (
-          <VideosBrowser
-            longVideos={page.longVideos}
-            shortVideos={page.shortVideos}
-          />
+          <VideosBrowser initial={page} />
         )}
       </section>
       <Footer />

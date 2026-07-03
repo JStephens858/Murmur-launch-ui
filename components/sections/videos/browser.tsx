@@ -1,21 +1,46 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { Play, X } from "lucide-react";
+import { ArrowRightIcon, Play, X } from "lucide-react";
 import * as React from "react";
 
+import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { formatDurationMs, formatVideoDate, formatViews } from "@/lib/format";
-import { type SiteVideo } from "@/lib/murmur-api";
+import { type PublicVideosPage, type SiteVideo } from "@/lib/murmur-api";
 import { cn } from "@/lib/utils";
 
 type Filter = "ALL" | "LONG_FORM" | "SHORT_FORM";
+type VideoType = "long" | "short";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "ALL", label: "All videos" },
   { value: "LONG_FORM", label: "Long-form" },
   { value: "SHORT_FORM", label: "Shorts" },
 ];
+
+const PAGE_SIZE = 24;
+
+/**
+ * In the "All videos" view each group shows two grid rows at every
+ * breakpoint. Long grid is 1/2/3/4 columns, shorts 2/3/5/6 — so tiles
+ * beyond 2×cols hide per breakpoint.
+ */
+function longCapClass(index: number): string {
+  if (index < 2) return "";
+  if (index < 4) return "hidden sm:block";
+  if (index < 6) return "hidden lg:block";
+  if (index < 8) return "hidden xl:block";
+  return "hidden";
+}
+
+function shortCapClass(index: number): string {
+  if (index < 4) return "";
+  if (index < 6) return "hidden sm:block";
+  if (index < 10) return "hidden lg:block";
+  if (index < 12) return "hidden xl:block";
+  return "hidden";
+}
 
 function VideoPostCard({
   video,
@@ -76,17 +101,92 @@ function VideoPostCard({
 }
 
 export default function VideosBrowser({
-  longVideos,
-  shortVideos,
+  initial,
 }: {
-  longVideos: SiteVideo[];
-  shortVideos: SiteVideo[];
+  initial: PublicVideosPage;
 }) {
   const [filter, setFilter] = React.useState<Filter>("ALL");
   const [active, setActive] = React.useState<SiteVideo | null>(null);
+  const [longs, setLongs] = React.useState(initial.longVideos);
+  const [shorts, setShorts] = React.useState(initial.shortVideos);
+  const [hasMore, setHasMore] = React.useState({
+    long: initial.longHasMore,
+    short: initial.shortHasMore,
+  });
+  const [loadingMore, setLoadingMore] = React.useState(false);
+  const cursors = React.useRef({
+    long: initial.lastLongPostId,
+    short: initial.lastShortPostId,
+  });
+  const loadingRef = React.useRef(false);
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
 
-  const showLong = filter !== "SHORT_FORM" && longVideos.length > 0;
-  const showShort = filter !== "LONG_FORM" && shortVideos.length > 0;
+  const loadMore = React.useCallback(async (type: VideoType) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setLoadingMore(true);
+    try {
+      const cursor = cursors.current[type];
+      const query = new URLSearchParams({
+        type,
+        count: String(PAGE_SIZE),
+        ...(cursor ? { cursor } : {}),
+      });
+      const res = await fetch(`/api/videos?${query}`);
+      if (!res.ok) throw new Error(`videos api ${res.status}`);
+      const page: PublicVideosPage = await res.json();
+      if (type === "long") {
+        cursors.current.long = page.lastLongPostId ?? cursors.current.long;
+        setLongs((prev) => {
+          const seen = new Set(prev.map((v) => v.postId));
+          return [...prev, ...page.longVideos.filter((v) => !seen.has(v.postId))];
+        });
+        setHasMore((prev) => ({ ...prev, long: page.longHasMore }));
+      } else {
+        cursors.current.short = page.lastShortPostId ?? cursors.current.short;
+        setShorts((prev) => {
+          const seen = new Set(prev.map((v) => v.postId));
+          return [
+            ...prev,
+            ...page.shortVideos.filter((v) => !seen.has(v.postId)),
+          ];
+        });
+        setHasMore((prev) => ({ ...prev, short: page.shortHasMore }));
+      }
+    } catch {
+      // Stop asking on failure; the user can re-trigger by re-filtering.
+      setHasMore((prev) =>
+        type === "long" ? { ...prev, long: false } : { ...prev, short: false },
+      );
+    } finally {
+      loadingRef.current = false;
+      setLoadingMore(false);
+    }
+  }, []);
+
+  // Infinite scroll: only in a single-type view.
+  const activeType: VideoType | null =
+    filter === "LONG_FORM" ? "long" : filter === "SHORT_FORM" ? "short" : null;
+  const activeHasMore = activeType ? hasMore[activeType] : false;
+
+  React.useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !activeType || !activeHasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          loadMore(activeType);
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [activeType, activeHasMore, loadMore]);
+
+  const showLong = filter !== "SHORT_FORM" && longs.length > 0;
+  const showShort = filter !== "LONG_FORM" && shorts.length > 0;
+  const capped = filter === "ALL";
 
   return (
     <>
@@ -112,16 +212,27 @@ export default function VideosBrowser({
 
       {showLong && (
         <div className="flex flex-col gap-4">
-          {filter === "ALL" && (
-            <h2 className="text-xl font-semibold">Long-form</h2>
+          {capped && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Long-form</h2>
+              <Button
+                variant="glow"
+                size="sm"
+                onClick={() => setFilter("LONG_FORM")}
+              >
+                View more
+                <ArrowRightIcon className="size-4" />
+              </Button>
+            </div>
           )}
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {longVideos.map((video) => (
-              <VideoPostCard
+            {longs.map((video, index) => (
+              <div
                 key={video.postId}
-                video={video}
-                onClick={() => setActive(video)}
-              />
+                className={capped ? longCapClass(index) : undefined}
+              >
+                <VideoPostCard video={video} onClick={() => setActive(video)} />
+              </div>
             ))}
           </div>
         </div>
@@ -129,14 +240,27 @@ export default function VideosBrowser({
 
       {showShort && (
         <div className="flex flex-col gap-4">
-          {filter === "ALL" && <h2 className="text-xl font-semibold">Shorts</h2>}
+          {capped && (
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Shorts</h2>
+              <Button
+                variant="glow"
+                size="sm"
+                onClick={() => setFilter("SHORT_FORM")}
+              >
+                View more
+                <ArrowRightIcon className="size-4" />
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-            {shortVideos.map((video) => (
-              <VideoPostCard
+            {shorts.map((video, index) => (
+              <div
                 key={video.postId}
-                video={video}
-                onClick={() => setActive(video)}
-              />
+                className={capped ? shortCapClass(index) : undefined}
+              >
+                <VideoPostCard video={video} onClick={() => setActive(video)} />
+              </div>
             ))}
           </div>
         </div>
@@ -144,6 +268,19 @@ export default function VideosBrowser({
 
       {!showLong && !showShort && (
         <p className="text-muted-foreground">No videos yet — check back soon.</p>
+      )}
+
+      {activeType && (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          {loadingMore && (
+            <p className="text-muted-foreground text-sm">Loading more…</p>
+          )}
+          {!activeHasMore && !loadingMore && (
+            <p className="text-muted-foreground text-sm">
+              That&apos;s all for now.
+            </p>
+          )}
+        </div>
       )}
 
       <Dialog.Root

@@ -105,6 +105,9 @@ export interface PublicVideosPage {
   /** Cursors for the next page (pass as lastLongPostId / lastShortPostId). */
   lastLongPostId: string | null;
   lastShortPostId: string | null;
+  /** False once the API returns fewer post ids than requested. */
+  longHasMore: boolean;
+  shortHasMore: boolean;
 }
 
 const GET_PUBLIC_VIDEOS_QUERY = /* GraphQL */ `
@@ -265,5 +268,7 @@ export async function getPublicVideos({
     shortVideos,
     lastLongPostId: longIds.at(-1) ?? null,
     lastShortPostId: shortIds.at(-1) ?? null,
+    longHasMore: longCount > 0 && longIds.length >= longCount,
+    shortHasMore: shortCount > 0 && shortIds.length >= shortCount,
   };
 }
