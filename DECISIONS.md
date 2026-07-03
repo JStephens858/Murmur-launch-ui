@@ -16,6 +16,10 @@ Format:
 
 ---
 
+## 2026-07-03 — Data-fetching split: public pages server-fed, logged-in surfaces hit the API directly
+**Decision:** Public content (videos, and anything else pre-login) is fetched server-side — static/ISR pages plus thin `/api/*` route handlers — keeping the GraphQL endpoint out of the browser and letting the cache absorb traffic. The future logged-in physician web experience will instead call the GraphQL API directly from the browser with the user's Auth0 token, exactly like the iOS app does; Josh confirmed there's no additional security concern since the API already serves authenticated clients.
+**Status:** Active
+
 ## 2026-07-03 — Plum accents are the default
 **Decision:** The plum theme-lab variant is promoted into the base palette: accents, links, and focus rings use plum `#8A1E5C` (tint `#F3E4ED`) in light mode and `#D98BB8`/`#3A1F31` in dark; deep plum `#6D1849`/`#B04A86` as the strong variant. The `--teal`/`--teal-deep` tokens were renamed `--accent-alt`/`--accent-alt-deep` since their values are no longer teal. The old teal look remains in the theme lab as the "Teal accents" variant for comparison; teal-forward was dropped.
 **Why:** Josh compared the variants live via the theme lab and preferred plum with the pink brand.
