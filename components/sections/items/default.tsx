@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
+
 import { Item, ItemDescription, ItemIcon, ItemTitle } from "../../ui/item";
 import { Section } from "../../ui/section";
 
@@ -69,6 +71,35 @@ const DEFAULT_ITEMS: ItemProps[] = [
   },
 ];
 
+/**
+ * The grid is 2/3/4 tiles per row (rendered as 4/6/8 columns with tiles
+ * spanning 2), so a partial last row can be centered by offsetting its
+ * first tile half a tile-width.
+ */
+function itemPlacement(index: number, count: number): string {
+  const base = count % 2 === 1 && index === count - 1 ? "col-start-2" : null;
+  const smRem = count % 3;
+  const sm =
+    smRem === 1 && index === count - 1
+      ? "sm:col-start-3"
+      : smRem === 2 && index === count - smRem
+        ? "sm:col-start-2"
+        : null;
+  const lgRem = count % 4;
+  const lg =
+    lgRem > 0 && index === count - lgRem
+      ? { 1: "lg:col-start-4", 2: "lg:col-start-3", 3: "lg:col-start-2" }[
+          lgRem as 1 | 2 | 3
+        ]
+      : null;
+  return cn(
+    "col-span-2",
+    base,
+    sm ?? (base && "sm:col-start-auto"),
+    lg ?? ((base || sm) && "lg:col-start-auto"),
+  );
+}
+
 export default function Items({
   title = "The conversation you wish happened at conferences",
   items = DEFAULT_ITEMS,
@@ -81,9 +112,12 @@ export default function Items({
           {title}
         </h2>
         {items !== false && items.length > 0 && (
-          <div className="grid auto-rows-fr grid-cols-2 gap-0 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-            {items.map((item) => (
-              <Item key={item.title}>
+          <div className="grid auto-rows-fr grid-cols-4 gap-0 sm:grid-cols-6 sm:gap-4 lg:grid-cols-8">
+            {items.map((item, index) => (
+              <Item
+                key={item.title}
+                className={itemPlacement(index, items.length)}
+              >
                 <ItemTitle className="flex items-center gap-2">
                   <ItemIcon>{item.icon}</ItemIcon>
                   {item.title}
