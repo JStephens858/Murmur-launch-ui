@@ -7,7 +7,11 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { formatDurationMs, formatVideoDate, formatViews } from "@/lib/format";
-import { type PublicVideosPage, type SiteVideo } from "@/lib/murmur-api";
+import {
+  type PublicVideosPage,
+  type SiteVideo,
+  type VideoHashtag,
+} from "@/lib/murmur-api";
 import { cn } from "@/lib/utils";
 
 type Filter = "ALL" | "LONG_FORM" | "SHORT_FORM";
@@ -40,6 +44,44 @@ function shortCapClass(index: number): string {
   if (index < 10) return "hidden lg:block";
   if (index < 12) return "hidden xl:block";
   return "hidden";
+}
+
+/**
+ * Hashtag chip, drawn as a small disabled button. Not a real <button>:
+ * cards are buttons themselves, and tag search isn't built yet — these
+ * become links once tag-filtered browsing exists.
+ */
+function HashtagChip({ tag }: { tag: VideoHashtag }) {
+  return (
+    <span
+      aria-disabled="true"
+      className="border-border/60 bg-card/60 text-muted-foreground inline-flex cursor-default items-center rounded-full border px-2 py-0.5 text-xs font-medium opacity-70"
+    >
+      #{tag.hashtag}
+    </span>
+  );
+}
+
+function HashtagRow({
+  tags,
+  max,
+}: {
+  tags: VideoHashtag[];
+  max?: number;
+}) {
+  if (tags.length === 0) return null;
+  const visible = max ? tags.slice(0, max) : tags;
+  const overflow = tags.length - visible.length;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {visible.map((tag) => (
+        <HashtagChip key={tag.hashtagId} tag={tag} />
+      ))}
+      {overflow > 0 && (
+        <span className="text-muted-foreground text-xs">+{overflow}</span>
+      )}
+    </div>
+  );
 }
 
 function VideoPostCard({
@@ -90,11 +132,12 @@ function VideoPostCard({
           </span>
         )}
       </div>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <h3 className="text-foreground line-clamp-2 text-sm leading-snug font-semibold">
           {video.title}
         </h3>
         {meta && <p className="text-muted-foreground text-xs">{meta}</p>}
+        <HashtagRow tags={video.hashtags} max={3} />
       </div>
     </button>
   );
@@ -329,6 +372,7 @@ export default function VideosBrowser({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
+                  <HashtagRow tags={active.hashtags} />
                   {active.description && (
                     <Dialog.Description className="text-muted-foreground text-sm whitespace-pre-line">
                       {active.description}

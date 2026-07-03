@@ -83,6 +83,12 @@ export async function getProfile(
 
 /* ── Public videos (unauthenticated) ─────────────────────────────────── */
 
+export interface VideoHashtag {
+  hashtagId: string;
+  /** Tag text without the leading "#". */
+  hashtag: string;
+}
+
 export interface SiteVideo {
   postId: string;
   kind: "LONG_FORM" | "SHORT_FORM";
@@ -97,6 +103,7 @@ export interface SiteVideo {
   durationMs: number | null;
   previewImageUrl: string | null;
   streamUrl: string;
+  hashtags: VideoHashtag[];
 }
 
 export interface PublicVideosPage {
@@ -142,6 +149,11 @@ const GET_PUBLIC_VIDEOS_QUERY = /* GraphQL */ `
           numUniqueViews
           mediaPreviewUrl
           mediaElementIds
+          hashtagIds
+        }
+        hashtags {
+          hashtagId
+          hashtag
         }
         mediaElements {
           postId
@@ -180,8 +192,10 @@ interface PublicVideosData {
             numUniqueViews: number | null;
             mediaPreviewUrl: string | null;
             mediaElementIds: string[] | null;
+            hashtagIds: string[] | null;
           }[]
         | null;
+      hashtags: { hashtagId: string; hashtag: string | null }[] | null;
       mediaElements:
         | {
             postId: string | null;
@@ -221,6 +235,11 @@ export async function getPublicVideos({
   const store = payload?.store;
   const users = new Map((store?.users ?? []).map((u) => [u.userId, u]));
   const posts = new Map((store?.posts ?? []).map((p) => [p.postId, p]));
+  const hashtags = new Map(
+    (store?.hashtags ?? [])
+      .filter((h) => h.hashtag)
+      .map((h) => [h.hashtagId, h.hashtag as string]),
+  );
   const videoElements = new Map(
     (store?.mediaElements ?? [])
       .filter((m) => m.mediaType === "video" && m.streamUrl && m.postId)
@@ -238,6 +257,13 @@ export async function getPublicVideos({
       ? users.get(post.creatorUserId)
       : undefined;
     const text = post.postText ?? "";
+    // hashtagIds arrive with heavy duplication — dedupe, preserve order
+    const tagList = [...new Set(post.hashtagIds ?? [])]
+      .map((id) => {
+        const tag = hashtags.get(id);
+        return tag ? { hashtagId: id, hashtag: tag } : null;
+      })
+      .filter((h): h is VideoHashtag => h !== null);
     return {
       postId,
       kind,
@@ -251,6 +277,7 @@ export async function getPublicVideos({
       durationMs: media.duration ?? null,
       previewImageUrl: post.mediaPreviewUrl ?? media.mediaPreviewImageUrl,
       streamUrl: media.streamUrl,
+      hashtags: tagList,
     };
   }
 
