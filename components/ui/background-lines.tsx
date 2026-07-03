@@ -47,7 +47,7 @@ export default function BackgroundLines() {
     };
 
     const draw = (now: number) => {
-      const t = now * 0.00004; // slow tumble
+      const t = now * 0.0000133; // slow tumble
       ctx.clearRect(0, 0, width, height);
 
       const cx = width * 0.5;
@@ -65,7 +65,7 @@ export default function BackgroundLines() {
       gradient.addColorStop(1, colors.teal);
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 1;
-      ctx.globalAlpha = colors.dark ? 0.16 : 0.12;
+      ctx.globalAlpha = colors.dark ? 0.08 : 0.06;
 
       const breathe = 0.32 + 0.03 * Math.sin(t * TAU * 0.61);
 
