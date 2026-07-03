@@ -101,7 +101,7 @@ export default function FAQ({
   return (
     <Section className={className}>
       <div className="max-w-container mx-auto flex flex-col items-center gap-8">
-        <h2 className="text-center text-3xl font-semibold sm:text-5xl">
+        <h2 className="text-center text-2xl font-semibold sm:text-4xl">
           {title}
         </h2>
         {items !== false && items.length > 0 && (

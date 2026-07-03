@@ -36,7 +36,7 @@ export default function CTA({
   return (
     <Section className={cn("group relative overflow-hidden", className)}>
       <div className="max-w-container relative z-10 mx-auto flex flex-col items-center gap-6 text-center sm:gap-8">
-        <h2 className="max-w-[640px] text-3xl leading-tight font-semibold sm:text-5xl sm:leading-tight">
+        <h2 className="max-w-[640px] text-2xl leading-tight font-semibold sm:text-4xl sm:leading-tight">
           {title}
         </h2>
         {buttons !== false && buttons.length > 0 && (

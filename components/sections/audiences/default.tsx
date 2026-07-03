@@ -45,7 +45,7 @@ export default function Audiences({
   return (
     <Section className={className}>
       <div className="max-w-container mx-auto flex flex-col items-center gap-6 sm:gap-16">
-        <h2 className="max-w-[560px] text-center text-3xl leading-tight font-semibold sm:text-5xl sm:leading-tight">
+        <h2 className="max-w-[560px] text-center text-2xl leading-tight font-semibold sm:text-4xl sm:leading-tight">
           {title}
         </h2>
         <div className="grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
