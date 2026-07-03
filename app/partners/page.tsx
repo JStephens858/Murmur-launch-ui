@@ -20,6 +20,7 @@ export default function PartnersPage() {
         title="Working together for the community"
         description="We partner with medical device and related companies that want to help the physician community thrive. Partnerships center on supporting education and understanding physician sentiment — the concerns, preferences, and unmet needs that matter to practicing doctors."
         badge={false}
+        appStoreBadge={false}
         buttons={[
           {
             href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
@@ -31,6 +32,7 @@ export default function PartnersPage() {
       />
       <CTA
         title="Let's work together"
+        appStoreBadge={false}
         buttons={[
           {
             href: `${siteConfig.links.email}?subject=Partner%20inquiry`,

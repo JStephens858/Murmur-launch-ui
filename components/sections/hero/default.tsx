@@ -1,9 +1,9 @@
 import { ArrowRightIcon } from "lucide-react";
 import { ReactNode } from "react";
 
-import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
+import AppStoreBadge from "../../ui/app-store-badge";
 import { Badge } from "../../ui/badge";
 import Glow from "../../ui/glow";
 import { LinkButton, type LinkButtonProps } from "../../ui/link-button";
@@ -20,15 +20,12 @@ interface HeroProps {
   mockup?: ReactNode | false;
   badge?: ReactNode | false;
   buttons?: HeroButtonProps[] | false;
+  /** Render the official App Store badge ahead of the buttons. */
+  appStoreBadge?: boolean;
   className?: string;
 }
 
 const DEFAULT_HERO_BUTTONS: HeroButtonProps[] = [
-  {
-    href: siteConfig.getStartedUrl,
-    text: "Get the App",
-    variant: "default",
-  },
   {
     href: "/videos",
     text: "Browse Videos",
@@ -55,6 +52,7 @@ export default function Hero({
   mockup = false,
   badge = DEFAULT_HERO_BADGE,
   buttons = DEFAULT_HERO_BUTTONS,
+  appStoreBadge = true,
   className,
 }: HeroProps) {
   return (
@@ -84,9 +82,11 @@ export default function Hero({
           <p className="text-md animate-appear text-muted-foreground relative z-10 max-w-[740px] font-medium text-balance opacity-0 delay-100 sm:text-xl">
             {description}
           </p>
-          {buttons !== false && buttons.length > 0 && (
-            <div className="animate-appear relative z-10 flex justify-center gap-4 opacity-0 delay-300">
-              {buttons.map((button) => (
+          {(appStoreBadge || (buttons !== false && buttons.length > 0)) && (
+            <div className="animate-appear relative z-10 flex flex-wrap items-center justify-center gap-4 opacity-0 delay-300">
+              {appStoreBadge && <AppStoreBadge />}
+              {buttons !== false &&
+                buttons.map((button) => (
                 <LinkButton
                   key={`${button.href}-${button.text}`}
                   variant={button.variant || "default"}

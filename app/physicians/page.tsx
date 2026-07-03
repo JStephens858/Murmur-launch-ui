@@ -20,10 +20,7 @@ export default function PhysiciansPage() {
         title="Built for physicians, by physicians"
         description="Share cases, compare outcomes, and see where your peers actually stand — in a verified community of physicians, with interventional cardiology at its core."
         badge={false}
-        buttons={[
-          { href: "/get-the-app", text: "Get the App", variant: "default" },
-          { href: "/videos", text: "Browse Videos", variant: "glow" },
-        ]}
+        buttons={[{ href: "/videos", text: "Browse Videos", variant: "glow" }]}
         mockup={false}
       />
       <Items title="What happens on MurmurMD" />

@@ -19,6 +19,7 @@ export default function AboutPage() {
         title="About MurmurMD"
         description="We built MurmurMD because the best conversations in medicine happen between colleagues — and they deserve a better place than hallway run-ins and group texts. MurmurMD gives verified physicians a professional home to share cases, review outcomes, and learn from each other."
         badge={false}
+        appStoreBadge={false}
         buttons={false}
         mockup={false}
       />

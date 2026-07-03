@@ -1,6 +1,7 @@
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
+import AppStoreBadge from "../../ui/app-store-badge";
 import Glow from "../../ui/glow";
 import { LinkButton, type LinkButtonProps } from "../../ui/link-button";
 import { Section } from "../../ui/section";
@@ -12,15 +13,12 @@ interface CTAButtonProps extends Omit<LinkButtonProps, "children"> {
 interface CTAProps {
   title?: string;
   buttons?: CTAButtonProps[] | false;
+  /** Render the official App Store badge ahead of the buttons. */
+  appStoreBadge?: boolean;
   className?: string;
 }
 
 const DEFAULT_CTA_BUTTONS: CTAButtonProps[] = [
-  {
-    href: siteConfig.getStartedUrl,
-    text: "Get the App",
-    variant: "default",
-  },
   {
     href: siteConfig.links.email,
     text: "Contact Us",
@@ -31,6 +29,7 @@ const DEFAULT_CTA_BUTTONS: CTAButtonProps[] = [
 export default function CTA({
   title = "Join the conversation",
   buttons = DEFAULT_CTA_BUTTONS,
+  appStoreBadge = true,
   className,
 }: CTAProps) {
   return (
@@ -39,9 +38,11 @@ export default function CTA({
         <h2 className="max-w-[640px] text-2xl leading-tight font-semibold sm:text-4xl sm:leading-tight">
           {title}
         </h2>
-        {buttons !== false && buttons.length > 0 && (
-          <div className="flex justify-center gap-4">
-            {buttons.map((button) => (
+        {(appStoreBadge || (buttons !== false && buttons.length > 0)) && (
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {appStoreBadge && <AppStoreBadge />}
+            {buttons !== false &&
+              buttons.map((button) => (
               <LinkButton
                 key={`${button.href}-${button.text}`}
                 variant={button.variant || "default"}
