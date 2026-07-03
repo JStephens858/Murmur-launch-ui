@@ -31,7 +31,7 @@ export default function Navigation({
   menuItems = [
     { title: "Physicians", isLink: true, href: "/physicians" },
     { title: "Partners", isLink: true, href: "/partners" },
-    { title: "Videos", isLink: true, href: "/videos" },
+    { title: "Video Library", isLink: true, href: "/videos" },
     { title: "About", isLink: true, href: "/about" },
   ],
 }: NavigationProps) {

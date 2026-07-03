@@ -49,7 +49,7 @@ export default function Navbar({
     { text: "Physicians", href: "/physicians" },
     { text: "Partners", href: "/partners" },
     { text: "Get the App", href: "/get-the-app" },
-    { text: "Videos", href: "/videos" },
+    { text: "Video Library", href: "/videos" },
     { text: "About", href: "/about" },
     { text: "Physician Login", href: "/auth/login?returnTo=/account" },
   ],
