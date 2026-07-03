@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 import MurmurMD from "../../logos/murmurmd";
+import AuthAction from "../../ui/auth-action";
 import { Button, buttonVariants } from "../../ui/button";
 import {
   Navbar as NavbarComponent,
@@ -51,14 +52,8 @@ export default function Navbar({
     { text: "Get the App", href: "/get-the-app" },
     { text: "Video Library", href: "/videos" },
     { text: "About", href: "/about" },
-    { text: "Physician Login", href: "/auth/login?returnTo=/account" },
   ],
   actions = [
-    {
-      text: "Physician Login",
-      href: "/auth/login?returnTo=/account",
-      isButton: false,
-    },
     {
       text: "Get the App",
       href: "/get-the-app",
@@ -86,6 +81,7 @@ export default function Navbar({
             {showNavigation && (customNavigation || <Navigation />)}
           </NavbarLeft>
           <NavbarRight>
+            <AuthAction className="hidden text-sm md:block" />
             {actions.map((action) =>
               action.isButton ? (
                 <Button
@@ -139,6 +135,7 @@ export default function Navbar({
                       {link.text}
                     </a>
                   ))}
+                  <AuthAction className="text-muted-foreground hover:text-foreground" />
                 </nav>
               </SheetContent>
             </Sheet>
