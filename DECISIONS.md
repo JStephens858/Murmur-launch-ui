@@ -16,6 +16,21 @@ Format:
 
 ---
 
+## 2026-07-06 — No env files in git
+**Decision:** No `.env*` file is ever committed — not even `.env.example` (untracked same day). `.gitignore` blocks all `.env*` variants (previously only `.env*.local`). Every machine — dev or production — keeps its own `.env.local`; the required variables are documented in README.md ("Environment variables").
+**Why:** Josh's call; env-specific committed files (`.env.production` etc.) invite secrets slipping into history.
+**Status:** Active
+
+## 2026-07-06 — Mixpanel for site analytics
+**Decision:** Client-side Mixpanel via `mixpanel-browser`. `lib/analytics.ts` wraps init/track and no-ops entirely unless `NEXT_PUBLIC_MIXPANEL_TOKEN` is set (so dev/preview builds send nothing); `<Analytics />` in the root layout fires a pageview on load and on every App Router navigation (manual SPA tracking, `track_pageview: false` in init). First product event: "Video Opened" (post_id, title, kind, author, duration_ms) when a video card opens the player modal. Persistence is localStorage.
+**Why:** Mixpanel chosen by Josh; token-gated no-op keeps analytics out of local dev without code branches.
+**Status:** Active
+
+## 2026-07-06 — Claude Design project: "MurmurMD website design system", with page-level previews
+**Decision:** The design-sync bundle uploads to its own Claude Design project named "MurmurMD website design system" — separate from the existing "Murmur MD Design System" project, which covers the iOS app and stays untouched. The bundle now has a third group, Pages: one compact preview per public page (home, videos, physicians, partners, about, get-the-app) mirroring each page's real section order and copy, in light and dark. To keep page sources DRY, `scripts/build-design-sync.mjs` supports `<!-- @include name -->` partials from `design-sync/src/_partials/` (nav, footer, feature-tile grid, and one body partial per page); page-preview scaffolding CSS lives in `design-sync/_shared.css`.
+**Why:** The website and the app are distinct design surfaces; mixing website tokens/components into the app's project would muddy both. Foundations and components alone didn't show how the site actually composes them — page previews capture that.
+**Status:** Active
+
 ## 2026-07-03 — Data-fetching split: public pages server-fed, logged-in surfaces hit the API directly
 **Decision:** Public content (videos, and anything else pre-login) is fetched server-side — static/ISR pages plus thin `/api/*` route handlers — keeping the GraphQL endpoint out of the browser and letting the cache absorb traffic. The future logged-in physician web experience will instead call the GraphQL API directly from the browser with the user's Auth0 token, exactly like the iOS app does; Josh confirmed there's no additional security concern since the API already serves authenticated clients.
 **Status:** Active
