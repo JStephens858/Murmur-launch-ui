@@ -1,0 +1,129 @@
+/* MurmurMD design tokens — mirrors app/globals.css (plum-accent default,
+   promoted 2026-07-03). This file is inlined into every preview by
+   scripts/build-design-sync.mjs; edit here, then re-run the build. */
+
+.panel {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  padding: 32px;
+  border-radius: 16px;
+}
+
+.panel.light {
+  --brand: #de046c;
+  --brand-foreground: #f2559b;
+  --accent-alt: #8a1e5c;
+  --accent-alt-deep: #6d1849;
+  --background: #f4f6f7;
+  --foreground: #232a33;
+  --card: #ffffff;
+  --primary: #de046c;
+  --primary-foreground: #ffffff;
+  --secondary: #e7ebed;
+  --muted: #e7ebed;
+  --muted-foreground: #626d7c;
+  --accent: #f3e4ed;
+  --accent-foreground: #8a1e5c;
+  --border: #b0bbbf;
+  --ring: #8a1e5c;
+  --radius: 0.625rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.panel.dark {
+  --brand: #f2559b;
+  --brand-foreground: #f58bb9;
+  --accent-alt: #d98bb8;
+  --accent-alt-deep: #b04a86;
+  --background: #14181d;
+  --foreground: #edf1f3;
+  --card: #1a2027;
+  --primary: #de046c;
+  --primary-foreground: #ffffff;
+  --secondary: #232a33;
+  --muted: #232a33;
+  --muted-foreground: #9aa6b2;
+  --accent: #3a1f31;
+  --accent-foreground: #d98bb8;
+  --border: rgba(176, 187, 191, 0.35);
+  --ring: #d98bb8;
+  --radius: 0.625rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #e8e8e8;
+}
+
+.panel-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin: 0 0 16px;
+}
+
+/* Button — the standardized translucent "glow" style */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    to bottom,
+    var(--card),
+    color-mix(in oklab, var(--card) 20%, transparent)
+  );
+  color: var(--foreground);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+}
+.panel.dark .btn {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--primary) 25%, transparent),
+    color-mix(in oklab, var(--primary) 10%, transparent)
+  );
+}
+.btn.ghost {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+.btn.link {
+  border: none;
+  background: none;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Hashtag chip (disabled state — becomes a link when tag browsing ships) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  background: color-mix(in oklab, var(--card) 60%, transparent);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}

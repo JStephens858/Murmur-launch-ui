@@ -1,0 +1,34 @@
+<!-- @dsCard name="Video cards" group="Components" -->
+<style>
+  .cards { display: flex; gap: 24px; align-items: flex-start; }
+  .vcard { width: 280px; display: flex; flex-direction: column; gap: 10px; }
+  .vcard.portrait { width: 160px; }
+  .thumb { position: relative; border-radius: 12px; border: 1px solid color-mix(in oklab, var(--border) 60%, transparent); background: linear-gradient(135deg, #2a3340, #16324a); overflow: hidden; }
+  .vcard:not(.portrait) .thumb { aspect-ratio: 16 / 9; }
+  .vcard.portrait .thumb { aspect-ratio: 9 / 16; }
+  .duration { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 6px; }
+  .vtitle { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .vmeta { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+  .tagrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+</style>
+<div class="panel light">
+  <p class="panel-label">Video cards — landscape long-form, portrait shorts</p>
+  <div class="cards">
+    <div class="vcard">
+      <div class="thumb"><span class="duration">39:00</span></div>
+      <h3 class="vtitle">Navigating Peer-to-Peer Insurance Denials</h3>
+      <p class="vmeta">Nyal Borges · Apr 2, 2026 · 48 views</p>
+      <div class="tagrow"><span class="chip">#IVUS</span><span class="chip">#LesionPrep</span><span class="chip">#dcb</span><span style="font-size:12px;color:var(--muted-foreground)">+2</span></div>
+    </div>
+    <div class="vcard portrait">
+      <div class="thumb"><span class="duration">1:38</span></div>
+      <h3 class="vtitle">Dual PREP: IVL Post Atherectomy</h3>
+      <p class="vmeta">Apr 4, 2026 · 32 views</p>
+      <div class="tagrow"><span class="chip">#TAVR</span><span style="font-size:12px;color:var(--muted-foreground)">+3</span></div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted-foreground);margin:16px 0 0">
+    Hover: thumbnail zooms slightly, dark scrim with centered play button.
+    Clicking opens an orientation-aware modal player (HLS).
+  </p>
+</div>

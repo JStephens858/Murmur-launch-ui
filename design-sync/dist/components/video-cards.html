@@ -1,0 +1,176 @@
+<!-- @dsCard name="Video cards" group="Components" -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* MurmurMD design tokens — mirrors app/globals.css (plum-accent default,
+   promoted 2026-07-03). This file is inlined into every preview by
+   scripts/build-design-sync.mjs; edit here, then re-run the build. */
+
+.panel {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  padding: 32px;
+  border-radius: 16px;
+}
+
+.panel.light {
+  --brand: #de046c;
+  --brand-foreground: #f2559b;
+  --accent-alt: #8a1e5c;
+  --accent-alt-deep: #6d1849;
+  --background: #f4f6f7;
+  --foreground: #232a33;
+  --card: #ffffff;
+  --primary: #de046c;
+  --primary-foreground: #ffffff;
+  --secondary: #e7ebed;
+  --muted: #e7ebed;
+  --muted-foreground: #626d7c;
+  --accent: #f3e4ed;
+  --accent-foreground: #8a1e5c;
+  --border: #b0bbbf;
+  --ring: #8a1e5c;
+  --radius: 0.625rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.panel.dark {
+  --brand: #f2559b;
+  --brand-foreground: #f58bb9;
+  --accent-alt: #d98bb8;
+  --accent-alt-deep: #b04a86;
+  --background: #14181d;
+  --foreground: #edf1f3;
+  --card: #1a2027;
+  --primary: #de046c;
+  --primary-foreground: #ffffff;
+  --secondary: #232a33;
+  --muted: #232a33;
+  --muted-foreground: #9aa6b2;
+  --accent: #3a1f31;
+  --accent-foreground: #d98bb8;
+  --border: rgba(176, 187, 191, 0.35);
+  --ring: #d98bb8;
+  --radius: 0.625rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #e8e8e8;
+}
+
+.panel-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin: 0 0 16px;
+}
+
+/* Button — the standardized translucent "glow" style */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    to bottom,
+    var(--card),
+    color-mix(in oklab, var(--card) 20%, transparent)
+  );
+  color: var(--foreground);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+}
+.panel.dark .btn {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--primary) 25%, transparent),
+    color-mix(in oklab, var(--primary) 10%, transparent)
+  );
+}
+.btn.ghost {
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+.btn.link {
+  border: none;
+  background: none;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Hashtag chip (disabled state — becomes a link when tag browsing ships) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  background: color-mix(in oklab, var(--card) 60%, transparent);
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+</style>
+</head>
+<body>
+<style>
+  .cards { display: flex; gap: 24px; align-items: flex-start; }
+  .vcard { width: 280px; display: flex; flex-direction: column; gap: 10px; }
+  .vcard.portrait { width: 160px; }
+  .thumb { position: relative; border-radius: 12px; border: 1px solid color-mix(in oklab, var(--border) 60%, transparent); background: linear-gradient(135deg, #2a3340, #16324a); overflow: hidden; }
+  .vcard:not(.portrait) .thumb { aspect-ratio: 16 / 9; }
+  .vcard.portrait .thumb { aspect-ratio: 9 / 16; }
+  .duration { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,0.7); color: #fff; font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 6px; }
+  .vtitle { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .vmeta { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+  .tagrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+</style>
+<div class="panel light">
+  <p class="panel-label">Video cards — landscape long-form, portrait shorts</p>
+  <div class="cards">
+    <div class="vcard">
+      <div class="thumb"><span class="duration">39:00</span></div>
+      <h3 class="vtitle">Navigating Peer-to-Peer Insurance Denials</h3>
+      <p class="vmeta">Nyal Borges · Apr 2, 2026 · 48 views</p>
+      <div class="tagrow"><span class="chip">#IVUS</span><span class="chip">#LesionPrep</span><span class="chip">#dcb</span><span style="font-size:12px;color:var(--muted-foreground)">+2</span></div>
+    </div>
+    <div class="vcard portrait">
+      <div class="thumb"><span class="duration">1:38</span></div>
+      <h3 class="vtitle">Dual PREP: IVL Post Atherectomy</h3>
+      <p class="vmeta">Apr 4, 2026 · 32 views</p>
+      <div class="tagrow"><span class="chip">#TAVR</span><span style="font-size:12px;color:var(--muted-foreground)">+3</span></div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted-foreground);margin:16px 0 0">
+    Hover: thumbnail zooms slightly, dark scrim with centered play button.
+    Clicking opens an orientation-aware modal player (HLS).
+  </p>
+</div>
+
+</body>
+</html>

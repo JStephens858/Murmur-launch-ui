@@ -1,0 +1,43 @@
+<!-- @dsCard name="Audience cards" group="Sections" -->
+<style>
+  .acards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 720px; }
+  .acard { border: 1px solid color-mix(in oklab, var(--border) 60%, transparent); background: linear-gradient(to bottom, var(--card), color-mix(in oklab, var(--card) 80%, transparent)); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .acard .icon { width: 24px; height: 24px; border: 1.5px solid var(--brand); border-radius: 6px; }
+  .acard h3 { font-size: 19px; font-weight: 600; margin: 0; }
+  .acard p { font-size: 13px; color: var(--muted-foreground); line-height: 1.5; margin: 0; }
+  .acard .link { margin-top: auto; font-size: 13px; font-weight: 500; color: var(--accent-foreground); }
+</style>
+<div class="panel light">
+  <p class="panel-label">"Two ways in" — audience split cards (link color is the plum accent)</p>
+  <div class="acards">
+    <div class="acard">
+      <span class="icon"></span>
+      <h3>For physicians</h3>
+      <p>Join a verified community of your peers. Share cases, review outcomes, weigh in on polls, and watch conversations with operators who do what you do.</p>
+      <span class="link">Why physicians join →</span>
+    </div>
+    <div class="acard">
+      <span class="icon"></span>
+      <h3>For industry partners</h3>
+      <p>We work with companies that want to help the physician community — and to better understand physicians' concerns, preferences, and unmet needs.</p>
+      <span class="link">Partner with MurmurMD →</span>
+    </div>
+  </div>
+</div>
+<div class="panel dark">
+  <p class="panel-label">Dark</p>
+  <div class="acards">
+    <div class="acard">
+      <span class="icon"></span>
+      <h3>For physicians</h3>
+      <p>Join a verified community of your peers. Share cases, review outcomes, weigh in on polls, and watch conversations with operators who do what you do.</p>
+      <span class="link">Why physicians join →</span>
+    </div>
+    <div class="acard">
+      <span class="icon"></span>
+      <h3>For industry partners</h3>
+      <p>We work with companies that want to help the physician community — and to better understand physicians' concerns, preferences, and unmet needs.</p>
+      <span class="link">Partner with MurmurMD →</span>
+    </div>
+  </div>
+</div>

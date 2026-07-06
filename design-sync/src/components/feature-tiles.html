@@ -1,0 +1,23 @@
+<!-- @dsCard name="Feature tiles" group="Sections" -->
+<style>
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .tile { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .tile h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; margin: 0; }
+  .tile .icon { width: 20px; height: 20px; border: 1.5px solid var(--brand); border-radius: 5px; flex-shrink: 0; }
+  .tile p { margin: 0; font-size: 13px; color: var(--muted-foreground); line-height: 1.45; }
+  .tiles .tile:nth-child(n+5) { grid-column: span 1; }
+  .center-note { font-size: 12px; color: var(--muted-foreground); margin: 14px 0 0; }
+</style>
+<div class="panel light">
+  <p class="panel-label">Feature grid — 7 tiles, partial last row centers itself</p>
+  <div class="tiles">
+    <div class="tile"><h3><span class="icon"></span>Case discussions</h3><p>Share interesting cases and walk through decisions with peers who do the same procedures</p></div>
+    <div class="tile"><h3><span class="icon"></span>Outcome reviews</h3><p>Post follow-ups and see how treatment choices actually played out</p></div>
+    <div class="tile"><h3><span class="icon"></span>Recommendations</h3><p>Ask for and give practical guidance on devices, technique, and practice</p></div>
+    <div class="tile"><h3><span class="icon"></span>Polls</h3><p>Poll your colleagues and see where they actually stand</p></div>
+    <div class="tile" style="grid-column: 1 / 2; margin-left: 50%;"><h3><span class="icon"></span>Video library</h3><p>Long-form conversations and short clips — in the app and on the web</p></div>
+    <div class="tile" style="margin-left: 50%;"><h3><span class="icon"></span>Physicians only</h3><p>Every member is a verified physician. No patients, no PR, no noise</p></div>
+    <div class="tile" style="margin-left: 50%;"><h3><span class="icon"></span>A real community</h3><p>Interventional cardiology at the core, with colleagues across specialties</p></div>
+  </div>
+  <p class="center-note">Note: partner/industry messaging is deliberately absent from this grid (see DECISIONS.md).</p>
+</div>

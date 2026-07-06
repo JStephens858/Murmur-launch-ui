@@ -1,0 +1,35 @@
+<!-- @dsCard name="Hero" group="Sections" -->
+<style>
+  .hero { text-align: center; padding: 48px 24px; }
+  .pill { display: inline-flex; gap: 8px; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px; }
+  .pill .cta { color: var(--foreground); font-weight: 500; }
+  .hero h1 { font-size: 44px; font-weight: 600; line-height: 1.15; margin: 24px 0 16px; }
+  .hero .sub { font-size: 18px; font-weight: 500; color: var(--muted-foreground); max-width: 620px; margin: 0 auto 28px; }
+  .hero .actions { display: flex; gap: 16px; justify-content: center; align-items: center; }
+  .badge-mock { height: 44px; border-radius: 8px; background: #000; color: #fff; display: inline-flex; align-items: center; padding: 0 14px; font-size: 13px; border: 1px solid #444; }
+  .panel.dark .badge-mock { border-color: #666; }
+</style>
+<div class="panel light">
+  <p class="panel-label">Hero — home page (App Store badge is Apple's official artwork)</p>
+  <div class="hero">
+    <span class="pill"><span style="color:var(--muted-foreground)">New: the MurmurMD video library</span><span class="cta">Watch now →</span></span>
+    <h1>Where physicians talk medicine</h1>
+    <p class="sub">MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.</p>
+    <div class="actions">
+      <span class="badge-mock"> Download on the App Store</span>
+      <button class="btn">Browse Videos</button>
+    </div>
+  </div>
+</div>
+<div class="panel dark">
+  <p class="panel-label">Dark — animated wireframe knot drifts behind at 8% opacity</p>
+  <div class="hero">
+    <span class="pill"><span style="color:var(--muted-foreground)">New: the MurmurMD video library</span><span class="cta">Watch now →</span></span>
+    <h1>Where physicians talk medicine</h1>
+    <p class="sub">MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.</p>
+    <div class="actions">
+      <span class="badge-mock"> Download on the App Store</span>
+      <button class="btn">Browse Videos</button>
+    </div>
+  </div>
+</div>
