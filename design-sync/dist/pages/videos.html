@@ -1,4 +1,4 @@
-<!-- @dsCard name="Color palette" group="Foundations" -->
+<!-- @dsCard name="Videos" group="Pages" -->
 <!doctype html>
 <html>
 <head>
@@ -333,39 +333,205 @@ body {
 </style>
 </head>
 <body>
-<style>
-  .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .swatch { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-  .swatch .fill { height: 56px; }
-  .swatch .meta { padding: 8px 10px; background: var(--card); }
-  .swatch .name { font-size: 12px; font-weight: 600; margin: 0; }
-  .swatch .hex { font-size: 11px; color: var(--muted-foreground); margin: 2px 0 0; font-family: ui-monospace, monospace; }
-</style>
 <div class="panel light">
-  <p class="panel-label">Light — paper &amp; ink with plum accents</p>
-  <div class="swatches">
-    <div class="swatch"><div class="fill" style="background:#de046c"></div><div class="meta"><p class="name">Brand pink</p><p class="hex">#DE046C</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#8a1e5c"></div><div class="meta"><p class="name">Plum accent</p><p class="hex">#8A1E5C</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#6d1849"></div><div class="meta"><p class="name">Plum deep</p><p class="hex">#6D1849</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#f3e4ed"></div><div class="meta"><p class="name">Plum tint</p><p class="hex">#F3E4ED</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#232a33"></div><div class="meta"><p class="name">Ink</p><p class="hex">#232A33</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#626d7c"></div><div class="meta"><p class="name">Slate</p><p class="hex">#626D7C</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#b0bbbf"></div><div class="meta"><p class="name">Gray</p><p class="hex">#B0BBBF</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#f4f6f7"></div><div class="meta"><p class="name">Paper</p><p class="hex">#F4F6F7</p></div></div>
+  <p class="panel-label">Videos — /videos — filter pills, two-row sections with View more; single-type views switch to infinite scroll (sample content)</p>
+  <div class="page">
+  <div class="pg-nav">
+  <div class="left">
+    <span class="pg-logo">Murmur<span class="md">MD</span></span>
+    <span class="pg-links"><span>Physicians</span><span>Partners</span><span>Video Library</span><span>About</span></span>
+  </div>
+  <div class="pg-right">
+    <span>Physician Login</span>
+    <button class="btn sm">Get the App</button>
   </div>
 </div>
-<div class="panel dark">
-  <p class="panel-label">Dark — ink surfaces, brightened pink/plum</p>
-  <div class="swatches">
-    <div class="swatch"><div class="fill" style="background:#f2559b"></div><div class="meta"><p class="name">Brand pink</p><p class="hex">#F2559B</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#d98bb8"></div><div class="meta"><p class="name">Plum accent</p><p class="hex">#D98BB8</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#b04a86"></div><div class="meta"><p class="name">Plum deep</p><p class="hex">#B04A86</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#3a1f31"></div><div class="meta"><p class="name">Plum tint</p><p class="hex">#3A1F31</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#14181d"></div><div class="meta"><p class="name">Background</p><p class="hex">#14181D</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#1a2027"></div><div class="meta"><p class="name">Card</p><p class="hex">#1A2027</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#9aa6b2"></div><div class="meta"><p class="name">Muted text</p><p class="hex">#9AA6B2</p></div></div>
-    <div class="swatch"><div class="fill" style="background:#edf1f3"></div><div class="meta"><p class="name">Foreground</p><p class="hex">#EDF1F3</p></div></div>
+
+  <div class="pg-pagehead">
+    <h1>Videos</h1>
+    <p>Long-form conversations with physicians and short clips from the MurmurMD community. Watch them here, or in the app.</p>
+    <div class="vpills"><span class="vpill on">All videos</span><span class="vpill">Long-form</span><span class="vpill">Shorts</span></div>
   </div>
+  <div class="pg-sec" style="padding-top: 0">
+    <div class="pg-sechead"><h2>Long-form</h2><button class="btn sm">View more →</button></div>
+    <div class="vgrid long">
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">42:18</span></div>
+        <p class="vtitle">Valve-in-valve TAVR: sizing the second valve</p>
+        <p class="vmeta">Dr. A. Rivera · Jun 12, 2026 · 1.2k views</p>
+        <div class="vchips"><span class="chip xs">#tavr</span><span class="chip xs">#structural</span><span class="chip xs">+2</span></div>
+      </div>
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">31:05</span></div>
+        <p class="vtitle">Radial-first access in complex PCI</p>
+        <p class="vmeta">Dr. S. Okafor · Jun 3, 2026 · 980 views</p>
+        <div class="vchips"><span class="chip xs">#pci</span><span class="chip xs">#radial</span></div>
+      </div>
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">58:47</span></div>
+        <p class="vtitle">CTO crossing strategies: a roundtable</p>
+        <p class="vmeta">Dr. M. Chen · May 28, 2026 · 2.4k views</p>
+        <div class="vchips"><span class="chip xs">#cto</span><span class="chip xs">#pci</span><span class="chip xs">+1</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-sec" style="padding-top: 0">
+    <div class="pg-sechead"><h2>Shorts</h2><button class="btn sm">View more →</button></div>
+    <div class="vgrid shorts">
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:48</span></div>
+        <p class="vtitle">Post-dilation pressure trace</p>
+        <div class="vchips"><span class="chip xs">#hemodynamics</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:59</span></div>
+        <p class="vtitle">Wire escalation in 60 seconds</p>
+        <div class="vchips"><span class="chip xs">#cto</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:41</span></div>
+        <p class="vtitle">Reading the aortogram</p>
+        <div class="vchips"><span class="chip xs">#imaging</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:52</span></div>
+        <p class="vtitle">Femoral closure pearls</p>
+        <div class="vchips"><span class="chip xs">#access</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:37</span></div>
+        <p class="vtitle">Stent sizing rule of thumb</p>
+        <div class="vchips"><span class="chip xs">#pci</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+  <div class="cols">
+    <div>
+      <span class="pg-logo">Murmur<span class="md">MD</span></span>
+      <div class="social"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul><li>Physicians</li><li>Partners</li><li>Video Library</li><li>About</li></ul>
+    </div>
+    <div>
+      <h4>Get the App</h4>
+      <ul><li>iOS App Store</li><li>Physician verification</li></ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <ul><li>contact@murmurmd.com</li><li>Partner inquiries</li></ul>
+    </div>
+  </div>
+  <div class="bar">
+    <span>© 2026 MurmurMD. All rights reserved</span>
+    <span>Privacy Policy · Terms of Service · ◐</span>
+  </div>
+</div>
+
+</div>
+
+</div>
+<div class="panel dark">
+  <p class="panel-label">Dark</p>
+  <div class="page">
+  <div class="pg-nav">
+  <div class="left">
+    <span class="pg-logo">Murmur<span class="md">MD</span></span>
+    <span class="pg-links"><span>Physicians</span><span>Partners</span><span>Video Library</span><span>About</span></span>
+  </div>
+  <div class="pg-right">
+    <span>Physician Login</span>
+    <button class="btn sm">Get the App</button>
+  </div>
+</div>
+
+  <div class="pg-pagehead">
+    <h1>Videos</h1>
+    <p>Long-form conversations with physicians and short clips from the MurmurMD community. Watch them here, or in the app.</p>
+    <div class="vpills"><span class="vpill on">All videos</span><span class="vpill">Long-form</span><span class="vpill">Shorts</span></div>
+  </div>
+  <div class="pg-sec" style="padding-top: 0">
+    <div class="pg-sechead"><h2>Long-form</h2><button class="btn sm">View more →</button></div>
+    <div class="vgrid long">
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">42:18</span></div>
+        <p class="vtitle">Valve-in-valve TAVR: sizing the second valve</p>
+        <p class="vmeta">Dr. A. Rivera · Jun 12, 2026 · 1.2k views</p>
+        <div class="vchips"><span class="chip xs">#tavr</span><span class="chip xs">#structural</span><span class="chip xs">+2</span></div>
+      </div>
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">31:05</span></div>
+        <p class="vtitle">Radial-first access in complex PCI</p>
+        <p class="vmeta">Dr. S. Okafor · Jun 3, 2026 · 980 views</p>
+        <div class="vchips"><span class="chip xs">#pci</span><span class="chip xs">#radial</span></div>
+      </div>
+      <div>
+        <div class="vthumb landscape"><span class="play">▶</span><span class="dur">58:47</span></div>
+        <p class="vtitle">CTO crossing strategies: a roundtable</p>
+        <p class="vmeta">Dr. M. Chen · May 28, 2026 · 2.4k views</p>
+        <div class="vchips"><span class="chip xs">#cto</span><span class="chip xs">#pci</span><span class="chip xs">+1</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-sec" style="padding-top: 0">
+    <div class="pg-sechead"><h2>Shorts</h2><button class="btn sm">View more →</button></div>
+    <div class="vgrid shorts">
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:48</span></div>
+        <p class="vtitle">Post-dilation pressure trace</p>
+        <div class="vchips"><span class="chip xs">#hemodynamics</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:59</span></div>
+        <p class="vtitle">Wire escalation in 60 seconds</p>
+        <div class="vchips"><span class="chip xs">#cto</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:41</span></div>
+        <p class="vtitle">Reading the aortogram</p>
+        <div class="vchips"><span class="chip xs">#imaging</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:52</span></div>
+        <p class="vtitle">Femoral closure pearls</p>
+        <div class="vchips"><span class="chip xs">#access</span></div>
+      </div>
+      <div>
+        <div class="vthumb portrait"><span class="play">▶</span><span class="dur">0:37</span></div>
+        <p class="vtitle">Stent sizing rule of thumb</p>
+        <div class="vchips"><span class="chip xs">#pci</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pg-footer">
+  <div class="cols">
+    <div>
+      <span class="pg-logo">Murmur<span class="md">MD</span></span>
+      <div class="social"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul><li>Physicians</li><li>Partners</li><li>Video Library</li><li>About</li></ul>
+    </div>
+    <div>
+      <h4>Get the App</h4>
+      <ul><li>iOS App Store</li><li>Physician verification</li></ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <ul><li>contact@murmurmd.com</li><li>Partner inquiries</li></ul>
+    </div>
+  </div>
+  <div class="bar">
+    <span>© 2026 MurmurMD. All rights reserved</span>
+    <span>Privacy Policy · Terms of Service · ◐</span>
+  </div>
+</div>
+
+</div>
+
 </div>
 
 </body>
