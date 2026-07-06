@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/components/ui/video-player";
+import { track } from "@/lib/analytics";
 import { formatDurationMs, formatVideoDate, formatViews } from "@/lib/format";
 import {
   type PublicVideosPage,
@@ -164,6 +165,17 @@ export default function VideosBrowser({
   const loadingRef = React.useRef(false);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
 
+  const openVideo = React.useCallback((video: SiteVideo) => {
+    setActive(video);
+    track("Video Opened", {
+      post_id: video.postId,
+      title: video.title,
+      kind: video.kind,
+      author: video.authorUsername ?? video.authorName ?? undefined,
+      duration_ms: video.durationMs ?? undefined,
+    });
+  }, []);
+
   const loadMore = React.useCallback(async (type: VideoType) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
@@ -274,7 +286,7 @@ export default function VideosBrowser({
                 key={video.postId}
                 className={capped ? longCapClass(index) : undefined}
               >
-                <VideoPostCard video={video} onClick={() => setActive(video)} />
+                <VideoPostCard video={video} onClick={() => openVideo(video)} />
               </div>
             ))}
           </div>
@@ -302,7 +314,7 @@ export default function VideosBrowser({
                 key={video.postId}
                 className={capped ? shortCapClass(index) : undefined}
               >
-                <VideoPostCard video={video} onClick={() => setActive(video)} />
+                <VideoPostCard video={video} onClick={() => openVideo(video)} />
               </div>
             ))}
           </div>
