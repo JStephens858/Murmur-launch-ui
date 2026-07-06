@@ -28,6 +28,29 @@ npm install
 npm run dev
 ```
 
+## Environment variables
+
+No `.env*` file is committed (see DECISIONS.md). Create `.env.local` in the repo
+root on each machine — dev or server — before building:
+
+```bash
+# Auth0 (Applications → your Regular Web Application)
+AUTH0_DOMAIN=your-tenant.us.auth0.com
+AUTH0_CLIENT_ID=
+AUTH0_CLIENT_SECRET=
+AUTH0_SECRET=          # session-cookie encryption: openssl rand -hex 32
+APP_BASE_URL=http://localhost:3000
+
+# MurmurMD GraphQL API (Apollo server)
+MURMUR_API_SERVER=http://localhost:4000/api
+# AUTH0_AUDIENCE=      # optional: Auth0 API identifier if the API requires it
+
+# Mixpanel project token (public identifier, not a secret).
+# Analytics are disabled entirely when unset. Baked in at build time —
+# must be present when `next build` runs.
+# NEXT_PUBLIC_MIXPANEL_TOKEN=
+```
+
 3. Open [http://localhost:3000](http://localhost:3000) to view your site
 
 ## 📚 Resources
