@@ -16,6 +16,12 @@ Format:
 
 ---
 
+## 2026-07-07 — Background knot animation capped at 15fps and CSS resolution
+**Decision:** `BackgroundLines` throttles its rAF loop to ~15fps and renders the canvas at CSS pixels (DPR 1) instead of Retina (DPR ≤ 2).
+**Why:** At full refresh rate + 2x DPR, the full-viewport canvas re-uploaded ~15M pixels per frame to the GPU; a dev tab left open pinned Firefox's GPU process at ~100% CPU and saturated macOS WindowServer, freezing Josh's machine. The knot rotates once per ~2.5 min, so 15fps is visually identical; the strokes sit at 6-8% alpha, so sub-Retina resolution is imperceptible.
+**Alternatives considered:** Pausing on `visibilitychange` alone — insufficient, since the cost is incurred whenever the tab is visible, not just when hidden (browsers already suspend rAF in hidden tabs).
+**Status:** Active
+
 ## 2026-07-06 — No env files in git
 **Decision:** No `.env*` file is ever committed — not even `.env.example` (untracked same day). `.gitignore` blocks all `.env*` variants (previously only `.env*.local`). Every machine — dev or production — keeps its own `.env.local`; the required variables are documented in README.md ("Environment variables").
 **Why:** Josh's call; env-specific committed files (`.env.production` etc.) invite secrets slipping into history.

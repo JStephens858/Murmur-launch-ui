@@ -9,11 +9,16 @@ import * as React from "react";
  * tints its own art. Honors prefers-reduced-motion by rendering a single static
  * frame. Sits behind all content (z-index -1; body background propagates
  * to the root, so the canvas isn't painted over).
+ *
+ * Deliberately cheap: draws at CSS resolution (not Retina) and ~15fps.
+ * The tumble takes ~2.5 min per rotation, so faster frame rates are
+ * invisible — at full rAF + 2x DPR this pegged a browser GPU process.
  */
 
 const TAU = Math.PI * 2;
 const STRANDS = 12;
 const SEGMENTS = 220;
+const FRAME_MS = 1000 / 15;
 
 function readThemeColors() {
   const style = getComputedStyle(document.documentElement);
@@ -38,12 +43,13 @@ export default function BackgroundLines() {
     let raf = 0;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // CSS resolution on purpose: the strokes sit at 6-8% alpha, where
+      // Retina sharpness is imperceptible and 4x the pixels is not.
       width = window.innerWidth;
       height = window.innerHeight;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = width;
+      canvas.height = height;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     };
 
     const draw = (now: number) => {
@@ -102,9 +108,12 @@ export default function BackgroundLines() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
+    let lastDraw = -FRAME_MS;
     const loop = (now: number) => {
-      draw(now);
       raf = requestAnimationFrame(loop);
+      if (now - lastDraw < FRAME_MS) return;
+      lastDraw = now;
+      draw(now);
     };
 
     resize();
