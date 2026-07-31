@@ -4,14 +4,7 @@ import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 import MurmurMD from "../../logos/murmurmd";
-import {
-  FacebookIcon,
-  InstagramIcon,
-  LinkedInIcon,
-  TikTokIcon,
-  XIcon,
-  YouTubeIcon,
-} from "../../logos/social";
+import { LinkedInIcon, XIcon, YouTubeIcon } from "../../logos/social";
 import {
   Footer,
   FooterBottom,
@@ -83,10 +76,7 @@ export default function FooterSection({
   socialLinks = [
     { name: "X", href: siteConfig.links.x, icon: <XIcon className={SOCIAL_ICON_CLASS} /> },
     { name: "LinkedIn", href: siteConfig.links.linkedin, icon: <LinkedInIcon className={SOCIAL_ICON_CLASS} /> },
-    { name: "Instagram", href: siteConfig.links.instagram, icon: <InstagramIcon className={SOCIAL_ICON_CLASS} /> },
-    { name: "Facebook", href: siteConfig.links.facebook, icon: <FacebookIcon className={SOCIAL_ICON_CLASS} /> },
     { name: "YouTube", href: siteConfig.links.youtube, icon: <YouTubeIcon className={SOCIAL_ICON_CLASS} /> },
-    { name: "TikTok", href: siteConfig.links.tiktok, icon: <TikTokIcon className={SOCIAL_ICON_CLASS} /> },
   ],
   copyright = "© 2026 MurmurMD. All rights reserved",
   policies = [

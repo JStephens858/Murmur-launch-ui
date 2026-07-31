@@ -16,6 +16,17 @@ Format:
 
 ---
 
+## 2026-07-13 — Hashtag chips filter the videos page; requires backend hashtagId support
+**Decision:** Hashtag chips on /videos are buttons: clicking one (on a card or in the player modal) refetches both video lists filtered to that tag via `getPublicVideosForSite(hashtagId:)`, shows a clear-pill next to the filter tabs, and clicking the selected chip (or the pill) toggles back to the unfiltered view. `/api/videos` gained `hashtagId` and `type=all` params. Fires a "Hashtag Selected" Mixpanel event.
+**Why:** Tag-filtered browsing shipped in the backend (`hashtagId` param on the query). Chips were previously decorative placeholders.
+**Deploy constraint:** The deployed API at tools01.murmurmd.com:4000 does not yet accept `hashtagId` (GRAPHQL_VALIDATION_FAILED, verified 2026-07-13) — every videos query now sends the param, so the site must not deploy before the backend does, or /videos shows its error state.
+**Status:** Active
+
+## 2026-07-13 — Social presence: X, YouTube, LinkedIn only
+**Decision:** MurmurMD's official social accounts are X (https://x.com/Murmur_MD), YouTube (https://www.youtube.com/@MurmurMD), and LinkedIn (https://www.linkedin.com/company/murmur-md/). These are the only platforms linked from the site (`config/site.ts`, footer); Instagram/Facebook/TikTok placeholders were removed. Twitter-card metadata carries `@Murmur_MD` as site/creator handle.
+**Why:** These are the accounts that actually exist — no accounts on the other platforms. Icon components for the pruned platforms stay in `components/logos/social.tsx` (unimported) in case accounts are added later.
+**Status:** Active
+
 ## 2026-07-07 — Background knot animation capped at 15fps and CSS resolution
 **Decision:** `BackgroundLines` throttles its rAF loop to ~15fps and renders the canvas at CSS pixels (DPR 1) instead of Retina (DPR ≤ 2).
 **Why:** At full refresh rate + 2x DPR, the full-viewport canvas re-uploaded ~15M pixels per frame to the GPU; a dev tab left open pinned Firefox's GPU process at ~100% CPU and saturated macOS WindowServer, freezing Josh's machine. The knot rotates once per ~2.5 min, so 15fps is visually identical; the strokes sit at 6-8% alpha, so sub-Retina resolution is imperceptible.

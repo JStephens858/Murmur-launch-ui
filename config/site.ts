@@ -10,15 +10,12 @@ export const siteConfig = {
   // TODO: real App Store link
   appStoreUrl: "#app-store",
   contactEmail: "contact@murmurmd.com",
+  xHandle: "@Murmur_MD",
   links: {
     email: "mailto:contact@murmurmd.com",
-    // TODO: placeholders — swap for real profile URLs, prune unused platforms
-    x: "https://x.com/murmurmd",
-    linkedin: "https://www.linkedin.com/company/murmurmd",
-    instagram: "https://www.instagram.com/murmurmd",
-    facebook: "https://www.facebook.com/murmurmd",
-    youtube: "https://www.youtube.com/@murmurmd",
-    tiktok: "https://www.tiktok.com/@murmurmd",
+    x: "https://x.com/Murmur_MD",
+    linkedin: "https://www.linkedin.com/company/murmur-md/",
+    youtube: "https://www.youtube.com/@MurmurMD",
   },
 };
 

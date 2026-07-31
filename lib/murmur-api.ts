@@ -123,12 +123,14 @@ const GET_PUBLIC_VIDEOS_QUERY = /* GraphQL */ `
     $shortCount: Int
     $lastLongPostId: ID
     $lastShortPostId: ID
+    $hashtagId: ID
   ) {
     getPublicVideosForSite(
       longCount: $longCount
       shortCount: $shortCount
       lastLongPostId: $lastLongPostId
       lastShortPostId: $lastShortPostId
+      hashtagId: $hashtagId
     ) {
       results {
         longVideoPostIds
@@ -220,15 +222,22 @@ export async function getPublicVideos({
   shortCount = 30,
   lastLongPostId = null,
   lastShortPostId = null,
+  hashtagId = null,
 }: {
   longCount?: number;
   shortCount?: number;
   lastLongPostId?: string | null;
   lastShortPostId?: string | null;
+  /** Restrict results to videos carrying this hashtag. */
+  hashtagId?: string | null;
 } = {}): Promise<PublicVideosPage> {
   const data = await fetchMurmurAPI<PublicVideosData>(GET_PUBLIC_VIDEOS_QUERY, {
-    variables: { longCount, shortCount, lastLongPostId, lastShortPostId },
-    next: { revalidate: 300 },
+    variables: { longCount, shortCount, lastLongPostId, lastShortPostId, hashtagId },
+    // Cache for 5 min in production; locally (next dev) always fetch fresh so
+    // new videos show up immediately.
+    ...(process.env.NODE_ENV === "production"
+      ? { next: { revalidate: 300 } }
+      : {}),
   });
 
   const payload = data.getPublicVideosForSite;

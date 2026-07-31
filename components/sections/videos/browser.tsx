@@ -48,27 +48,65 @@ function shortCapClass(index: number): string {
 }
 
 /**
- * Hashtag chip, drawn as a small disabled button. Not a real <button>:
- * cards are buttons themselves, and tag search isn't built yet — these
- * become links once tag-filtered browsing exists.
+ * "View more" only makes sense when more videos exist than the capped grid
+ * shows: further API pages, or loaded tiles hidden by the cap. The caps are
+ * per-breakpoint (mirroring longCapClass/shortCapClass), so without further
+ * pages the button hides at breakpoints where the grid already shows
+ * everything. null = never more, don't render.
  */
-function HashtagChip({ tag }: { tag: VideoHashtag }) {
+function viewMoreClass(
+  count: number,
+  hasMore: boolean,
+  [base, sm, lg, xl]: [number, number, number, number],
+): string | null {
+  if (hasMore) return "";
+  if (count > xl) return "";
+  if (count > lg) return "xl:hidden";
+  if (count > sm) return "lg:hidden";
+  if (count > base) return "sm:hidden";
+  return null;
+}
+
+const LONG_CAPS: [number, number, number, number] = [2, 4, 6, 8];
+const SHORT_CAPS: [number, number, number, number] = [4, 6, 10, 12];
+
+/** Hashtag chip; clicking filters the browser to videos with that tag. */
+function HashtagChip({
+  tag,
+  selected,
+  onClick,
+}: {
+  tag: VideoHashtag;
+  selected: boolean;
+  onClick: (tag: VideoHashtag) => void;
+}) {
   return (
-    <span
-      aria-disabled="true"
-      className="border-border/60 bg-card/60 text-muted-foreground inline-flex cursor-default items-center rounded-full border px-2 py-0.5 text-xs font-medium opacity-70"
+    <button
+      type="button"
+      onClick={() => onClick(tag)}
+      aria-pressed={selected}
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-sm font-medium transition-colors",
+        selected
+          ? "border-primary/50 bg-primary/15 text-foreground"
+          : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
     >
       #{tag.hashtag}
-    </span>
+    </button>
   );
 }
 
 function HashtagRow({
   tags,
   max,
+  selectedTagId,
+  onTagClick,
 }: {
   tags: VideoHashtag[];
   max?: number;
+  selectedTagId?: string;
+  onTagClick: (tag: VideoHashtag) => void;
 }) {
   if (tags.length === 0) return null;
   const visible = max ? tags.slice(0, max) : tags;
@@ -76,7 +114,12 @@ function HashtagRow({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {visible.map((tag) => (
-        <HashtagChip key={tag.hashtagId} tag={tag} />
+        <HashtagChip
+          key={tag.hashtagId}
+          tag={tag}
+          selected={tag.hashtagId === selectedTagId}
+          onClick={onTagClick}
+        />
       ))}
       {overflow > 0 && (
         <span className="text-muted-foreground text-xs">+{overflow}</span>
@@ -88,9 +131,13 @@ function HashtagRow({
 function VideoPostCard({
   video,
   onClick,
+  selectedTagId,
+  onTagClick,
 }: {
   video: SiteVideo;
   onClick: () => void;
+  selectedTagId?: string;
+  onTagClick: (tag: VideoHashtag) => void;
 }) {
   const meta = [
     video.authorName,
@@ -100,47 +147,56 @@ function VideoPostCard({
     .filter(Boolean)
     .join(" · ");
 
+  // The tag row sits outside the card button — the chips are buttons
+  // themselves and can't nest inside it.
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex w-full flex-col gap-3 text-left focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-    >
-      <div
-        className={cn(
-          "border-border/60 relative w-full overflow-hidden rounded-xl border bg-black",
-          video.orientation === "PORTRAIT" ? "aspect-[9/16]" : "aspect-video",
-        )}
+    <div className="flex w-full flex-col gap-2">
+      <button
+        type="button"
+        onClick={onClick}
+        className="group flex w-full flex-col gap-3 text-left focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
-        {video.previewImageUrl && (
-          // Preview hosts vary (CloudFront resizer or raw S3), so plain <img>.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={video.previewImageUrl}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        )}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/30">
-          <span className="bg-background/90 text-foreground flex size-12 items-center justify-center rounded-full opacity-0 shadow-md transition-opacity duration-300 group-hover:opacity-100">
-            <Play className="ml-0.5 size-5" />
-          </span>
+        <div
+          className={cn(
+            "border-border/60 relative w-full overflow-hidden rounded-xl border bg-black",
+            video.orientation === "PORTRAIT" ? "aspect-[9/16]" : "aspect-video",
+          )}
+        >
+          {video.previewImageUrl && (
+            // Preview hosts vary (CloudFront resizer or raw S3), so plain <img>.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={video.previewImageUrl}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/30">
+            <span className="bg-background/90 text-foreground flex size-12 items-center justify-center rounded-full opacity-0 shadow-md transition-opacity duration-300 group-hover:opacity-100">
+              <Play className="ml-0.5 size-5" />
+            </span>
+          </div>
+          {video.durationMs != null && video.durationMs > 0 && (
+            <span className="absolute right-2 bottom-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
+              {formatDurationMs(video.durationMs)}
+            </span>
+          )}
         </div>
-        {video.durationMs != null && video.durationMs > 0 && (
-          <span className="absolute right-2 bottom-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
-            {formatDurationMs(video.durationMs)}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <h3 className="text-foreground line-clamp-2 text-sm leading-snug font-semibold">
-          {video.title}
-        </h3>
-        {meta && <p className="text-muted-foreground text-xs">{meta}</p>}
-        <HashtagRow tags={video.hashtags} max={3} />
-      </div>
-    </button>
+        <div className="flex flex-col gap-1.5">
+          <h3 className="text-foreground line-clamp-2 text-sm leading-snug font-semibold">
+            {video.title}
+          </h3>
+          {meta && <p className="text-muted-foreground text-xs">{meta}</p>}
+        </div>
+      </button>
+      <HashtagRow
+        tags={video.hashtags}
+        max={3}
+        selectedTagId={selectedTagId}
+        onTagClick={onTagClick}
+      />
+    </div>
   );
 }
 
@@ -151,6 +207,8 @@ export default function VideosBrowser({
 }) {
   const [filter, setFilter] = React.useState<Filter>("ALL");
   const [active, setActive] = React.useState<SiteVideo | null>(null);
+  const [activeTag, setActiveTag] = React.useState<VideoHashtag | null>(null);
+  const [tagLoading, setTagLoading] = React.useState(false);
   const [longs, setLongs] = React.useState(initial.longVideos);
   const [shorts, setShorts] = React.useState(initial.shortVideos);
   const [hasMore, setHasMore] = React.useState({
@@ -163,6 +221,9 @@ export default function VideosBrowser({
     short: initial.lastShortPostId,
   });
   const loadingRef = React.useRef(false);
+  // Bumped whenever the tag filter changes, so in-flight page loads for the
+  // previous tag get discarded instead of appended.
+  const tagGeneration = React.useRef(0);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
 
   const openVideo = React.useCallback((video: SiteVideo) => {
@@ -176,20 +237,92 @@ export default function VideosBrowser({
     });
   }, []);
 
+  // Set or clear the tag filter: reload both lists for the tag, or restore
+  // the unfiltered server-rendered data.
+  const applyTag = React.useCallback(
+    (tag: VideoHashtag | null) => {
+      tagGeneration.current += 1;
+      setActiveTag(tag);
+      if (!tag) {
+        setTagLoading(false);
+        setLongs(initial.longVideos);
+        setShorts(initial.shortVideos);
+        cursors.current = {
+          long: initial.lastLongPostId,
+          short: initial.lastShortPostId,
+        };
+        setHasMore({ long: initial.longHasMore, short: initial.shortHasMore });
+        return;
+      }
+      const generation = tagGeneration.current;
+      setTagLoading(true);
+      setLongs([]);
+      setShorts([]);
+      cursors.current = { long: null, short: null };
+      setHasMore({ long: false, short: false });
+      (async () => {
+        try {
+          const query = new URLSearchParams({
+            type: "all",
+            count: String(PAGE_SIZE),
+            hashtagId: tag.hashtagId,
+          });
+          const res = await fetch(`/api/videos?${query}`);
+          if (!res.ok) throw new Error(`videos api ${res.status}`);
+          const page: PublicVideosPage = await res.json();
+          if (generation !== tagGeneration.current) return;
+          setLongs(page.longVideos);
+          setShorts(page.shortVideos);
+          cursors.current = {
+            long: page.lastLongPostId,
+            short: page.lastShortPostId,
+          };
+          setHasMore({ long: page.longHasMore, short: page.shortHasMore });
+        } catch {
+          // Leave the lists empty; the empty state covers it.
+        } finally {
+          if (generation === tagGeneration.current) setTagLoading(false);
+        }
+      })();
+    },
+    [initial],
+  );
+
+  /** Toggle the hashtag filter; also closes the player if open. */
+  const selectTag = React.useCallback(
+    (tag: VideoHashtag) => {
+      setActive(null);
+      setFilter("ALL");
+      if (activeTag?.hashtagId === tag.hashtagId) {
+        applyTag(null);
+        return;
+      }
+      track("Hashtag Selected", {
+        hashtag_id: tag.hashtagId,
+        hashtag: tag.hashtag,
+      });
+      applyTag(tag);
+    },
+    [activeTag, applyTag],
+  );
+
   const loadMore = React.useCallback(async (type: VideoType) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
     setLoadingMore(true);
+    const generation = tagGeneration.current;
     try {
       const cursor = cursors.current[type];
       const query = new URLSearchParams({
         type,
         count: String(PAGE_SIZE),
         ...(cursor ? { cursor } : {}),
+        ...(activeTag ? { hashtagId: activeTag.hashtagId } : {}),
       });
       const res = await fetch(`/api/videos?${query}`);
       if (!res.ok) throw new Error(`videos api ${res.status}`);
       const page: PublicVideosPage = await res.json();
+      if (generation !== tagGeneration.current) return;
       if (type === "long") {
         cursors.current.long = page.lastLongPostId ?? cursors.current.long;
         setLongs((prev) => {
@@ -210,14 +343,18 @@ export default function VideosBrowser({
       }
     } catch {
       // Stop asking on failure; the user can re-trigger by re-filtering.
-      setHasMore((prev) =>
-        type === "long" ? { ...prev, long: false } : { ...prev, short: false },
-      );
+      if (generation === tagGeneration.current) {
+        setHasMore((prev) =>
+          type === "long"
+            ? { ...prev, long: false }
+            : { ...prev, short: false },
+        );
+      }
     } finally {
       loadingRef.current = false;
       setLoadingMore(false);
     }
-  }, []);
+  }, [activeTag]);
 
   // Infinite scroll: only in a single-type view.
   const activeType: VideoType | null =
@@ -242,27 +379,42 @@ export default function VideosBrowser({
   const showLong = filter !== "SHORT_FORM" && longs.length > 0;
   const showShort = filter !== "LONG_FORM" && shorts.length > 0;
   const capped = filter === "ALL";
+  const longViewMore = viewMoreClass(longs.length, hasMore.long, LONG_CAPS);
+  const shortViewMore = viewMoreClass(shorts.length, hasMore.short, SHORT_CAPS);
 
   return (
     <>
-      <div className="flex gap-2" role="tablist" aria-label="Video type">
-        {FILTERS.map(({ value, label }) => (
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-2" role="tablist" aria-label="Video type">
+          {FILTERS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={filter === value}
+              onClick={() => setFilter(value)}
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+                filter === value
+                  ? "glass-5 border-border/80 dark:border-border/35 dark:from-primary/25 dark:to-primary/10 text-foreground shadow-md"
+                  : "border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {activeTag && (
           <button
-            key={value}
             type="button"
-            role="tab"
-            aria-selected={filter === value}
-            onClick={() => setFilter(value)}
-            className={cn(
-              "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
-              filter === value
-                ? "glass-5 border-border/80 dark:border-border/35 dark:from-primary/25 dark:to-primary/10 text-foreground shadow-md"
-                : "border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
+            onClick={() => applyTag(null)}
+            aria-label={`Clear hashtag filter #${activeTag.hashtag}`}
+            className="border-primary/50 bg-primary/15 text-foreground hover:bg-primary/25 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors"
           >
-            {label}
+            #{activeTag.hashtag}
+            <X className="size-3.5" />
           </button>
-        ))}
+        )}
       </div>
 
       {showLong && (
@@ -270,14 +422,17 @@ export default function VideosBrowser({
           {capped && (
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Long-form</h2>
-              <Button
-                variant="glow"
-                size="sm"
-                onClick={() => setFilter("LONG_FORM")}
-              >
-                View more
-                <ArrowRightIcon className="size-4" />
-              </Button>
+              {longViewMore !== null && (
+                <Button
+                  variant="glow"
+                  size="sm"
+                  className={longViewMore || undefined}
+                  onClick={() => setFilter("LONG_FORM")}
+                >
+                  View more
+                  <ArrowRightIcon className="size-4" />
+                </Button>
+              )}
             </div>
           )}
           <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -286,7 +441,12 @@ export default function VideosBrowser({
                 key={video.postId}
                 className={capped ? longCapClass(index) : undefined}
               >
-                <VideoPostCard video={video} onClick={() => openVideo(video)} />
+                <VideoPostCard
+                  video={video}
+                  onClick={() => openVideo(video)}
+                  selectedTagId={activeTag?.hashtagId}
+                  onTagClick={selectTag}
+                />
               </div>
             ))}
           </div>
@@ -298,14 +458,17 @@ export default function VideosBrowser({
           {capped && (
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Shorts</h2>
-              <Button
-                variant="glow"
-                size="sm"
-                onClick={() => setFilter("SHORT_FORM")}
-              >
-                View more
-                <ArrowRightIcon className="size-4" />
-              </Button>
+              {shortViewMore !== null && (
+                <Button
+                  variant="glow"
+                  size="sm"
+                  className={shortViewMore || undefined}
+                  onClick={() => setFilter("SHORT_FORM")}
+                >
+                  View more
+                  <ArrowRightIcon className="size-4" />
+                </Button>
+              )}
             </div>
           )}
           <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
@@ -314,7 +477,12 @@ export default function VideosBrowser({
                 key={video.postId}
                 className={capped ? shortCapClass(index) : undefined}
               >
-                <VideoPostCard video={video} onClick={() => openVideo(video)} />
+                <VideoPostCard
+                  video={video}
+                  onClick={() => openVideo(video)}
+                  selectedTagId={activeTag?.hashtagId}
+                  onTagClick={selectTag}
+                />
               </div>
             ))}
           </div>
@@ -322,7 +490,13 @@ export default function VideosBrowser({
       )}
 
       {!showLong && !showShort && (
-        <p className="text-muted-foreground">No videos yet — check back soon.</p>
+        <p className="text-muted-foreground">
+          {tagLoading
+            ? "Loading videos…"
+            : activeTag
+              ? `No videos tagged #${activeTag.hashtag} yet.`
+              : "No videos yet — check back soon."}
+        </p>
       )}
 
       {activeType && (
@@ -384,7 +558,11 @@ export default function VideosBrowser({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
-                  <HashtagRow tags={active.hashtags} />
+                  <HashtagRow
+                    tags={active.hashtags}
+                    selectedTagId={activeTag?.hashtagId}
+                    onTagClick={selectTag}
+                  />
                   {active.description && (
                     <Dialog.Description className="text-muted-foreground text-sm whitespace-pre-line">
                       {active.description}
