@@ -20,18 +20,12 @@ interface HeroProps {
   mockup?: ReactNode | false;
   badge?: ReactNode | false;
   buttons?: HeroButtonProps[] | false;
+  /** Sits between the description and the calls to action. */
+  media?: ReactNode;
   /** Render the official App Store badge ahead of the buttons. */
   appStoreBadge?: boolean;
   className?: string;
 }
-
-const DEFAULT_HERO_BUTTONS: HeroButtonProps[] = [
-  {
-    href: "/videos",
-    text: "Browse Videos",
-    variant: "glow",
-  },
-];
 
 const DEFAULT_HERO_BADGE = (
   <Badge variant="outline" className="animate-appear">
@@ -51,7 +45,8 @@ export default function Hero({
   // No app screenshots yet — re-enable the mockup once we have them.
   mockup = false,
   badge = DEFAULT_HERO_BADGE,
-  buttons = DEFAULT_HERO_BUTTONS,
+  buttons = false,
+  media,
   appStoreBadge = true,
   className,
 }: HeroProps) {
@@ -74,6 +69,11 @@ export default function Hero({
           <p className="text-md animate-appear text-muted-foreground relative z-10 max-w-[740px] font-medium text-balance opacity-0 delay-100 sm:text-xl">
             {description}
           </p>
+          {media && (
+            <div className="animate-appear relative z-10 w-full opacity-0 delay-300">
+              {media}
+            </div>
+          )}
           {(appStoreBadge || (buttons !== false && buttons.length > 0)) && (
             <div className="animate-appear relative z-10 flex flex-wrap items-center justify-center gap-4 opacity-0 delay-300">
               {appStoreBadge && <AppStoreBadge />}

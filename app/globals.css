@@ -72,6 +72,7 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-appear: appear 0.6s forwards ease-out;
   --animate-appear-zoom: appear-zoom 0.6s forwards ease-out;
+  --animate-feed-scroll: feed-scroll 42s linear infinite;
 
   /* Breakpoints */
   --breakpoint-xs: 30rem;
@@ -115,6 +116,73 @@
     100% {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+  /* Pans a tall app capture through a phone screen the way a thumb would:
+     each step is a quick flick that decelerates into a stop, then a pause to
+     take in the post that landed. Step sizes are deliberately uneven — an even
+     cadence is what makes an auto-scroll look automated. Nine flicks rather
+     than seven: the steps are short enough that fewer would leave the tail of
+     the capture unseen. The last stretch flings back to the top to close the
+     loop.
+
+     Offsets are fractions of the total travel, which depends on how many
+     screens tall the image is, so the component computes it and passes it in
+     as --feed-scroll-end. Transform-only, so it composites on the GPU without
+     laying out or painting per frame. */
+  @keyframes feed-scroll {
+    0%,
+    3% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    8%,
+    12% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.112));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    17%,
+    21% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.208));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    26%,
+    30% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.336));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    35%,
+    39% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.44));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    44%,
+    48% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.576));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    53%,
+    57% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.688));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    62%,
+    66% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.784));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    71%,
+    75% {
+      transform: translateY(calc(var(--feed-scroll-end, -85%) * 0.904));
+      animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    80%,
+    87% {
+      transform: translateY(var(--feed-scroll-end, -85%));
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    100% {
+      transform: translateY(0);
     }
   }
 }
