@@ -12,6 +12,8 @@ interface CTAButtonProps extends Omit<LinkButtonProps, "children"> {
 
 interface CTAProps {
   title?: string;
+  /** Optional supporting line under the heading. */
+  description?: string | false;
   buttons?: CTAButtonProps[] | false;
   /** Render the official App Store badge ahead of the buttons. */
   appStoreBadge?: boolean;
@@ -28,6 +30,7 @@ const DEFAULT_CTA_BUTTONS: CTAButtonProps[] = [
 
 export default function CTA({
   title = "Join the conversation",
+  description = false,
   buttons = DEFAULT_CTA_BUTTONS,
   appStoreBadge = true,
   className,
@@ -38,6 +41,11 @@ export default function CTA({
         <h2 className="max-w-[640px] text-2xl leading-tight font-semibold sm:text-4xl sm:leading-tight">
           {title}
         </h2>
+        {description !== false && (
+          <p className="text-muted-foreground -mt-2 max-w-[640px] text-balance sm:-mt-4 sm:text-lg">
+            {description}
+          </p>
+        )}
         {(appStoreBadge || (buttons !== false && buttons.length > 0)) && (
           <div className="flex flex-wrap items-center justify-center gap-4">
             {appStoreBadge && <AppStoreBadge />}

@@ -30,12 +30,8 @@ export default function FAQ({
       question: "Who can join MurmurMD?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-          MurmurMD is for verified physicians. The most active community today
-          is interventional cardiology, alongside thoracic surgeons,
-          electrophysiologists, radiologists, and colleagues from other
-          specialties. If we can&apos;t confirm you&apos;re a physician,
-          you&apos;ll be directed here — where anyone can browse our public
-          content, including the video library.
+          MurmurMD is a community exclusively for physicians. Every member is
+          verified before joining.
         </p>
       ),
     },
@@ -43,18 +39,19 @@ export default function FAQ({
       question: "I'm not a physician — what can I do here?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-          Browse the{" "}
+          You can browse the public{" "}
           <Link href="/videos" className="text-foreground underline">
             video library
-          </Link>
-          , learn about the platform, or{" "}
+          </Link>{" "}
+          on the web, and industry partners can{" "}
           <a
-            href={siteConfig.links.email}
+            href={`${siteConfig.links.email}?subject=Partnership%20inquiry`}
             className="text-foreground underline"
           >
-            get in touch
+            work with us
           </a>{" "}
-          about partnering with us.
+          directly. The feed, polls, and discussions are reserved for verified
+          physicians.
         </p>
       ),
     },
@@ -72,14 +69,20 @@ export default function FAQ({
       question: "How do industry partners work with MurmurMD?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-          We partner with medical device and related companies that want to
-          help the physician community — supporting education and better
-          understanding physicians&apos; concerns, preferences, and unmet
+          We work with companies that want to help the physician community and
+          better understand physicians&apos; concerns, preferences, and unmet
           needs. See{" "}
           <Link href="/partners" className="text-foreground underline">
             Partners
           </Link>{" "}
-          to start a conversation.
+          to start a conversation, or email us at{" "}
+          <a
+            href={`${siteConfig.links.email}?subject=Partnership%20inquiry`}
+            className="text-foreground underline"
+          >
+            contact@murmurmd.com
+          </a>
+          .
         </p>
       ),
     },
@@ -87,11 +90,11 @@ export default function FAQ({
       question: "Can I watch the videos without the app?",
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
-          Yes — the full public library is right here on the{" "}
+          Yes. The video library is available on the web on the{" "}
           <Link href="/videos" className="text-foreground underline">
             Videos
           </Link>{" "}
-          page. Physicians can also watch inside the app.
+          page — long-form conversations and short clips, no app required.
         </p>
       ),
     },

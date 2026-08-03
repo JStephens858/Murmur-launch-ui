@@ -1,6 +1,6 @@
 import {
   BarChart3Icon,
-  ClipboardCheckIcon,
+  CalendarClockIcon,
   HeartPulseIcon,
   MessagesSquareIcon,
   PlayIcon,
@@ -30,25 +30,25 @@ const DEFAULT_ITEMS: ItemProps[] = [
   {
     title: "Case discussions",
     description:
-      "Share interesting cases and walk through decisions with peers who do the same procedures",
+      "Share interesting cases and see how peers approach complex decisions",
     icon: <HeartPulseIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Outcome reviews",
+    title: "Up to Date",
     description:
-      "Post follow-ups and see how treatment choices actually played out",
-    icon: <ClipboardCheckIcon className="size-5 stroke-1" />,
+      "Real time discussion on new trials and clinical data, upcoming devices to keep your practice current",
+    icon: <CalendarClockIcon className="size-5 stroke-1" />,
   },
   {
-    title: "Recommendations",
+    title: "Tips and Tricks",
     description:
-      "Ask for and give practical guidance on devices, technique, and practice",
+      "Practical guidance on devices, tips and tricks, technique from world experts",
     icon: <MessagesSquareIcon className="size-5 stroke-1" />,
   },
   {
     title: "Polls",
     description:
-      "Poll your colleagues and see where they actually stand",
+      "High-yield polls that reveal how your peers handle the same clinical decisions",
     icon: <BarChart3Icon className="size-5 stroke-1" />,
   },
   {
@@ -66,7 +66,7 @@ const DEFAULT_ITEMS: ItemProps[] = [
   {
     title: "A real community",
     description:
-      "Interventional cardiology at the core, with colleagues across specialties",
+      "Connect with colleagues across specialties",
     icon: <UsersIcon className="size-5 stroke-1" />,
   },
 ];

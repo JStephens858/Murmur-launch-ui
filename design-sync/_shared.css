@@ -155,6 +155,7 @@ body {
 .pg-hero { text-align: center; padding: 44px 24px 36px; }
 .pg-hero h1 { font-size: 30px; font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; margin: 14px 0 10px; }
 .pg-hero .sub { font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--muted-foreground); max-width: 540px; margin: 0 auto 20px; }
+.pg-hero .sub + .sub-light { font-size: 12px; font-weight: 300; margin-top: -12px; }
 .pg-actions { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; }
 .pill-sm {
   display: inline-flex;
@@ -230,6 +231,7 @@ body {
 .faq-list .q span:last-child { color: var(--muted-foreground); }
 .pg-cta { text-align: center; padding: 34px 24px 42px; position: relative; overflow: hidden; }
 .pg-cta h2 { font-size: 19px; font-weight: 600; margin: 0 0 16px; }
+.pg-cta .sub { font-size: 13px; line-height: 1.5; color: var(--muted-foreground); max-width: 540px; margin: -8px auto 16px; }
 .pg-cta .glow {
   position: absolute;
   left: 50%;

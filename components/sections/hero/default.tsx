@@ -17,6 +17,8 @@ interface HeroButtonProps extends Omit<LinkButtonProps, "children"> {
 interface HeroProps {
   title?: string;
   description?: string;
+  /** Lighter-weight line sitting directly under the description. */
+  subdescription?: string | false;
   mockup?: ReactNode | false;
   badge?: ReactNode | false;
   buttons?: HeroButtonProps[] | false;
@@ -41,7 +43,8 @@ const DEFAULT_HERO_BADGE = (
 
 export default function Hero({
   title = "Where physicians talk medicine",
-  description = "MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.",
+  description = "The physician-only community for cases, outcomes, and peer learning.",
+  subdescription = false,
   // No app screenshots yet — re-enable the mockup once we have them.
   mockup = false,
   badge = DEFAULT_HERO_BADGE,
@@ -66,9 +69,18 @@ export default function Hero({
           <h1 className="animate-appear from-foreground to-foreground dark:to-muted-foreground relative z-10 inline-block bg-linear-to-r bg-clip-text text-2xl leading-tight font-semibold text-balance text-transparent drop-shadow-2xl sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
             {title}
           </h1>
-          <p className="text-md animate-appear text-muted-foreground relative z-10 max-w-[740px] font-medium text-balance opacity-0 delay-100 sm:text-xl">
-            {description}
-          </p>
+          {/* Grouped so the two lines sit together rather than being pushed
+              apart by the hero's own gap. */}
+          <div className="relative z-10 flex max-w-[740px] flex-col gap-3 sm:gap-4">
+            <p className="text-md animate-appear text-muted-foreground font-medium text-balance opacity-0 delay-100 sm:text-xl">
+              {description}
+            </p>
+            {subdescription !== false && (
+              <p className="animate-appear text-muted-foreground text-sm font-light text-balance opacity-0 delay-200 sm:text-lg">
+                {subdescription}
+              </p>
+            )}
+          </div>
           {media && (
             <div className="animate-appear relative z-10 w-full opacity-0 delay-300">
               {media}

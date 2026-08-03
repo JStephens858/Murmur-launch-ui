@@ -68,7 +68,7 @@ export default function FooterSection({
         { text: siteConfig.contactEmail, href: siteConfig.links.email },
         {
           text: "Partner inquiries",
-          href: `${siteConfig.links.email}?subject=Partner%20inquiry`,
+          href: `${siteConfig.links.email}?subject=Partnership%20inquiry`,
         },
       ],
     },
