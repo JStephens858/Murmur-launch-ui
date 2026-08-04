@@ -186,6 +186,10 @@ export default function PartnersPage() {
       <Navbar />
       <Hero
         title="Reach cardiologists where they actually engage"
+        // Capped so the headline breaks to two balanced lines on wide screens
+        // instead of running out as one. At text-5xl the full line is ~1080px,
+        // so 620px forces a second line while staying clear of a third.
+        titleClassName="max-w-[620px]"
         description="MurmurMD is the verified, physician-only community where interventional and structural cardiologists discuss real cases, new data, and technique — every day, not once a year."
         badge={false}
         appStoreBadge={false}

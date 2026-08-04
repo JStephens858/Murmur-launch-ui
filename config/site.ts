@@ -7,8 +7,8 @@ export const siteConfig = {
   ogImage: "/og.jpg",
   description:
     "MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.",
-  // TODO: real App Store link
-  appStoreUrl: "#app-store",
+  appStoreUrl:
+    "https://apps.apple.com/app/apple-store/id1586692687?pt=123231498&ct=homepage&mt=8",
   contactEmail: "contact@murmurmd.com",
   xHandle: "@Murmur_MD",
   links: {

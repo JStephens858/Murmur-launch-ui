@@ -19,6 +19,8 @@ interface HeroProps {
   description?: string;
   /** Lighter-weight line sitting directly under the description. */
   subdescription?: string | false;
+  /** Extra classes on the heading — mainly to cap its width so it wraps. */
+  titleClassName?: string;
   mockup?: ReactNode | false;
   badge?: ReactNode | false;
   buttons?: HeroButtonProps[] | false;
@@ -45,6 +47,7 @@ export default function Hero({
   title = "Where physicians talk medicine",
   description = "The physician-only community for cases, outcomes, and peer learning.",
   subdescription = false,
+  titleClassName,
   // No app screenshots yet — re-enable the mockup once we have them.
   mockup = false,
   badge = DEFAULT_HERO_BADGE,
@@ -66,7 +69,12 @@ export default function Hero({
       <div className="max-w-container mx-auto flex flex-col gap-12 pt-16 sm:gap-24">
         <div className="relative flex flex-col items-center gap-6 text-center sm:gap-12">
           {badge !== false && badge}
-          <h1 className="animate-appear from-foreground to-foreground dark:to-muted-foreground relative z-10 inline-block bg-linear-to-r bg-clip-text text-2xl leading-tight font-semibold text-balance text-transparent drop-shadow-2xl sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
+          <h1
+            className={cn(
+              "animate-appear from-foreground to-foreground dark:to-muted-foreground relative z-10 inline-block bg-linear-to-r bg-clip-text text-2xl leading-tight font-semibold text-balance text-transparent drop-shadow-2xl sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight",
+              titleClassName,
+            )}
+          >
             {title}
           </h1>
           {/* Grouped so the two lines sit together rather than being pushed

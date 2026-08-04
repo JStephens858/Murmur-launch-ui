@@ -4,12 +4,13 @@ import { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 import { PhoneFrame, SCREEN_ASPECT } from "./phone-frame";
+import { PhoneVideos } from "./phone-videos";
 
 /** The long feed capture in public/ — roughly seven and a half screens tall. */
 const FEED = {
-  src: "/feed.png",
-  width: 499,
-  height: 8187,
+  src: "/feed_dark.jpg",
+  width: 482,
+  height: 7914,
   alt: "The MurmurMD feed: physician case posts with images, hashtags, and reactions",
 };
 
@@ -69,6 +70,9 @@ export function PhonePair({ className }: PhonePairProps) {
           turn is what does the pointing; the shear exaggerates it. Flattened
           below sm, where the phones stack and the 3D just costs legibility. */}
       <PhoneFrame
+        // The capture is dark in both themes, so the screen behind it is too —
+        // otherwise the default white flashes through before the image paints.
+        screenClassName="bg-zinc-900"
         className={cn(
           phoneSize,
           "max-sm:[transform:none] sm:[transform:rotateX(4deg)_rotateY(20deg)_rotateZ(-5deg)_skewY(2deg)]",
@@ -80,17 +84,20 @@ export function PhonePair({ className }: PhonePairProps) {
         />
       </PhoneFrame>
 
-      {/* Right: parked further down the same feed for now — this is the one
-          that becomes a flip-through series of app screens. Dropped entirely on
+      {/* Right: a run of app clips swiping horizontally. Dropped entirely on
           narrow screens, where a stacked second phone only pushes the call to
-          action further down for no extra information. */}
+          action further down for no extra information — and would pull several
+          megabytes of video over mobile data to do it. */}
       <PhoneFrame
+        // The clips are dark in both themes, so the screen behind them is too —
+        // otherwise the default white flashes through before the first frame.
+        screenClassName="bg-zinc-900"
         className={cn(
           phoneSize,
           "max-sm:hidden sm:[transform:rotateX(4deg)_rotateY(-20deg)_rotateZ(5deg)_skewY(-2deg)]",
         )}
       >
-        <FeedImage style={{ transform: "translateY(-24%)" }} />
+        <PhoneVideos className="absolute inset-0 overflow-hidden" />
       </PhoneFrame>
     </div>
   );
