@@ -17,7 +17,11 @@ export default function PhysiciansPage() {
     <main className="text-foreground min-h-screen w-full">
       <Navbar />
       <Hero
-        title="Built for physicians, by physicians"
+        title="Built by physicians, powered by collaboration"
+        // Capped so the headline breaks to two balanced lines on wide screens
+        // instead of running out as one. At text-5xl the full line is ~1080px,
+        // so 620px forces a second line while staying clear of a third.
+        titleClassName="max-w-[620px]"
         description="Share cases, compare outcomes, and see where your peers actually stand — in a verified community of physicians, with interventional cardiology at its core."
         badge={false}
         buttons={[{ href: "/videos", text: "Browse Videos", variant: "glow" }]}
