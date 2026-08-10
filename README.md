@@ -49,6 +49,46 @@ MURMUR_API_SERVER=http://localhost:4000/api
 # Analytics are disabled entirely when unset. Baked in at build time —
 # must be present when `next build` runs.
 # NEXT_PUBLIC_MIXPANEL_TOKEN=
+
+# ── Legacy endpoints ported from Murmur-express ──────────────────────────
+# Two non-expiring backend service-user tokens. Required by the ported
+# endpoints; server-only, never NEXT_PUBLIC_. Renamed from their legacy
+# names (AUTH_TOKEN / HEALTH_CHECK_AUTH_TOKEN) because a bare AUTH_TOKEN is
+# ambiguous next to the AUTH0_* vars.
+MURMUR_SERVICE_AUTH_TOKEN=          # legacy AUTH_TOKEN — invite linkage,
+                                    # reengagement accept, admin flag
+MURMUR_HEALTH_CHECK_AUTH_TOKEN=     # legacy HEALTH_CHECK_AUTH_TOKEN —
+                                    # email verification, health check
+
+# Optional, with defaults:
+# MURMUR_XFF_TRUSTED_HOPS=0             # trusted proxy hops when deriving a
+#                                       # client IP for logging/rate limiting
+# MURMUR_LEGACY_MUTATION_TIMEOUT_MS=2500  # budget for a mutation whose result
+#                                         # gates the rendered page
+```
+
+## Legacy endpoints
+
+`/emailVerification`, `/acceptReengagementPosts`, `/doNotPromote`, `/invite/4/…`,
+`/invite4/…`, `/appstore/…`, `/health-check`, `/web-health.html`,
+`/sendgrid-webhook`, `/info/*` and the Apple app-site-association files are
+ported from `Murmur-express/staticServer.js`. Their URLs appear in already-sent
+emails and printed QR codes and **cannot change** — `lib/legacy-urls.ts`
+transcribes the original `substring()` offsets, with tests in
+`lib/legacy-urls.test.ts` (`npm test`).
+
+To check the whole surface against a recording stub:
+
+```bash
+# 1. a stub standing in for the GraphQL API, recording every call
+STUB_PORT=4555 STUB_LOG=./calls.jsonl node scripts/api-stub.mjs &
+# 2. the site pointed at it
+MURMUR_API_SERVER=http://localhost:4555/api \
+MURMUR_SERVICE_AUTH_TOKEN=test-service-token \
+MURMUR_HEALTH_CHECK_AUTH_TOKEN=test-healthcheck-token \
+  npm run build && npx next start -p 3111 &
+# 3. assert responses AND the exact GraphQL variables sent
+BASE=http://localhost:3111 CALLS=./calls.jsonl scripts/verify-legacy-urls.sh
 ```
 
 3. Open [http://localhost:3000](http://localhost:3000) to view your site

@@ -17,6 +17,19 @@ export function formatVideoDate(iso: string): string {
   });
 }
 
+/**
+ * Legacy's truncateString from Murmur-express/staticServer.js, used for the
+ * /post link-preview title and description. Kept identical (append "..." only
+ * when the string was actually longer) so previews already cached by Slack and
+ * X don't shift when the port goes live.
+ */
+export function truncateString(str: string, num: number): string {
+  if (str.length <= num) {
+    return str;
+  }
+  return str.slice(0, num) + "...";
+}
+
 export function formatViews(views: number): string {
   if (views >= 1000) {
     return `${(views / 1000).toFixed(views >= 10000 ? 0 : 1)}k views`;

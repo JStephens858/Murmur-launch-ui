@@ -32,11 +32,16 @@ interface FetchOptions {
   variables?: Record<string, unknown>;
   /** Next.js fetch caching; defaults to no-store (right for per-user data). */
   next?: NextFetchRequestConfig;
+  /**
+   * Bounds the wait on a call whose result gates a response. Used by the
+   * ported legacy action endpoints, which must not hang a page render.
+   */
+  signal?: AbortSignal;
 }
 
-async function fetchMurmurAPI<T>(
+export async function fetchMurmurAPI<T>(
   query: string,
-  { accessToken, variables, next }: FetchOptions = {},
+  { accessToken, variables, next, signal }: FetchOptions = {},
 ): Promise<T> {
   const endpoint = process.env.MURMUR_API_SERVER;
   if (!endpoint) {
@@ -49,6 +54,7 @@ async function fetchMurmurAPI<T>(
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
     body: JSON.stringify({ query, variables }),
+    ...(signal ? { signal } : {}),
     ...(next ? { next } : { cache: "no-store" }),
   });
   if (!res.ok) {

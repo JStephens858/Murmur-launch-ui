@@ -8,10 +8,20 @@ import { cn } from "@/lib/utils";
  * Per Apple's marketing guidelines the artwork must not be modified;
  * size via height only to preserve the aspect ratio.
  */
-export default function AppStoreBadge({ className }: { className?: string }) {
+export default function AppStoreBadge({
+  className,
+  href = siteConfig.appStoreUrl,
+}: {
+  className?: string;
+  /**
+   * Override the destination. The invite pages point at /appstore/<code>, which
+   * records the click before redirecting on to the store.
+   */
+  href?: string;
+}) {
   return (
     <a
-      href={siteConfig.appStoreUrl}
+      href={href}
       aria-label="Download on the App Store"
       className={cn("inline-flex shrink-0", className)}
     >

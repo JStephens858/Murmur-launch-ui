@@ -28,6 +28,8 @@ interface HeroProps {
   media?: ReactNode;
   /** Render the official App Store badge ahead of the buttons. */
   appStoreBadge?: boolean;
+  /** Override the badge's destination (invite pages route via /appstore/<code>). */
+  appStoreBadgeHref?: string;
   className?: string;
 }
 
@@ -54,6 +56,7 @@ export default function Hero({
   buttons = false,
   media,
   appStoreBadge = true,
+  appStoreBadgeHref,
   className,
 }: HeroProps) {
   return (
@@ -96,7 +99,7 @@ export default function Hero({
           )}
           {(appStoreBadge || (buttons !== false && buttons.length > 0)) && (
             <div className="animate-appear relative z-10 flex flex-wrap items-center justify-center gap-4 opacity-0 delay-300">
-              {appStoreBadge && <AppStoreBadge />}
+              {appStoreBadge && <AppStoreBadge href={appStoreBadgeHref} />}
               {buttons !== false &&
                 buttons.map((button) => (
                 <LinkButton

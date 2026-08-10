@@ -10,6 +10,9 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // Lets *.test.ts import with an explicit .ts extension, which is what
+    // `node --test` needs to run them without a build step. Safe under noEmit.
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

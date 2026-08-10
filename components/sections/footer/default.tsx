@@ -79,9 +79,11 @@ export default function FooterSection({
     { name: "YouTube", href: siteConfig.links.youtube, icon: <YouTubeIcon className={SOCIAL_ICON_CLASS} /> },
   ],
   copyright = "© 2026 MurmurMD. All rights reserved",
+  // Served from public/info/ at their original extensionless URLs, which the
+  // App Store listing and the iOS app link to directly. See proxy.ts.
   policies = [
-    { text: "Privacy Policy", href: "#" },
-    { text: "Terms of Service", href: "#" },
+    { text: "Privacy Policy", href: "/info/privacy_policy" },
+    { text: "Terms of Service", href: "/info/terms_of_service" },
   ],
   showModeToggle = true,
   className,
