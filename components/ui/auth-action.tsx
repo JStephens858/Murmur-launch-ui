@@ -5,6 +5,10 @@ import { useUser } from "@auth0/nextjs-auth0";
 /**
  * Session-aware auth link: "Physician Login" signed out, "My Account"
  * signed in. Client-side (via /auth/profile) so static pages stay static.
+ *
+ * Sign-in goes to /login, our own form, not the Auth0-hosted page — accounts
+ * are created in the iOS app and must not be creatable from the web. See
+ * lib/auth0-password-login.ts.
  */
 export default function AuthAction({ className }: { className?: string }) {
   const { user, isLoading } = useUser();
@@ -18,7 +22,7 @@ export default function AuthAction({ className }: { className?: string }) {
       My Account
     </a>
   ) : (
-    <a href="/auth/login?returnTo=/account" className={className}>
+    <a href="/login?returnTo=/account" className={className}>
       Physician Login
     </a>
   );
