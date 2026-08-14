@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   const session = await auth0.getSession();
   if (!session) {
-    redirect("/auth/login?returnTo=/account");
+    redirect("/login?returnTo=/account");
   }
 
   let profile: ProfileUser | null = null;

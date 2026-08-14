@@ -45,6 +45,13 @@ APP_BASE_URL=http://localhost:3000
 MURMUR_API_SERVER=http://localhost:4000/api
 # AUTH0_AUDIENCE=      # optional: Auth0 API identifier if the API requires it
 
+# Database connection driven by the custom sign-in form at /login.
+# Defaults to Username-Password-Authentication; set it if yours is named
+# differently. The Auth0 application must have the Password grant enabled
+# (Applications -> Advanced Settings -> Grant Types), and the API above must
+# allow offline access or no refresh token comes back. See DECISIONS.md.
+# AUTH0_DB_CONNECTION=Username-Password-Authentication
+
 # Mixpanel project token (public identifier, not a secret).
 # Analytics are disabled entirely when unset. Baked in at build time —
 # must be present when `next build` runs.
@@ -66,6 +73,32 @@ MURMUR_HEALTH_CHECK_AUTH_TOKEN=     # legacy HEALTH_CHECK_AUTH_TOKEN —
 # MURMUR_LEGACY_MUTATION_TIMEOUT_MS=2500  # budget for a mutation whose result
 #                                         # gates the rendered page
 ```
+
+### Local dev overrides
+
+`.env.development.local` is read only by `next dev`, and it wins over
+`.env.local` (Next's order is `.env.development.local` > `.env.local` >
+`.env.development` > `.env`). Keys you leave out fall through, so it is a
+partial override, not a replacement. Note that `.env.development` on its own
+does _not_ override `.env.local`, which is the trap.
+
+Its one job today is `APP_BASE_URL`. `.env.local` holds the public https URL,
+and the Auth0 SDK marks the session cookie `Secure` whenever `APP_BASE_URL` is
+https — which a browser then drops on a plain-http origin, so sign-in appears
+to work and then bounces straight back to `/login`.
+
+Production is served through the load balancer, which terminates TLS, so the
+https base URL is correct there and nothing needs overriding. A dev server is
+reached on the box directly (`http://web01.murmurmd.com:<port>`), bypassing the
+balancer, and that hop really is plain http — hence the override.
+`AUTH0_COOKIE_SECURE=false` is the narrower alternative if you would rather
+leave the base URL alone.
+
+Note that a **release build does not read this file** — `next build` and
+`next start` see `.env.local` only. That is the intended behaviour: behind the
+load balancer the origin is https and the `Secure` cookie is right. It only
+becomes a trap if a release build is ever reached over plain http, bypassing
+the balancer.
 
 ## Legacy endpoints
 

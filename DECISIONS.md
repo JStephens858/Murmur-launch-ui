@@ -16,6 +16,19 @@ Format:
 
 ---
 
+## 2026-08-11 — Custom email/password sign-in instead of Universal Login
+**Decision:** `/login` collects email and password on our own page, calls Auth0's token endpoint directly with the Resource Owner Password grant (`password-realm`), and writes the result into the `@auth0/nextjs-auth0` session cookie. The Auth0-hosted login page is no longer used for physicians. `/auth/logout` and the rest of the SDK's routes are untouched.
+**Why:** Accounts must be creatable only in the iOS app, where physician verification happens, and never on the web. Owning the page means the web can never render a signup affordance.
+**Alternatives considered:** Keep Universal Login and switch off "Sign Ups" on the database connection (Auth0 → Authentication → Database → Disable Sign Ups). That is one dashboard toggle, no code, and keeps Auth0's brute-force protection, MFA, bot detection and password-reset flows on the path they were designed for. It was not taken because we wanted the login page under our own design and control — this entry exists so the trade is a decision on record rather than an accident.
+**Consequences to watch:**
+- We now handle physician passwords in our own process. They are never logged and never stored, but the attack surface is ours.
+- MFA cannot be completed in this flow. If anyone enrols, `mfa_required` comes back and `/login` tells them to use the app. Supporting it on the web means implementing the `mfa_required` challenge exchange.
+- The Password grant must stay enabled on the Auth0 application. It is off by default and OAuth 2.1 drops it; a future Auth0 change there breaks web sign-in.
+- Auth0's brute-force protection keys off the caller's IP, which is our server unless the `auth0-forwarded-for` header is right. `lib/auth0-password-login.ts` sends it from `trustedClientIp()`, so `MURMUR_XFF_TRUSTED_HOPS` must be correct on the server or the protection lands on the wrong address.
+- There is no password reset or email verification path on the web yet.
+- `lib/auth0-session.ts` reaches into the SDK's private `sessionStore` to build a session from tokens we already hold; the SDK exposes no public equivalent. It throws loudly if that internal shape changes on upgrade.
+**Status:** Active
+
 ## 2026-08-10 — `/post/<id>` is server-rendered, with the `mc` cookie deciding how much shows
 **Decision:** `/post/<postId>?mc=…` renders in Next rather than injecting tags into the old React shell. `generateMetadata` produces the OG/Twitter card; the page renders the post itself — creator, group, date, and media elements in `indexInPost` order, covering text, image, video (HLS via the existing `VideoPlayer`), poll (with result bars) and file.
 **Why the page has two shapes:** the backend's `resultType` decides. With a matching `mc` it returns `"full"` — everything. Without one it returns `"og"`, which it describes as "used for opengraph only": a 100-character excerpt, a preview image and a username, no media, and **`createdDate` set to now rather than the post's real date** — which is why the ungated view deliberately prints no date. `"none"` (unknown, deleted or unpublished post) becomes a 404.
@@ -99,6 +112,19 @@ The flat id is the app's form — dashes stripped — and the cookie may arrive 
 **Decision:** The four `/info/*` documents are copied verbatim into `public/info/` and served at their original extensionless URLs via a `proxy.ts` rewrite. The footer's Privacy Policy and Terms of Service links, previously `href="#"`, now point at them.
 **Why:** The App Store listing and the iOS app almost certainly link to these exact URLs, so they must not move; and the footer was advertising documents the site didn't serve. Preserving the markup means preserving the content exactly, at the cost of a look that doesn't match the design system.
 **Known rough edges, inherited:** they are TextEdit exports with an empty `<title>`, and they swap stylesheets from a `?mode=` query rather than following the site theme. A redesign is a separate task.
+**Status:** Active
+
+## 2026-08-11 — Custom email/password sign-in instead of Universal Login
+**Decision:** `/login` collects email and password on our own page, calls Auth0's token endpoint directly with the Resource Owner Password grant (`password-realm`), and writes the result into the `@auth0/nextjs-auth0` session cookie. The Auth0-hosted login page is no longer used for physicians. `/auth/logout` and the rest of the SDK's routes are untouched.
+**Why:** Accounts must be creatable only in the iOS app, where physician verification happens, and never on the web. Owning the page means the web can never render a signup affordance.
+**Alternatives considered:** Keep Universal Login and switch off "Sign Ups" on the database connection (Auth0 → Authentication → Database → Disable Sign Ups). That is one dashboard toggle, no code, and keeps Auth0's brute-force protection, MFA, bot detection and password-reset flows on the path they were designed for. It was not taken because we wanted the login page under our own design and control — this entry exists so the trade is a decision on record rather than an accident.
+**Consequences to watch:**
+- We now handle physician passwords in our own process. They are never logged and never stored, but the attack surface is ours.
+- MFA cannot be completed in this flow. If anyone enrols, `mfa_required` comes back and `/login` tells them to use the app. Handling it on the web means implementing the `mfa_required` challenge exchange.
+- The Password grant must stay enabled on the Auth0 application. It is disabled by default and OAuth 2.1 drops it; a future Auth0 change here breaks web sign-in.
+- Auth0's brute-force protection keys off the caller's IP, which is our server unless the `auth0-forwarded-for` header is right. `lib/auth0-password-login.ts` sends it from `trustedClientIp()`, so `MURMUR_XFF_TRUSTED_HOPS` has to be correct on the server or protection lands on the wrong address.
+- There is no password reset or email verification path on the web yet.
+- `lib/auth0-session.ts` reaches into the SDK's private `sessionStore` to create a session from tokens we already hold; the SDK exposes no public equivalent. It throws loudly if that internal shape changes on upgrade.
 **Status:** Active
 
 ## 2026-07-13 — Hashtag chips filter the videos page; requires backend hashtagId support
