@@ -12,7 +12,7 @@ import { siteConfig } from "../config/site";
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Where physicians talk medicine`,
+    default: `${siteConfig.name} — Built by physicians, powered by collaboration`,
     template: `%s - ${siteConfig.name}`,
   },
   metadataBase: new URL(siteConfig.url),

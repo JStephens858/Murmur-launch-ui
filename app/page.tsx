@@ -16,6 +16,9 @@ export default function Home() {
           the first line ~260px down the page; this pulls it to ~150. */}
       <Hero
         className="pt-4 sm:pt-4 md:pt-4"
+        // Same clamp as the physicians page: forces the headline onto two
+        // balanced lines on wide screens instead of one ~1080px run.
+        titleClassName="max-w-[620px]"
         subdescription="Join on iOS — or explore our free library of high-yield video recordings."
         media={<PhonePair />}
       />

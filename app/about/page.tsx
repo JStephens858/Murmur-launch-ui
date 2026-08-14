@@ -8,7 +8,7 @@ import Navbar from "@/components/sections/navbar/default";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "MurmurMD is the professional community where physicians talk medicine — cases, outcomes, recommendations, and polls.",
+    "MurmurMD is the professional community built by physicians and powered by collaboration — cases, outcomes, recommendations, and polls.",
 };
 
 export default function AboutPage() {

@@ -46,7 +46,7 @@ const DEFAULT_HERO_BADGE = (
 );
 
 export default function Hero({
-  title = "Where physicians talk medicine",
+  title = "Built by physicians, powered by collaboration",
   description = "The physician-only community for cases, outcomes, and peer learning.",
   subdescription = false,
   titleClassName,
