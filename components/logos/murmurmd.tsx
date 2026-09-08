@@ -5,8 +5,11 @@ import { cn } from "@/lib/utils";
 /**
  * MurmurMD wordmark (brain/speech-bubble glyph + name). Two files, one per
  * theme: web_logo_light.png is shown on light backgrounds, web_logo_dark.png
- * (white wordmark) on dark. The files are currently identical — light needs
- * a dark-text variant from branding.
+ * on dark. Both carry the pink glyph; only the wordmark differs — pink in the
+ * light file, white in the dark one.
+ *
+ * The reengagement email templates hot-link these same two files from
+ * murmurmd.com, so replacing either one also changes what SendGrid sends.
  */
 export default function MurmurMD({ className }: { className?: string }) {
   return (
