@@ -100,6 +100,18 @@ load balancer the origin is https and the `Secure` cookie is right. It only
 becomes a trap if a release build is ever reached over plain http, bypassing
 the balancer.
 
+## Deploying
+
+Production is a self-hosted `next start` under systemd (`murmur-site`). After
+pulling and running `npm run build`, the service **must be restarted** —
+the running process keeps serving the previous `.next` output and, because
+Next reads `public/` once at startup, it 404s any file added since it
+started. `npm run build` prints the reminder; the command is:
+
+```bash
+sudo systemctl restart murmur-site
+```
+
 ## Legacy endpoints
 
 `/emailVerification`, `/acceptReengagementPosts`, `/doNotPromote`, `/invite/4/…`,

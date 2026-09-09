@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "postbuild": "printf '\\n\\033[1;33m>>> Build complete. The running server still serves the OLD build until you restart it:\\n\\n    sudo systemctl restart murmur-site\\n\\033[0m\\n'",
     "start": "next start",
     "lint": "eslint .",
     "test": "node --test 'lib/**/*.test.ts'"
