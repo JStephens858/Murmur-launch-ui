@@ -51,7 +51,7 @@ export default function FooterSection({
       links: [
         { text: "Physicians", href: "/physicians" },
         { text: "Partners", href: "/partners" },
-        { text: "Video Library", href: "/videos" },
+        { text: "Video Library", href: "/videolibrary" },
         { text: "About", href: "/about" },
       ],
     },

@@ -40,7 +40,7 @@ export default function FAQ({
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
           You can browse the public{" "}
-          <Link href="/videos" className="text-foreground underline">
+          <Link href="/videolibrary" className="text-foreground underline">
             video library
           </Link>{" "}
           on the web, and industry partners can{" "}
@@ -91,7 +91,7 @@ export default function FAQ({
       answer: (
         <p className="text-muted-foreground mb-4 max-w-[640px] text-balance">
           Yes. The video library is available on the web on the{" "}
-          <Link href="/videos" className="text-foreground underline">
+          <Link href="/videolibrary" className="text-foreground underline">
             Videos
           </Link>{" "}
           page — long-form conversations and short clips, no app required.

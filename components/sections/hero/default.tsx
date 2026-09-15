@@ -38,7 +38,7 @@ const DEFAULT_HERO_BADGE = (
     <span className="text-muted-foreground">
       New: the MurmurMD video library
     </span>
-    <a href="/videos" className="flex items-center gap-1">
+    <a href="/videolibrary" className="flex items-center gap-1">
       Watch now
       <ArrowRightIcon className="size-3" />
     </a>

@@ -16,6 +16,11 @@ Format:
 
 ---
 
+## 2026-09-15 — Public video library moves to /videolibrary; the portal's Videos tab takes /videos
+**Decision:** The public, signed-out video library is now `/videolibrary` (every site link updated: navbar, mobile menu, footer, hero, FAQ, physicians and get-the-app CTAs) and the signed-in Videos tab is `/videos`, matching its label, so the two stop being confused. `/watch` is gone.
+**Consequence to watch:** any `/videos` link already shared outside the site (social posts, emails) now lands signed-out visitors on the login page rather than the library, because the portal path is gated and a public redirect would defeat the point. Nothing in this repo or the reengagement emails links to it, but external mentions should be checked and updated to `/videolibrary`.
+**Status:** Active
+
 ## 2026-09-15 — Post videos autoplay by visibility, one at a time
 **Decision:** On the post page, inline videos (the post's and its comments') are driven by a page-level coordinator (`lib/portal/autoplay.ts`): a shared IntersectionObserver reports how much of each video is on screen, the most-visible one that is at least half showing plays, everything else pauses, and nothing plays while the tab is hidden. Autoplay is muted because browsers refuse unmuted autoplay without a gesture; once the reader unmutes any video, later autoplays try unmuted first and fall back to muted. A video the reader paused stays paused until they play it again; a video they start pauses the others. A pause event with no decoded frame behind it (a stalled or failed source, which also fires `pause`) is not treated as the reader's choice, so a network hiccup can't permanently exclude a video. `VideoPlayer` gained a shared `ref` so callers can reach its element.
 **Verified** with the mock: the coordinator selects videos 1 → 2 → 3 → 1 as the page scrolls. Real playback and the pause-of-the-previous-video path could not be exercised because the mock's streams are fakes; worth a look on real posts.
@@ -55,7 +60,7 @@ Format:
 **Post button** is the app's `AddMurmurIcon2` — a circle with a 4pt primary-pink ring on a translucent card fill, holding a bold `+` and the two-tone logo (pink primary layer, white secondary). It is the same mark at every width; the wide sidebar adds a "Post" label beside it.
 **Alternatives considered:** a `/portal/…` prefix (simpler gating, but the user asked for X as the model and X's URLs are part of that); Lucide icons (already in the project, but the ask was app consistency); an X-style solid pill for the Post button (rejected for the same reason); doing the sign-in check in the portal layout (the Next 16 auth guide warns layouts don't re-run on navigation, so the proxy does it).
 **Open items:** `murmur_pulse` — the app's actual Feed tab icon — is exported but unused; Home uses `house` to match the app's menu row. Notification and message badge counts, the signed-in account block at the bottom of the sidebar, and the right rail are all still to come.
-**Update (same day):** Home became Feed at `/feed`, using the app's own `murmur_pulse` symbol (its Feed tab icon) rather than `house`; a Videos item follows it, with the app's `film` symbol. Videos lives at `/watch` because `/videos` is already the public video library. Chat became Messages at `/messages` (X's path, and the app's own name for it), with a Groups item above it at `/groups` using the app's `person.3` menu icon.
+**Update (same day):** Home became Feed at `/feed`, using the app's own `murmur_pulse` symbol (its Feed tab icon) rather than `house`; a Videos item follows it, with the app's `film` symbol. Videos lived at `/watch` because `/videos` was the public video library (superseded the same day: the library moved to `/videolibrary` and the tab took `/videos`). Chat became Messages at `/messages` (X's path, and the app's own name for it), with a Groups item above it at `/groups` using the app's `person.3` menu icon.
 **Status:** Active
 
 ## 2026-09-08 — Legal pages rebuilt from counsel's 2026 Word drafts

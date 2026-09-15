@@ -9,7 +9,7 @@ import { postDetailHref } from "./post-card";
 import VideoActions from "./video-actions";
 
 /**
- * The portal's Videos tab: the public videos browser fed by the signed-in
+ * The portal's Videos tab (/videos): the public library's browser fed by the signed-in
  * videos query, with the player gaining like, comment count and Full Post.
  * The player is state-only (nothing in the URL), so coming back from the
  * post lands on the plain videos page.

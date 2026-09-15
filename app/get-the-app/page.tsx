@@ -19,7 +19,7 @@ export default function GetTheAppPage() {
         description="MurmurMD is available on the App Store. The community is physicians-only: we confirm you're a practicing physician during signup. Not a physician? Everything public — including the full video library — is right here on the web."
         badge={false}
         buttons={[
-          { href: "/videos", text: "Browse Videos Instead", variant: "glow" },
+          { href: "/videolibrary", text: "Browse Videos Instead", variant: "glow" },
         ]}
         mockup={false}
       />

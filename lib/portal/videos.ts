@@ -60,7 +60,7 @@ export function usePortalVideosSource(): VideosSource {
   const client = useQueryClient();
   return async ({ type, count, cursor, hashtagId }) => {
     if (hashtagId) {
-      // Not supported by getVideosForUser; the public route filters by tag.
+      // Not supported by getVideosForUser; the public library's route filters by tag.
       const { publicVideosSource } =
         await import("@/components/sections/videos/browser");
       return publicVideosSource({ type, count, cursor, hashtagId });

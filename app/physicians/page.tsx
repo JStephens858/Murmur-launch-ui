@@ -24,7 +24,7 @@ export default function PhysiciansPage() {
         titleClassName="max-w-[620px]"
         description="Share cases, compare outcomes, and see where your peers actually stand — in a verified community of physicians, with interventional cardiology at its core."
         badge={false}
-        buttons={[{ href: "/videos", text: "Browse Videos", variant: "glow" }]}
+        buttons={[{ href: "/videolibrary", text: "Browse Videos", variant: "glow" }]}
         mockup={false}
       />
       <Items title="What happens on MurmurMD" />

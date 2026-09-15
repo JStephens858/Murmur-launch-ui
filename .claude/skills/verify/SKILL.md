@@ -17,7 +17,7 @@ description: Build, run, and drive the Murmur website (Next.js) to verify change
 - As of 2026-07-13 `.env.local` points at a **local backend
   (localhost:4000)** which often has an empty database; the deployed backend
   is `https://tools01.murmurmd.com:4000/api` (underscore-disabled line in
-  `.env.local`). Zero videos on /videos usually means empty local DB, not a
+  `.env.local`). Zero videos on /videolibrary usually means empty local DB, not a
   bug.
 
 ## Driving the UI
@@ -36,7 +36,7 @@ description: Build, run, and drive the Murmur website (Next.js) to verify change
 
 ## Flows worth driving
 
-- `/videos`: card grid, filter tabs (All/Long-form/Shorts), hashtag chip
+- `/videolibrary` (public video library; the portal owns `/videos`): card grid, filter tabs (All/Long-form/Shorts), hashtag chip
   filtering (chips on cards and in the player modal, clear-pill next to the
   tabs), player modal, infinite scroll (only active in a single-type view;
   sentinel has `rootMargin: 600px`).

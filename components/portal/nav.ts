@@ -43,10 +43,9 @@ export const portalNav: PortalNavItem[] = [
     icon: MurmurPulseIcon,
     activeIcon: MurmurPulseIcon,
   },
-  // Videos sits at /watch because /videos is the public video library.
   {
     label: "Videos",
-    href: "/watch",
+    href: "/videos",
     icon: FilmIcon,
     activeIcon: FilmFillIcon,
   },

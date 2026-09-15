@@ -50,7 +50,7 @@ export default function Navbar({
     { text: "Physicians", href: "/physicians" },
     { text: "Partners", href: "/partners" },
     { text: "Get the App", href: "/get-the-app" },
-    { text: "Video Library", href: "/videos" },
+    { text: "Video Library", href: "/videolibrary" },
     { text: "About", href: "/about" },
   ],
   actions = [

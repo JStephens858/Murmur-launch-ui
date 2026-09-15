@@ -25,13 +25,13 @@ function isLegacyActionPath(pathname: string): boolean {
 
 /**
  * The physician portal, app/(portal). Top-level paths rather than a /portal
- * prefix, following X's URL scheme (/feed, /explore, ...); /watch rather than /videos because
- * that is the public video library. Each entry is a
+ * prefix, following X's URL scheme (/feed, /explore, ...). The public video library
+ * moved to /videolibrary so the portal could own /videos. Each entry is a
  * route segment, so /feedback would not match.
  */
 const PORTAL_SEGMENTS = [
   "/feed",
-  "/watch",
+  "/videos",
   "/explore",
   "/notifications",
   "/groups",
