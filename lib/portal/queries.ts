@@ -88,6 +88,24 @@ export const STORE_FRAGMENT = /* GraphQL */ `
       groupName
       groupType
       iconUrl
+      description
+      pinnedPostId
+      moderatorUserIds
+      sponsored
+      sponsor
+      restrictions
+      onlyModsCanSetCategory
+      categories {
+        categoryId
+        order
+        key
+        name
+        subtitle
+        parentCategoryId
+        categoryDisplayStyle
+        hasChildren
+        displayStyle
+      }
     }
   }
 `;
@@ -102,12 +120,14 @@ export const STORE_FRAGMENT = /* GraphQL */ `
 export const GET_POSTS_IN_GROUP = /* GraphQL */ `
   query getPostsInGroup(
     $postGroupId: ID!
+    $categoryIds: [ID!]
     $count: Int!
     $requestDate: DateTimeTz
     $lastPostIdReceived: String
   ) {
     getPostsInGroup(
       postGroupId: $postGroupId
+      categoryIds: $categoryIds
       count: $count
       requestDate: $requestDate
       lastPostIdReceived: $lastPostIdReceived

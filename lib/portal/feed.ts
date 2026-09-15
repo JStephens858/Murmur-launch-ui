@@ -32,12 +32,20 @@ export interface FeedPage {
   endOfList: boolean;
 }
 
-async function fetchFeedPage(
+/** The feed and every group list share this; the feed is the sentinel group. */
+export function postListKey(postGroupId: string, categoryIds: string[] = []) {
+  return ["posts", postGroupId, categoryIds] as const;
+}
+
+async function fetchPostsPage(
   client: QueryClient,
+  postGroupId: string,
+  categoryIds: string[],
   cursor: FeedCursor | null,
 ): Promise<FeedPage> {
   const data = await portalQuery<GetPostsInGroupData>(GET_POSTS_IN_GROUP, {
-    postGroupId: FEED_GROUP_ID,
+    postGroupId,
+    categoryIds: categoryIds.length ? categoryIds : null,
     count: FEED_PAGE_SIZE,
     // First page: stamp now, as the app does on reset. Later pages echo the
     // server's own requestDate back so the window stays pinned.
@@ -47,7 +55,7 @@ async function fetchFeedPage(
   const res = data.getPostsInGroup;
   if (!res.success) {
     throw new PortalApiError(
-      res.errorMsg ?? "Couldn't load the feed",
+      res.errorMsg ?? "Couldn't load posts",
       res.errorCode,
     );
   }
@@ -60,12 +68,13 @@ async function fetchFeedPage(
   return { postIds, requestDate: res.requestDate, endOfList: res.endOfList };
 }
 
-export function useFeed() {
+export function usePostList(postGroupId: string, categoryIds: string[] = []) {
   const client = useQueryClient();
   return useInfiniteQuery({
-    queryKey: ["feed", FEED_GROUP_ID],
+    queryKey: postListKey(postGroupId, categoryIds),
     initialPageParam: null as FeedCursor | null,
-    queryFn: ({ pageParam }) => fetchFeedPage(client, pageParam),
+    queryFn: ({ pageParam }) =>
+      fetchPostsPage(client, postGroupId, categoryIds, pageParam),
     getNextPageParam: (last): FeedCursor | undefined => {
       const lastPostId = last.postIds.at(-1);
       if (last.endOfList || !lastPostId) return undefined;
@@ -73,6 +82,10 @@ export function useFeed() {
     },
     staleTime: 60_000,
   });
+}
+
+export function useFeed() {
+  return usePostList(FEED_GROUP_ID);
 }
 
 /**

@@ -17,7 +17,22 @@ const PORT = 4100;
 const uuid = (n, p = "a") => `${p.repeat(8)}-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const svg = (label, color) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675"><rect width="1200" height="675" fill="${color}"/><text x="50%" y="50%" font-family="sans-serif" font-size="72" fill="white" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`)}`;
 const users = [1,2,3,4].map((n) => ({ userId: uuid(n,"b"), username: ["cathlab_kate","d_ramirez","ep_priya","vasc_tom"][n-1], displayName: ["Kate Morgan, MD","Diego Ramirez, MD","Priya Nair, MD","Tom Okafor, MD"][n-1], isDeleted: false, profilePicThumbnailUrl: null, profilePicMediumUrl: null, specialty: ["Interventional Cardiology","Structural Heart","Electrophysiology","Vascular Surgery"][n-1], flair: null, location: null }));
-const groups = [{ postGroupId: uuid(1,"c"), groupName: "Interventional Cardiology", groupType: "public", iconUrl: null },{ postGroupId: uuid(2,"c"), groupName: "Structural Heart", groupType: "public", iconUrl: null }];
+const cats = (g) => [
+  { categoryId: uuid(g * 10 + 1, "5"), order: 1, key: "cases", name: "Cases", subtitle: null, parentCategoryId: null, categoryDisplayStyle: "header", hasChildren: 0, displayStyle: "post_card" },
+  { categoryId: uuid(g * 10 + 2, "5"), order: 2, key: "library", name: "Library", subtitle: "Reference material", parentCategoryId: null, categoryDisplayStyle: "browser", hasChildren: 1, displayStyle: "simple_reference" },
+  { categoryId: uuid(g * 10 + 3, "5"), order: 1, key: "guidelines", name: "Guidelines", subtitle: "Society guidance", parentCategoryId: uuid(g * 10 + 2, "5"), categoryDisplayStyle: "browser", hasChildren: 0, displayStyle: "simple_reference" },
+  { categoryId: uuid(g * 10 + 4, "5"), order: 2, key: "trials", name: "Trials", subtitle: "Landmark papers", parentCategoryId: uuid(g * 10 + 2, "5"), categoryDisplayStyle: "browser", hasChildren: 0, displayStyle: "simple_reference" },
+];
+const groupSettings = (g, extra) => ({ postGroupId: g.postGroupId, indexInParent: null, pinnedPostId: null, groupName: g.groupName, description: g.description, groupType: g.groupType, memberCount: g.memberCount, moderatorUserIds: [users[0].userId], subscribed: g.subscribed, sponsored: g.sponsored ?? 0, sponsor: g.sponsor ?? null, iconUrl: g.iconUrl, restrictions: g.restrictions ?? null, inviteDisposition: null, canPost: g.subscribed ? 1 : 0, canLeave: g.subscribed ? 1 : 0, postFilter: null, categories: g.categories ?? null, numUnseenMessages: 0, onlyModsCanSetCategory: 0, isVisibleInList: 1, canSeeGroupDetails: 1, userScore: 0, ...extra });
+const groups = [
+  { postGroupId: uuid(1,"c"), groupName: "Interventional Cardiology", groupType: "public", iconUrl: "🫀", description: "Coronary and peripheral intervention: cases, technique, devices.", memberCount: 412, subscribed: true, categories: cats(1) },
+  { postGroupId: uuid(2,"c"), groupName: "Structural Heart", groupType: "public", iconUrl: null, description: "TAVR, mitral and tricuspid therapies, LAAO.", memberCount: 268, subscribed: true, sponsored: 1, sponsor: "Sponsored by Edwards Lifesciences" },
+  { postGroupId: uuid(3,"c"), groupName: "Electrophysiology", groupType: "public", iconUrl: "⚡", description: "Ablation, devices, arrhythmia management.", memberCount: 190, subscribed: false },
+  { postGroupId: uuid(4,"c"), groupName: "Advisory Board", groupType: "private", iconUrl: "🔒", description: "Invitation-only working group.", memberCount: 12, subscribed: false, restrictions: JSON.stringify({ userClass: ["doctor"], canRequestAccessUserClass: ["doctor"] }) },
+  { postGroupId: uuid(5,"c"), groupName: "Fellows Lounge", groupType: "restricted", iconUrl: null, description: "For fellows in training.", memberCount: 77, subscribed: false, restrictions: JSON.stringify({ userClass: ["doctor"], canRequestAccessUserClass: [] }) },
+  { postGroupId: uuid(6,"c"), groupName: "Industry Only", groupType: "restricted", iconUrl: null, description: "Not for physicians.", memberCount: 5, subscribed: false, restrictions: JSON.stringify({ userClass: ["industry"], canRequestAccessUserClass: [] }) },
+];
+groups[0].pinnedPostId = uuid(3);
 const hashtags = [{ hashtagId: uuid(1,"d"), hashtag: "TAVR" },{ hashtagId: uuid(2,"d"), hashtag: "CTO" },{ hashtagId: uuid(3,"d"), hashtag: "IVUS" }];
 const TOTAL = 34;
 const posts = [], media = [], comments = [];
@@ -60,10 +75,12 @@ createServer((req, res) => {
     calls.push({ op, variables, auth: req.headers.authorization ?? null });
     let data;
     if (op === "getPostsInGroup") {
-      const { count, lastPostIdReceived } = variables;
-      const start = lastPostIdReceived ? posts.findIndex((p) => p.postId === lastPostIdReceived) + 1 : 0;
-      const page = posts.slice(start, start + count);
-      data = { getPostsInGroup: { success: true, errorMsg: null, errorCode: null, requestDate: variables.requestDate ?? new Date().toISOString(), endOfList: start + count >= posts.length, results: { postIds: [...page.map((p) => p.postId), "ad-insertion-not-a-post"] }, store: storeFor(page, false) } };
+      const { count, lastPostIdReceived, postGroupId, categoryIds } = variables;
+      let list = postGroupId === "ffffffff-ffff-ffff-ffff-ffffffffffff" ? posts : posts.filter((p) => p.postGroupId === postGroupId);
+      if (categoryIds?.length) list = list.filter((p, i) => (categoryIds[0].endsWith("1") ? i % 2 === 0 : i % 2 === 1));
+      const start = lastPostIdReceived ? list.findIndex((p) => p.postId === lastPostIdReceived) + 1 : 0;
+      const page = list.slice(start, start + count);
+      data = { getPostsInGroup: { success: true, errorMsg: null, errorCode: null, requestDate: variables.requestDate ?? new Date().toISOString(), endOfList: start + count >= list.length, results: { postIds: [...page.map((p) => p.postId), "ad-insertion-not-a-post"] }, store: storeFor(page, false) } };
     } else if (op === "getFullPostData") {
       const ps = posts.filter((p) => variables.postIds.includes(p.postId));
       data = { getFullPostData: { success: true, errorMsg: null, errorCode: null, store: storeFor(ps, true) } };
@@ -92,8 +109,23 @@ createServer((req, res) => {
     } else if (op === "selectPollOption") {
       (pollVotes[variables.mediaElementId] ??= {}).me = variables.optionId;
       data = { selectPollOption: { success: true, errorMsg: null, errorCode: null, results: pollPayload(variables.mediaElementId, "me") } };
+    } else if (op === "getAllPostGroups") {
+      data = { getAllPostGroups: { success: true, errorMsg: null, errorCode: null, results: groups.map((g) => groupSettings(g)), store: { users, posts: [], mediaElements: [], hashtags, postGroups: groups.map((g) => ({ postGroupId: g.postGroupId, groupName: g.groupName, groupType: g.groupType, iconUrl: g.iconUrl })) } } };
+    } else if (op === "joinPostGroup" || op === "leavePostGroup") {
+      const g = groups.find((x) => x.postGroupId === variables.postGroupId); const join = op === "joinPostGroup";
+      if (g) { g.subscribed = join; g.memberCount += join ? 1 : -1; }
+      data = { [op]: { success: true, errorMsg: null, errorCode: null, results: { postGroupId: variables.postGroupId, canPost: join, canLeave: join, postFilter: null, subscribed: join } } };
+    } else if (op === "requestAccessToPostGroup" || op === "setPostGroupPreferences") {
+      data = { [op]: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getPostGroupPreferences") {
+      data = { getPostGroupPreferences: { success: true, errorMsg: null, errorCode: null, results: variables.postGroupIds.map((id) => ({ postGroupId: id, watchingGroup: 0 })) } };
+    } else if (op === "getModeratorsInGroup") {
+      data = { getModeratorsInGroup: { success: true, errorMsg: null, errorCode: null, results: { moderators: [{ userId: users[0].userId, username: users[0].username, displayName: users[0].displayName, userClass: "doctor", isEmployee: 0, hidden: 0 }] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "getMembersInGroup") {
+      const all = Array.from({ length: 70 }, (_, i) => users[i % 4].userId); const page = all.slice(variables.offset, variables.offset + variables.count);
+      data = { getMembersInGroup: { success: true, errorMsg: null, errorCode: null, results: { moderatorCount: 1, memberCount: all.length, memberUserIds: page, moderatorUserIds: [users[0].userId] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
     } else if (op === "getProfile") {
-      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: 2 } } } };
+      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: 2, userClass: "doctor", isAdmin: 0 } } } };
     } else { data = null; }
     setTimeout(() => { res.writeHead(200, { "Content-Type": "application/json", ...cors }); res.end(JSON.stringify({ data })); }, 150);
   });

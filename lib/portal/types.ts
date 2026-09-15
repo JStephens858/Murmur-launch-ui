@@ -83,11 +83,52 @@ export interface PortalHashtag {
   hashtag: string;
 }
 
+export type PostGroupType =
+  | "public"
+  | "private"
+  | "restricted"
+  | "direct_message";
+
+export interface PortalPostGroupCategory {
+  categoryId: string;
+  order: number;
+  key: string;
+  name: string;
+  subtitle: string | null;
+  parentCategoryId: string | null;
+  /** header: a tab over the post list; browser: a drill-down of children. */
+  categoryDisplayStyle: "header" | "browser";
+  hasChildren: number;
+  displayStyle: string;
+}
+
+/**
+ * A post group. The store block of every response carries the first four
+ * fields; getAllPostGroups fills in the rest (PostGroupSettingsResults),
+ * which is why they're optional. Ints are the API's booleans (> 0).
+ */
 export interface PortalPostGroup {
   postGroupId: string;
   groupName: string;
-  groupType: string;
+  groupType: PostGroupType;
+  /** A URL, or a single emoji, or null for the app's logo. */
   iconUrl: string | null;
+  description?: string;
+  memberCount?: number;
+  subscribed?: boolean;
+  sponsored?: number;
+  sponsor?: string | null;
+  /** JSON: { userClass: string[], canRequestAccessUserClass: string[] }. */
+  restrictions?: string | null;
+  categories?: PortalPostGroupCategory[] | null;
+  pinnedPostId?: string | null;
+  moderatorUserIds?: string[] | null;
+  canPost?: number;
+  canLeave?: number;
+  canSeeGroupDetails?: number | null;
+  onlyModsCanSetCategory?: number;
+  isVisibleInList?: number | null;
+  numUnseenMessages?: number | null;
 }
 
 export interface StoreData {

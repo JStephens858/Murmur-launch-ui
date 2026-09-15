@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useFeed } from "@/lib/portal/feed";
+import { usePostList } from "@/lib/portal/feed";
 import { PortalAuthError } from "@/lib/portal/graphql";
+import { FEED_GROUP_ID } from "@/lib/portal/queries";
 
 import PostCard, { PostCardSkeleton } from "./post-card";
 
@@ -49,12 +50,24 @@ export function PortalError({
 }
 
 /**
- * The home feed: pages of post ids from getPostsInGroup, each rendered
- * from the entity store. A sentinel below the list requests the next page
- * well before it scrolls into view, so the reader rarely sees a spinner.
+ * A list of posts from one group: pages of post ids from getPostsInGroup,
+ * each rendered from the entity store. A sentinel below the list requests
+ * the next page well before it scrolls into view, so the reader rarely
+ * sees a spinner. The home feed is this with the sentinel group id.
  */
-export default function Feed() {
-  const feed = useFeed();
+export function PostList({
+  postGroupId,
+  categoryIds = [],
+  emptyText = "Nothing here yet.",
+  excludePostId,
+}: {
+  postGroupId: string;
+  categoryIds?: string[];
+  emptyText?: string;
+  /** A post shown elsewhere on the page (the pinned post) to skip here. */
+  excludePostId?: string | null;
+}) {
+  const feed = usePostList(postGroupId, categoryIds);
   const sentinel = useRef<HTMLDivElement>(null);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
 
@@ -63,14 +76,14 @@ export default function Feed() {
     const ids: string[] = [];
     for (const page of feed.data?.pages ?? []) {
       for (const id of page.postIds) {
-        if (!seen.has(id)) {
+        if (!seen.has(id) && id !== excludePostId) {
           seen.add(id);
           ids.push(id);
         }
       }
     }
     return ids;
-  }, [feed.data]);
+  }, [feed.data, excludePostId]);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -90,7 +103,7 @@ export default function Feed() {
       return <PortalError error={feed.error} retry={() => feed.refetch()} />;
     }
     return (
-      <div aria-busy="true" aria-label="Loading feed">
+      <div aria-busy="true" aria-label="Loading posts">
         <PostCardSkeleton />
         <PostCardSkeleton />
         <PostCardSkeleton />
@@ -98,11 +111,7 @@ export default function Feed() {
     );
   }
   if (postIds.length === 0) {
-    return (
-      <p className="text-muted-foreground px-4 py-8">
-        Nothing in your feed yet.
-      </p>
-    );
+    return <p className="text-muted-foreground px-4 py-8">{emptyText}</p>;
   }
 
   return (
@@ -121,5 +130,14 @@ export default function Feed() {
         <PortalError error={feed.error} retry={() => feed.fetchNextPage()} />
       )}
     </div>
+  );
+}
+
+export default function Feed() {
+  return (
+    <PostList
+      postGroupId={FEED_GROUP_ID}
+      emptyText="Nothing in your feed yet."
+    />
   );
 }

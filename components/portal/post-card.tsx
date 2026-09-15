@@ -146,9 +146,12 @@ export default function PostCard({ postId }: { postId: string }) {
             {formatTimeAgo(when)}
           </time>
           {group?.groupName && (
-            <span className="text-accent-alt ml-auto truncate text-xs">
+            <Link
+              href={`/groups/${group.postGroupId}`}
+              className="text-accent-alt relative z-10 ml-auto truncate text-xs hover:underline"
+            >
               {group.groupName}
-            </span>
+            </Link>
           )}
         </div>
 

@@ -16,6 +16,9 @@ export interface CurrentUser {
   profilePicThumbnailUrl: string | null;
   numNotifications: number | null;
   numDirectMessages: number | null;
+  /** admin | doctor | staff | sponsor | observer | industry | public | HCP | hospitalAdmin */
+  userClass: string;
+  isAdmin: number;
 }
 
 const GET_PROFILE = /* GraphQL */ `
@@ -32,6 +35,8 @@ const GET_PROFILE = /* GraphQL */ `
           profilePicThumbnailUrl
           numNotifications
           numDirectMessages
+          userClass
+          isAdmin
         }
       }
     }
