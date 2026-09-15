@@ -5,6 +5,15 @@
  * client if/when the query surface grows.
  */
 
+import {
+  buildVideosPage,
+  type PublicVideosPage,
+  type SiteVideo,
+  type VideoHashtag,
+} from "./video-page";
+
+export type { PublicVideosPage, SiteVideo, VideoHashtag };
+
 export interface ProfileUser {
   username: string | null;
   firstName: string | null;
@@ -88,40 +97,6 @@ export async function getProfile(
 }
 
 /* ── Public videos (unauthenticated) ─────────────────────────────────── */
-
-export interface VideoHashtag {
-  hashtagId: string;
-  /** Tag text without the leading "#". */
-  hashtag: string;
-}
-
-export interface SiteVideo {
-  postId: string;
-  kind: "LONG_FORM" | "SHORT_FORM";
-  /** Shorts are portrait 9:16, long-form landscape 16:9 (site convention). */
-  orientation: "PORTRAIT" | "LANDSCAPE";
-  title: string;
-  description: string;
-  authorName: string | null;
-  authorUsername: string | null;
-  publishedDate: string | null;
-  views: number;
-  durationMs: number | null;
-  previewImageUrl: string | null;
-  streamUrl: string;
-  hashtags: VideoHashtag[];
-}
-
-export interface PublicVideosPage {
-  longVideos: SiteVideo[];
-  shortVideos: SiteVideo[];
-  /** Cursors for the next page (pass as lastLongPostId / lastShortPostId). */
-  lastLongPostId: string | null;
-  lastShortPostId: string | null;
-  /** False once the API returns fewer post ids than requested. */
-  longHasMore: boolean;
-  shortHasMore: boolean;
-}
 
 const GET_PUBLIC_VIDEOS_QUERY = /* GraphQL */ `
   query PublicVideos(
@@ -218,11 +193,6 @@ interface PublicVideosData {
   } | null;
 }
 
-function firstLine(text: string): string {
-  const line = text.split("\n").find((l) => l.trim().length > 0) ?? "";
-  return line.trim();
-}
-
 export async function getPublicVideos({
   longCount = 30,
   shortCount = 30,
@@ -238,7 +208,13 @@ export async function getPublicVideos({
   hashtagId?: string | null;
 } = {}): Promise<PublicVideosPage> {
   const data = await fetchMurmurAPI<PublicVideosData>(GET_PUBLIC_VIDEOS_QUERY, {
-    variables: { longCount, shortCount, lastLongPostId, lastShortPostId, hashtagId },
+    variables: {
+      longCount,
+      shortCount,
+      lastLongPostId,
+      lastShortPostId,
+      hashtagId,
+    },
     // Cache for 5 min in production; locally (next dev) always fetch fresh so
     // new videos show up immediately.
     ...(process.env.NODE_ENV === "production"
@@ -247,70 +223,12 @@ export async function getPublicVideos({
   });
 
   const payload = data.getPublicVideosForSite;
-  const store = payload?.store;
-  const users = new Map((store?.users ?? []).map((u) => [u.userId, u]));
-  const posts = new Map((store?.posts ?? []).map((p) => [p.postId, p]));
-  const hashtags = new Map(
-    (store?.hashtags ?? [])
-      .filter((h) => h.hashtag)
-      .map((h) => [h.hashtagId, h.hashtag as string]),
+  return buildVideosPage(
+    {
+      longIds: payload?.results?.longVideoPostIds ?? [],
+      shortIds: payload?.results?.shortVideoPostIds ?? [],
+      store: payload?.store,
+    },
+    { longCount, shortCount },
   );
-  const videoElements = new Map(
-    (store?.mediaElements ?? [])
-      .filter((m) => m.mediaType === "video" && m.streamUrl && m.postId)
-      .map((m) => [m.postId as string, m]),
-  );
-
-  function toSiteVideo(
-    postId: string,
-    kind: SiteVideo["kind"],
-  ): SiteVideo | null {
-    const post = posts.get(postId);
-    const media = videoElements.get(postId);
-    if (!post || !media?.streamUrl) return null;
-    const author = post.creatorUserId
-      ? users.get(post.creatorUserId)
-      : undefined;
-    const text = post.postText ?? "";
-    // hashtagIds arrive with heavy duplication — dedupe, preserve order
-    const tagList = [...new Set(post.hashtagIds ?? [])]
-      .map((id) => {
-        const tag = hashtags.get(id);
-        return tag ? { hashtagId: id, hashtag: tag } : null;
-      })
-      .filter((h): h is VideoHashtag => h !== null);
-    return {
-      postId,
-      kind,
-      orientation: kind === "SHORT_FORM" ? "PORTRAIT" : "LANDSCAPE",
-      title: post.title?.trim() || firstLine(text) || "Untitled video",
-      description: text,
-      authorName: author?.displayName ?? null,
-      authorUsername: author?.username ?? null,
-      publishedDate: post.publishedDate,
-      views: post.numUniqueViews ?? 0,
-      durationMs: media.duration ?? null,
-      previewImageUrl: post.mediaPreviewUrl ?? media.mediaPreviewImageUrl,
-      streamUrl: media.streamUrl,
-      hashtags: tagList,
-    };
-  }
-
-  const longIds = payload?.results?.longVideoPostIds ?? [];
-  const shortIds = payload?.results?.shortVideoPostIds ?? [];
-  const longVideos = longIds
-    .map((id) => toSiteVideo(id, "LONG_FORM"))
-    .filter((v): v is SiteVideo => v !== null);
-  const shortVideos = shortIds
-    .map((id) => toSiteVideo(id, "SHORT_FORM"))
-    .filter((v): v is SiteVideo => v !== null);
-
-  return {
-    longVideos,
-    shortVideos,
-    lastLongPostId: longIds.at(-1) ?? null,
-    lastShortPostId: shortIds.at(-1) ?? null,
-    longHasMore: longCount > 0 && longIds.length >= longCount,
-    shortHasMore: shortCount > 0 && shortIds.length >= shortCount,
-  };
 }

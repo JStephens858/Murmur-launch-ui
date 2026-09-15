@@ -1,0 +1,100 @@
+/**
+ * Mock Murmur GraphQL API for driving the portal feed without a signed-in
+ * session or a populated backend: answers getPostsInGroup (34 posts, paged by
+ * lastPostIdReceived, an ad insertion mixed in) and getFullPostData (media,
+ * comments, a quoted post), getNotifications2 (45 rows of every kind, paged
+ * by beforeDate), markNotificationsSeen / markNotificationsCleared, and
+ * getProfile (badge counts). GET /calls lists every operation received.
+ *
+ *   node scripts/mock-portal-api.mjs   # :4100
+ *   NEXT_PUBLIC_MURMUR_API_SERVER=http://localhost:4100/api npx next dev -p 3100
+ *
+ * The portal still needs a token: in puppeteer, intercept /auth/access-token
+ * and respond {"token":"x"}; the mock ignores the header. See .claude/skills/verify.
+ */
+import { createServer } from "node:http";
+const PORT = 4100;
+const uuid = (n, p = "a") => `${p.repeat(8)}-0000-4000-8000-${String(n).padStart(12, "0")}`;
+const svg = (label, color) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675"><rect width="1200" height="675" fill="${color}"/><text x="50%" y="50%" font-family="sans-serif" font-size="72" fill="white" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`)}`;
+const users = [1,2,3,4].map((n) => ({ userId: uuid(n,"b"), username: ["cathlab_kate","d_ramirez","ep_priya","vasc_tom"][n-1], displayName: ["Kate Morgan, MD","Diego Ramirez, MD","Priya Nair, MD","Tom Okafor, MD"][n-1], isDeleted: false, profilePicThumbnailUrl: null, profilePicMediumUrl: null, specialty: ["Interventional Cardiology","Structural Heart","Electrophysiology","Vascular Surgery"][n-1], flair: null, location: null }));
+const groups = [{ postGroupId: uuid(1,"c"), groupName: "Interventional Cardiology", groupType: "public", iconUrl: null },{ postGroupId: uuid(2,"c"), groupName: "Structural Heart", groupType: "public", iconUrl: null }];
+const hashtags = [{ hashtagId: uuid(1,"d"), hashtag: "TAVR" },{ hashtagId: uuid(2,"d"), hashtag: "CTO" },{ hashtagId: uuid(3,"d"), hashtag: "IVUS" }];
+const TOTAL = 34;
+const posts = [], media = [], comments = [];
+for (let n = 1; n <= TOTAL; n++) {
+  const kind = ["image","text","video","poll","file"][n % 5];
+  const id = uuid(n), created = new Date(Date.now() - n * 3.7 * 3600_000).toISOString();
+  const els = [];
+  const postBody = `Post ${n} (${kind}). 72-year-old with multivessel disease and a calcified proximal LAD. Prior CABG with a patent LIMA. Presenting with unstable angina despite maximal medical therapy.\n\nThinking about a staged approach — thoughts?`;
+  const push = (m) => { const mid = uuid(n*10 + els.length, "e"); els.push(mid); media.push({ postId: id, mediaElementId: mid, indexInPost: els.length - 1, mediaText: null, properties: null, mediaUrl: null, streamUrl: null, duration: null, fileSize: null, mediaPreviewImageUrl: null, attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null, ...m }); };
+  push({ mediaType: "text", mediaText: postBody });
+  if (kind === "image") { push({ mediaType: "image", mediaUrl: svg("Angio frame " + n, "#8a1e5c"), mediaText: "LAO caudal, post-stent" }); push({ mediaType: "image", mediaUrl: svg("Frame 2", "#6d1849") }); }
+  if (kind === "video") push({ mediaType: "video", streamUrl: "https://example.com/stream.m3u8", mediaPreviewImageUrl: svg("Video " + n, "#232a33"), duration: 154, mediaText: "Case walkthrough" });
+  if (kind === "poll") push({ mediaType: "poll", mediaText: "First-line access for this case?", properties: JSON.stringify([{ id: uuid(1,"f"), text: "Radial", height: 44 }, { id: uuid(2,"f"), text: "Femoral", height: 44 }, { id: uuid(3,"f"), text: "Depends on anatomy", height: 44 }]) });
+  if (kind === "file") push({ mediaType: "file", mediaText: "ESC 2026 guideline excerpt.pdf", mediaUrl: "https://example.com/file.pdf" });
+  if (kind === "text") push({ mediaType: "text", mediaText: "Link to the trial:", attachmentTitle: "Landmark trial results", attachmentDescription: "Primary endpoint met with a 31% relative risk reduction at 12 months.", attachmentDestinationUrl: "https://example.com/trial" });
+  const cids = [uuid(n*100+1,"9"), uuid(n*100+2,"9")];
+  cids.forEach((cid, i) => { const ctext = i === 0 ? "Nice result. Did you consider IVUS-guided sizing here?" : "We had a similar case last month; went radial and it worked out fine."; const cmid = uuid(n * 1000 + i, "8"); if (kind === "video") media.push({ postId: cid, mediaElementId: uuid(n * 1000 + i + 50, "8"), indexInPost: 1, mediaType: "video", mediaText: null, properties: null, mediaUrl: null, streamUrl: "https://example.com/stream.m3u8", duration: 61, fileSize: null, mediaPreviewImageUrl: svg("Comment video " + (i + 1), "#6d1849"), attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null }); media.push({ postId: cid, mediaElementId: cmid, indexInPost: 0, mediaType: "text", mediaText: ctext, properties: null, mediaUrl: null, streamUrl: null, duration: null, fileSize: null, mediaPreviewImageUrl: null, attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null }); comments.push({ postId: cid, postGroupId: groups[n % 2].postGroupId, rootPostId: id, parentPostId: id, depth: 1, isDeleted: false, isPublished: true, creatorUserId: users[(n + i + 1) % 4].userId, createdDate: created, publishedDate: created, title: null, postText: ctext, mediaPreviewUrl: null, mediaElementIds: kind === "video" ? [cmid, uuid(n * 1000 + i + 50, "8")] : [cmid], hashtagIds: null, commentIds: [], quotedPostId: null, numLikes: 3 + i, numComments: 0, numBookmarks: 0, numUniqueViews: 12, likedByMe: 0, bookmarkedByMe: 0, commentsLocked: 0, categoryKey: null, promotedPostType: null }); });
+  posts.push({ postId: id, postGroupId: groups[n % 2].postGroupId, rootPostId: null, parentPostId: null, depth: 0, isDeleted: false, isPublished: true, creatorUserId: users[n % 4].userId, createdDate: created, publishedDate: created, title: n % 3 === 0 ? `Post ${n}: complex bifurcation, what would you do?` : null, postText: postBody, mediaPreviewUrl: kind === "image" ? svg("Angio frame " + n, "#8a1e5c") : kind === "video" ? svg("Video " + n, "#232a33") : null, mediaElementIds: els, hashtagIds: [hashtags[n % 3].hashtagId, ...(n % 2 ? [hashtags[(n+1) % 3].hashtagId] : [])], commentIds: cids, quotedPostId: n === 6 ? uuid(2) : null, numLikes: (n * 7) % 40, numComments: 2, numBookmarks: n % 4, numUniqueViews: n * 13, likedByMe: n % 5 === 0 ? 1 : 0, bookmarkedByMe: n % 4 === 1 ? 1 : 0, commentsLocked: 0, categoryKey: kind === "poll" ? "poll" : null, promotedPostType: null });
+}
+const lite = (p) => ({ ...p, mediaElementIds: p.mediaElementIds, commentIds: p.commentIds });
+const storeFor = (ps, full) => { const all = full ? [...ps, ...comments.filter(c => ps.some(p => p.postId === c.rootPostId)), ...ps.filter(p => p.quotedPostId).map(p => posts.find(q => q.postId === p.quotedPostId)).filter(Boolean)] : ps.map(lite); return { users, posts: all, mediaElements: full ? media.filter(m => all.some(p => p.postId === m.postId)) : [], hashtags, postGroups: groups }; };
+const KINDS = ["likePost","replyPost","newPost","bookmarkPost","newFollower","userMentioned","newDmPost","postGroupAction","systemAnnouncement","newUser","priorityPost"];
+const TEXT = { likePost: "liked your post", replyPost: "replied to your post", newPost: "posted in Interventional Cardiology", bookmarkPost: "bookmarked your post", newFollower: "started following you", userMentioned: "mentioned you in a post", newDmPost: "sent you a message", postGroupAction: "approved your request to join Structural Heart", systemAnnouncement: "MurmurMD will be down for maintenance tonight at 11pm MT", newUser: "joined MurmurMD — say hello", priorityPost: "posted something you might like" };
+const notifications = Array.from({ length: 45 }, (_, i) => {
+  const n = i + 1, kind = KINDS[i % KINDS.length], creator = users[i % 4];
+  return { notificationId: uuid(n, "7"), userId: users[0].userId, notificationType: kind, notificationDestinationId: ["newFollower","newUser"].includes(kind) ? creator.userId : kind === "postGroupAction" ? groups[1].postGroupId : kind === "newDmPost" ? uuid(9, "c") : posts[i % posts.length].postId, notificationPostId: kind === "replyPost" ? comments[(i % posts.length) * 2].postId : posts[i % posts.length].postId, notificationCreatorId: kind === "systemAnnouncement" ? null : creator.userId, createdDate: new Date(Date.now() - n * 5.3 * 3600_000).toISOString(), notificationText: kind === "systemAnnouncement" ? TEXT[kind] : `${creator.displayName} ${TEXT[kind]}`, notificationImageUrl: kind === "systemAnnouncement" ? null : svg(creator.displayName[0], ["#8a1e5c","#de046c","#6d1849","#232a33"][i % 4]), seen: n <= 6 ? 0 : 1 };
+});
+// poll votes: mediaElementId -> { userId -> optionId }, seeded so tallies aren't empty
+const pollVotes = {};
+for (const m of media) if (m.mediaType === "poll") { const [a, b] = JSON.parse(m.properties); pollVotes[m.mediaElementId] = { u1: a.id, u2: a.id, u3: b.id }; }
+const pollPayload = (mid, me) => { const v = pollVotes[mid] ?? {}; const counts = {}; for (const o of Object.values(v)) if (o !== "00000000-0000-0000-0000-000000000000") counts[o] = (counts[o] ?? 0) + 1; return { mediaElementId: mid, usersSelection: v[me] ?? null, pollResults: Object.entries(counts).map(([optionId, count]) => ({ optionId, count })) }; };
+let calls = [];
+createServer((req, res) => {
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,content-type", "Access-Control-Allow-Methods": "POST,OPTIONS" };
+  if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
+  if (req.url === "/calls") { res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify(calls)); }
+  let body = ""; req.on("data", (c) => body += c); req.on("end", () => {
+    const { query, variables } = JSON.parse(body);
+    const op = (query.match(/(?:query|mutation)\s+(\w+)/) || [])[1];
+    calls.push({ op, variables, auth: req.headers.authorization ?? null });
+    let data;
+    if (op === "getPostsInGroup") {
+      const { count, lastPostIdReceived } = variables;
+      const start = lastPostIdReceived ? posts.findIndex((p) => p.postId === lastPostIdReceived) + 1 : 0;
+      const page = posts.slice(start, start + count);
+      data = { getPostsInGroup: { success: true, errorMsg: null, errorCode: null, requestDate: variables.requestDate ?? new Date().toISOString(), endOfList: start + count >= posts.length, results: { postIds: [...page.map((p) => p.postId), "ad-insertion-not-a-post"] }, store: storeFor(page, false) } };
+    } else if (op === "getFullPostData") {
+      const ps = posts.filter((p) => variables.postIds.includes(p.postId));
+      data = { getFullPostData: { success: true, errorMsg: null, errorCode: null, store: storeFor(ps, true) } };
+    } else if (op === "getNotifications2") {
+      const before = new Date(variables.beforeDate).getTime();
+      const page = notifications.filter((n) => n.seen < 2 && new Date(n.createdDate).getTime() < before).slice(0, variables.count ?? 20);
+      data = { getNotifications2: { success: true, errorMsg: null, errorCode: null, results: { notifications: page }, store: { users: [], posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "markNotificationsSeen" || op === "markNotificationsCleared") {
+      const before = new Date(variables.beforeDate + "Z").getTime(), v = op === "markNotificationsSeen" ? 1 : 2;
+      for (const n of notifications) if (new Date(n.createdDate).getTime() <= before && n.seen < v) n.seen = v;
+      data = { [op]: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getVideosForUser") {
+      const vids = posts.filter((p) => media.some((m) => m.postId === p.postId && m.mediaType === "video"));
+      const pageOf = (list, last, count) => { const start = last ? list.findIndex((p) => p.postId === last) + 1 : 0; return list.slice(start, start + count); };
+      const longs = pageOf(vids.filter((_, i) => i % 2 === 0), variables.lastLongPostId, variables.longCount ?? 0);
+      const shorts = pageOf(vids.filter((_, i) => i % 2 === 1), variables.lastShortPostId, variables.shortCount ?? 0);
+      const ps = [...longs, ...shorts];
+      const st = storeFor(ps, false); st.mediaElements = media.filter((m) => ps.some((p) => p.postId === m.postId)).map((m) => ({ ...m, streamUrl: "https://example.com/stream.m3u8" }));
+      data = { getVideosForUser: { success: true, errorMsg: null, errorCode: null, results: { longVideoPostIds: longs.map((p) => p.postId), shortVideoPostIds: shorts.map((p) => p.postId), continueWatchingPostIds: [] }, store: st } };
+    } else if (op === "likePost") {
+      const p = posts.find((x) => x.postId === variables.postId);
+      if (p) { p.numLikes += variables.like ? 1 : -1; p.likedByMe = variables.like; }
+      data = { likePost: { success: true, errorMsg: null, errorCode: null, store: storeFor(p ? [p] : [], false) } };
+    } else if (op === "getPollResults") {
+      data = { getPollResults: { success: true, errorMsg: null, errorCode: null, results: pollPayload(variables.mediaElementId, "me") } };
+    } else if (op === "selectPollOption") {
+      (pollVotes[variables.mediaElementId] ??= {}).me = variables.optionId;
+      data = { selectPollOption: { success: true, errorMsg: null, errorCode: null, results: pollPayload(variables.mediaElementId, "me") } };
+    } else if (op === "getProfile") {
+      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: 2 } } } };
+    } else { data = null; }
+    setTimeout(() => { res.writeHead(200, { "Content-Type": "application/json", ...cors }); res.end(JSON.stringify({ data })); }, 150);
+  });
+}).listen(PORT, () => console.log("mock api on", PORT));

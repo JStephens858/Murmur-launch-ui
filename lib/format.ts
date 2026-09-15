@@ -36,3 +36,30 @@ export function formatViews(views: number): string {
   }
   return `${views} view${views === 1 ? "" : "s"}`;
 }
+
+/**
+ * Compact age for feed rows: "now", "5m", "3h", "2d", then "Mar 4" and
+ * "Mar 4, 2025" once it's older than a year. Matches what X shows on a card.
+ */
+export function formatTimeAgo(iso: string, now: Date = new Date()): string {
+  const then = new Date(iso);
+  const secs = Math.max(0, (now.getTime() - then.getTime()) / 1000);
+  if (secs < 60) return "now";
+  if (secs < 3600) return `${Math.floor(secs / 60)}m`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h`;
+  if (secs < 86400 * 7) return `${Math.floor(secs / 86400)}d`;
+  const sameYear = then.getFullYear() === now.getFullYear();
+  return then.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+}
+
+/** "1.2K", "34K", "2.1M" — counter style for likes and comments. */
+export function formatCount(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 1_000_000)
+    return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0).replace(/\.0$/, "")}K`;
+  return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+}

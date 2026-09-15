@@ -13,9 +13,19 @@ function VideoPlayer({
   src,
   className,
   autoPlay,
+  ref,
   ...props
 }: VideoPlayerProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  // Share the element with a caller's ref (callback or object) as well.
+  const setRef = React.useCallback(
+    (el: HTMLVideoElement | null) => {
+      videoRef.current = el;
+      if (typeof ref === "function") ref(el);
+      else if (ref) ref.current = el;
+    },
+    [ref],
+  );
 
   React.useEffect(() => {
     const video = videoRef.current;
@@ -45,7 +55,7 @@ function VideoPlayer({
 
   return (
     <video
-      ref={videoRef}
+      ref={setRef}
       data-slot="video-player"
       controls
       playsInline

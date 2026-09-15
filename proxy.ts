@@ -23,6 +23,31 @@ function isLegacyActionPath(pathname: string): boolean {
   return LEGACY_ACTION_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/**
+ * The physician portal, app/(portal). Top-level paths rather than a /portal
+ * prefix, following X's URL scheme (/feed, /explore, ...); /watch rather than /videos because
+ * that is the public video library. Each entry is a
+ * route segment, so /feedback would not match.
+ */
+const PORTAL_SEGMENTS = [
+  "/feed",
+  "/watch",
+  "/explore",
+  "/notifications",
+  "/groups",
+  "/messages",
+  "/profile",
+  "/more",
+  "/compose",
+  "/postDetail",
+];
+
+function isPortalPath(pathname: string): boolean {
+  return PORTAL_SEGMENTS.some(
+    (segment) => pathname === segment || pathname.startsWith(`${segment}/`),
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -92,10 +117,22 @@ export async function proxy(request: NextRequest) {
 
   const authResponse = await auth0.middleware(request);
 
+  /*
+   * Optimistic sign-in check for the portal: reads the session cookie only, no
+   * API call, and bounces to /login with the path to come back to. Pages that
+   * fetch data still verify the session themselves; this just keeps the shell
+   * from ever rendering signed out.
+   */
+  if (isPortalPath(pathname) && !(await auth0.getSession(request))) {
+    const login = new URL("/login", request.url);
+    login.searchParams.set("returnTo", pathname + request.nextUrl.search);
+    return NextResponse.redirect(login);
+  }
+
   // Refresh the access token here for pages that call the Murmur API:
   // the proxy can persist an updated token set to cookies, which Server
   // Components cannot.
-  if (pathname.startsWith("/account")) {
+  if (pathname.startsWith("/account") || isPortalPath(pathname)) {
     try {
       await auth0.getAccessToken(request, authResponse);
     } catch {

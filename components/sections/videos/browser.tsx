@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRightIcon, Play, X } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,24 +27,60 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 const PAGE_SIZE = 24;
 
+export interface VideosPageRequest {
+  type: "all" | VideoType;
+  count: number;
+  cursor?: string | null;
+  hashtagId?: string | null;
+}
+
+/**
+ * Where pages come from. The default is the public /api/videos route; the
+ * signed-in portal supplies one that queries the API from the browser.
+ */
+export type VideosSource = (
+  req: VideosPageRequest,
+) => Promise<PublicVideosPage>;
+
+export const publicVideosSource: VideosSource = async ({
+  type,
+  count,
+  cursor,
+  hashtagId,
+}) => {
+  const query = new URLSearchParams({
+    type,
+    count: String(count),
+    ...(cursor ? { cursor } : {}),
+    ...(hashtagId ? { hashtagId } : {}),
+  });
+  const res = await fetch(`/api/videos?${query}`);
+  if (!res.ok) throw new Error(`videos api ${res.status}`);
+  return res.json();
+};
+
 /**
  * In the "All videos" view each group shows two grid rows at every
  * breakpoint. Long grid is 1/2/3/4 columns, shorts 2/3/5/6 — so tiles
- * beyond 2×cols hide per breakpoint.
+ * beyond 2×cols hide per breakpoint. Breakpoints are container queries on
+ * the browser's own width, so the same grid works in the full-width public
+ * page and the portal's narrower column. @xl/@4xl/@6xl (576/896/1152px)
+ * land where the old sm/lg/xl viewport breakpoints did once the page's
+ * padding is taken off.
  */
 function longCapClass(index: number): string {
   if (index < 2) return "";
-  if (index < 4) return "hidden sm:block";
-  if (index < 6) return "hidden lg:block";
-  if (index < 8) return "hidden xl:block";
+  if (index < 4) return "hidden @xl:block";
+  if (index < 6) return "hidden @4xl:block";
+  if (index < 8) return "hidden @6xl:block";
   return "hidden";
 }
 
 function shortCapClass(index: number): string {
   if (index < 4) return "";
-  if (index < 6) return "hidden sm:block";
-  if (index < 10) return "hidden lg:block";
-  if (index < 12) return "hidden xl:block";
+  if (index < 6) return "hidden @xl:block";
+  if (index < 10) return "hidden @4xl:block";
+  if (index < 12) return "hidden @6xl:block";
   return "hidden";
 }
 
@@ -61,9 +98,9 @@ function viewMoreClass(
 ): string | null {
   if (hasMore) return "";
   if (count > xl) return "";
-  if (count > lg) return "xl:hidden";
-  if (count > sm) return "lg:hidden";
-  if (count > base) return "sm:hidden";
+  if (count > lg) return "@6xl:hidden";
+  if (count > sm) return "@4xl:hidden";
+  if (count > base) return "@xl:hidden";
   return null;
 }
 
@@ -154,7 +191,7 @@ function VideoPostCard({
       <button
         type="button"
         onClick={onClick}
-        className="group flex w-full flex-col gap-3 text-left focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="group focus-visible:ring-ring flex w-full flex-col gap-3 text-left focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <div
           className={cn(
@@ -202,8 +239,16 @@ function VideoPostCard({
 
 export default function VideosBrowser({
   initial,
+  source = publicVideosSource,
+  postHref,
+  renderActions,
 }: {
   initial: PublicVideosPage;
+  source?: VideosSource;
+  /** When given, the player's title links to the video's post. */
+  postHref?: (video: SiteVideo) => string;
+  /** Extra row under the player's metadata, e.g. like and comment actions. */
+  renderActions?: (video: SiteVideo) => React.ReactNode;
 }) {
   const [filter, setFilter] = React.useState<Filter>("ALL");
   const [active, setActive] = React.useState<SiteVideo | null>(null);
@@ -262,14 +307,11 @@ export default function VideosBrowser({
       setHasMore({ long: false, short: false });
       (async () => {
         try {
-          const query = new URLSearchParams({
+          const page = await source({
             type: "all",
-            count: String(PAGE_SIZE),
+            count: PAGE_SIZE,
             hashtagId: tag.hashtagId,
           });
-          const res = await fetch(`/api/videos?${query}`);
-          if (!res.ok) throw new Error(`videos api ${res.status}`);
-          const page: PublicVideosPage = await res.json();
           if (generation !== tagGeneration.current) return;
           setLongs(page.longVideos);
           setShorts(page.shortVideos);
@@ -285,7 +327,7 @@ export default function VideosBrowser({
         }
       })();
     },
-    [initial],
+    [initial, source],
   );
 
   /** Toggle the hashtag filter; also closes the player if open. */
@@ -306,55 +348,57 @@ export default function VideosBrowser({
     [activeTag, applyTag],
   );
 
-  const loadMore = React.useCallback(async (type: VideoType) => {
-    if (loadingRef.current) return;
-    loadingRef.current = true;
-    setLoadingMore(true);
-    const generation = tagGeneration.current;
-    try {
-      const cursor = cursors.current[type];
-      const query = new URLSearchParams({
-        type,
-        count: String(PAGE_SIZE),
-        ...(cursor ? { cursor } : {}),
-        ...(activeTag ? { hashtagId: activeTag.hashtagId } : {}),
-      });
-      const res = await fetch(`/api/videos?${query}`);
-      if (!res.ok) throw new Error(`videos api ${res.status}`);
-      const page: PublicVideosPage = await res.json();
-      if (generation !== tagGeneration.current) return;
-      if (type === "long") {
-        cursors.current.long = page.lastLongPostId ?? cursors.current.long;
-        setLongs((prev) => {
-          const seen = new Set(prev.map((v) => v.postId));
-          return [...prev, ...page.longVideos.filter((v) => !seen.has(v.postId))];
+  const loadMore = React.useCallback(
+    async (type: VideoType) => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
+      setLoadingMore(true);
+      const generation = tagGeneration.current;
+      try {
+        const page = await source({
+          type,
+          count: PAGE_SIZE,
+          cursor: cursors.current[type],
+          hashtagId: activeTag?.hashtagId ?? null,
         });
-        setHasMore((prev) => ({ ...prev, long: page.longHasMore }));
-      } else {
-        cursors.current.short = page.lastShortPostId ?? cursors.current.short;
-        setShorts((prev) => {
-          const seen = new Set(prev.map((v) => v.postId));
-          return [
-            ...prev,
-            ...page.shortVideos.filter((v) => !seen.has(v.postId)),
-          ];
-        });
-        setHasMore((prev) => ({ ...prev, short: page.shortHasMore }));
+        if (generation !== tagGeneration.current) return;
+        if (type === "long") {
+          cursors.current.long = page.lastLongPostId ?? cursors.current.long;
+          setLongs((prev) => {
+            const seen = new Set(prev.map((v) => v.postId));
+            return [
+              ...prev,
+              ...page.longVideos.filter((v) => !seen.has(v.postId)),
+            ];
+          });
+          setHasMore((prev) => ({ ...prev, long: page.longHasMore }));
+        } else {
+          cursors.current.short = page.lastShortPostId ?? cursors.current.short;
+          setShorts((prev) => {
+            const seen = new Set(prev.map((v) => v.postId));
+            return [
+              ...prev,
+              ...page.shortVideos.filter((v) => !seen.has(v.postId)),
+            ];
+          });
+          setHasMore((prev) => ({ ...prev, short: page.shortHasMore }));
+        }
+      } catch {
+        // Stop asking on failure; the user can re-trigger by re-filtering.
+        if (generation === tagGeneration.current) {
+          setHasMore((prev) =>
+            type === "long"
+              ? { ...prev, long: false }
+              : { ...prev, short: false },
+          );
+        }
+      } finally {
+        loadingRef.current = false;
+        setLoadingMore(false);
       }
-    } catch {
-      // Stop asking on failure; the user can re-trigger by re-filtering.
-      if (generation === tagGeneration.current) {
-        setHasMore((prev) =>
-          type === "long"
-            ? { ...prev, long: false }
-            : { ...prev, short: false },
-        );
-      }
-    } finally {
-      loadingRef.current = false;
-      setLoadingMore(false);
-    }
-  }, [activeTag]);
+    },
+    [activeTag, source],
+  );
 
   // Infinite scroll: only in a single-type view.
   const activeType: VideoType | null =
@@ -383,7 +427,7 @@ export default function VideosBrowser({
   const shortViewMore = viewMoreClass(shorts.length, hasMore.short, SHORT_CAPS);
 
   return (
-    <>
+    <div className="@container flex flex-col gap-8">
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex gap-2" role="tablist" aria-label="Video type">
           {FILTERS.map(({ value, label }) => (
@@ -435,7 +479,7 @@ export default function VideosBrowser({
               )}
             </div>
           )}
-          <div className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-4 gap-y-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4">
             {longs.map((video, index) => (
               <div
                 key={video.postId}
@@ -471,7 +515,7 @@ export default function VideosBrowser({
               )}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 @xl:grid-cols-3 @4xl:grid-cols-5 @6xl:grid-cols-6">
             {shorts.map((video, index) => (
               <div
                 key={video.postId}
@@ -545,7 +589,16 @@ export default function VideosBrowser({
                 </div>
                 <div className="flex flex-col gap-2 p-4 sm:p-6">
                   <Dialog.Title className="text-lg font-semibold sm:text-xl">
-                    {active.title}
+                    {postHref ? (
+                      <Link
+                        href={postHref(active)}
+                        className="hover:text-primary hover:underline"
+                      >
+                        {active.title}
+                      </Link>
+                    ) : (
+                      active.title
+                    )}
                   </Dialog.Title>
                   <p className="text-muted-foreground text-xs sm:text-sm">
                     {[
@@ -558,6 +611,7 @@ export default function VideosBrowser({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
+                  {renderActions?.(active)}
                   <HashtagRow
                     tags={active.hashtags}
                     selectedTagId={activeTag?.hashtagId}
@@ -580,6 +634,6 @@ export default function VideosBrowser({
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </>
+    </div>
   );
 }

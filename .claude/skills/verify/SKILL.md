@@ -49,3 +49,16 @@ description: Build, run, and drive the Murmur website (Next.js) to verify change
   debugging curl.
 - `getPublicVideos` fetch is cached 5 min only when `NODE_ENV === "production"`;
   dev always no-store.
+
+## Portal (signed-in) pages
+
+- Portal routes (`/feed`, `/postDetail/<id>`, …) are gated in `proxy.ts` and
+  the feed queries the API from the browser with an Auth0 token
+  (`lib/portal/graphql.ts`, endpoint `NEXT_PUBLIC_MURMUR_API_SERVER`).
+- To drive them without a session: run `node scripts/mock-portal-api.mjs`
+  (:4100), start dev with `NEXT_PUBLIC_MURMUR_API_SERVER=http://localhost:4100/api`,
+  add a temporary ungated page under `app/(portal)/preview/` that renders
+  `<Feed />` (delete it after — a stale `.next/dev/types` entry for it also
+  breaks `next build`; `rm -rf .next/dev`), and in puppeteer intercept
+  `/auth/access-token` to respond `{"token":"x"}` and rewrite `/postDetail/*`
+  navigations to the preview page. `GET :4100/calls` shows what was fetched.
