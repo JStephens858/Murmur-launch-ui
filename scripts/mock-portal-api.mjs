@@ -14,7 +14,7 @@
  */
 import { createServer } from "node:http";
 const PORT = 4100;
-const uuid = (n, p = "a") => `${p.repeat(8)}-0000-4000-8000-${String(n).padStart(12, "0")}`;
+const uuid = (n, p = "a") => `${p.repeat(8).slice(0, 8)}-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const svg = (label, color) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675"><rect width="1200" height="675" fill="${color}"/><text x="50%" y="50%" font-family="sans-serif" font-size="72" fill="white" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`)}`;
 const users = [1,2,3,4].map((n) => ({ userId: uuid(n,"b"), username: ["cathlab_kate","d_ramirez","ep_priya","vasc_tom"][n-1], displayName: ["Kate Morgan, MD","Diego Ramirez, MD","Priya Nair, MD","Tom Okafor, MD"][n-1], isDeleted: false, profilePicThumbnailUrl: null, profilePicMediumUrl: null, specialty: ["Interventional Cardiology","Structural Heart","Electrophysiology","Vascular Surgery"][n-1], flair: null, location: null }));
 const cats = (g) => [
@@ -64,6 +64,19 @@ const notifications = Array.from({ length: 45 }, (_, i) => {
 const pollVotes = {};
 for (const m of media) if (m.mediaType === "poll") { const [a, b] = JSON.parse(m.properties); pollVotes[m.mediaElementId] = { u1: a.id, u2: a.id, u3: b.id }; }
 const pollPayload = (mid, me) => { const v = pollVotes[mid] ?? {}; const counts = {}; for (const o of Object.values(v)) if (o !== "00000000-0000-0000-0000-000000000000") counts[o] = (counts[o] ?? 0) + 1; return { mediaElementId: mid, usersSelection: v[me] ?? null, pollResults: Object.entries(counts).map(([optionId, count]) => ({ optionId, count })) }; };
+// Direct messages: two conversations (a 1:1 and a group), 45 messages in the first
+const dmGroups = [
+  { postGroupId: uuid(1, "d0"), createdDate: new Date(Date.now() - 30 * 86400_000).toISOString(), memberUserIds: [users[0].userId, users[1].userId], numUnseenMessages: 2 },
+  { postGroupId: uuid(2, "d0"), createdDate: new Date(Date.now() - 10 * 86400_000).toISOString(), memberUserIds: [users[0].userId, users[2].userId, users[3].userId], numUnseenMessages: 0 },
+];
+const dmPosts = {};
+const mkMsg = (gid, n, from, text, minsAgo) => { const id = uuid(n, "d1"); const created = new Date(Date.now() - minsAgo * 60_000).toISOString(); const mid = uuid(n, "d2"); media.push({ postId: id, mediaElementId: mid, indexInPost: 0, mediaType: "text", mediaText: text, properties: null, mediaUrl: null, streamUrl: null, duration: null, fileSize: null, mediaPreviewImageUrl: null, attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null }); const post = { postId: id, postGroupId: gid, rootPostId: null, parentPostId: null, depth: 0, isDeleted: false, isPublished: true, creatorUserId: from, createdDate: created, publishedDate: created, title: null, postText: text, mediaPreviewUrl: null, mediaElementIds: [mid], hashtagIds: null, commentIds: [], quotedPostId: null, numLikes: 0, numComments: 0, numBookmarks: 0, numUniqueViews: 1, likedByMe: 0, bookmarkedByMe: 0, commentsLocked: 0, categoryKey: null, promotedPostType: null }; (dmPosts[gid] ??= []).push(post); return post; };
+for (let n = 1; n <= 45; n++) mkMsg(dmGroups[0].postGroupId, n, n % 3 === 0 ? users[0].userId : users[1].userId, n % 3 === 0 ? `Reply ${n}: agreed, radial first.` : `Message ${n}: what did you end up doing with the calcified LAD case?`, (46 - n) * 95);
+mkMsg(dmGroups[1].postGroupId, 100, users[2].userId, "Welcome to the EP working group chat.", 3000);
+mkMsg(dmGroups[1].postGroupId, 101, users[3].userId, "Thanks! Looking forward to it.", 2990);
+for (const g of dmGroups) { const list = dmPosts[g.postGroupId].slice().sort((a, b) => b.createdDate.localeCompare(a.createdDate)); g.lastPostId = list[0].postId; g.lastPostDate = list[0].createdDate; }
+const dmStore = (ps) => ({ users, posts: ps, mediaElements: media.filter((m) => ps.some((p) => p.postId === m.postId)), hashtags: [], postGroups: [] });
+let msgCounter = 500;
 let calls = [];
 createServer((req, res) => {
   const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,content-type", "Access-Control-Allow-Methods": "POST,OPTIONS" };
@@ -122,10 +135,40 @@ createServer((req, res) => {
     } else if (op === "getModeratorsInGroup") {
       data = { getModeratorsInGroup: { success: true, errorMsg: null, errorCode: null, results: { moderators: [{ userId: users[0].userId, username: users[0].username, displayName: users[0].displayName, userClass: "doctor", isEmployee: 0, hidden: 0 }] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
     } else if (op === "getMembersInGroup") {
-      const all = Array.from({ length: 70 }, (_, i) => users[i % 4].userId); const page = all.slice(variables.offset, variables.offset + variables.count);
+      const dm = dmGroups.find((x) => x.postGroupId === variables.postGroupId);
+      const all = dm ? dm.memberUserIds : Array.from({ length: 70 }, (_, i) => users[i % 4].userId); const page = all.slice(variables.offset, variables.offset + variables.count);
       data = { getMembersInGroup: { success: true, errorMsg: null, errorCode: null, results: { moderatorCount: 1, memberCount: all.length, memberUserIds: page, moderatorUserIds: [users[0].userId] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "getDMGroupsForUser2") {
+      data = { getDMGroupsForUser2: { success: true, errorMsg: null, errorCode: null, results: dmGroups.map((g) => ({ ...g, subscribed: true, canPost: 1, canLeave: 1 })), store: dmStore(dmGroups.map((g) => dmPosts[g.postGroupId].find((p) => p.postId === g.lastPostId))) } };
+    } else if (op === "getPostsInDMGroup") {
+      const list = (dmPosts[variables.postGroupId] ?? []).slice().sort((a, b) => b.createdDate.localeCompare(a.createdDate));
+      const start = variables.lastPostIdReceived ? Math.max(0, list.findIndex((p) => p.postId === variables.lastPostIdReceived)) : 0; // the server's cursor page includes the cursor post
+      const page = list.slice(start, start + (variables.count ?? 20));
+      data = { getPostsInDMGroup: { success: true, errorMsg: null, errorCode: null, endOfList: start + (variables.count ?? 20) >= list.length, results: { postIds: page.map((p) => p.postId) }, store: dmStore(page) } };
+    } else if (op === "createPost") {
+      const text = (variables.mediaElements ?? []).find((m) => m.mediaType === "text")?.mediaText ?? "";
+      const post = mkMsg(variables.postGroupId, ++msgCounter, users[0].userId, text, 0);
+      const g = dmGroups.find((x) => x.postGroupId === variables.postGroupId); if (g) { g.lastPostId = post.postId; g.lastPostDate = post.createdDate; }
+      data = { createPost: { success: true, errorMsg: null, errorCode: null, results: { postId: post.postId }, store: dmStore([post]) } };
+    } else if (op === "createPostGroup") {
+      const members = [...new Set([...variables.memberUserIds, users[0].userId])].sort();
+      let g = dmGroups.find((x) => [...x.memberUserIds].sort().join() === members.join());
+      if (!g) { g = { postGroupId: uuid(dmGroups.length + 1, "d0"), createdDate: new Date().toISOString(), memberUserIds: members, numUnseenMessages: 0, lastPostId: null, lastPostDate: null }; dmGroups.push(g); dmPosts[g.postGroupId] = []; }
+      data = { createPostGroup: { success: true, errorMsg: null, errorCode: null, results: { postGroupId: g.postGroupId } } };
+    } else if (op === "setLastSeenForPostGroup") {
+      const g = dmGroups.find((x) => x.postGroupId === variables.postGroupId); if (g) g.numUnseenMessages = 0;
+      data = { setLastSeenForPostGroup: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getFollowers") {
+      data = { getFollowers: { success: true, errorMsg: null, errorCode: null, results: { followingIds: [users[1].userId, users[2].userId], followerIds: [users[3].userId] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "searchUsersForText") {
+      const q = (variables.searchText ?? "").toLowerCase();
+      data = { searchUsersForText: { success: true, errorMsg: null, errorCode: null, results: { userIds: users.filter((u) => u.displayName.toLowerCase().includes(q) || u.username.includes(q)).map((u) => u.userId) }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "addUsersToPostGroup" || op === "removeUsersFromPostGroup") {
+      const g = dmGroups.find((x) => x.postGroupId === variables.postGroupId);
+      if (g) g.memberUserIds = op === "addUsersToPostGroup" ? [...new Set([...g.memberUserIds, ...variables.userIds])] : g.memberUserIds.filter((id) => !variables.userIds.includes(id));
+      data = { [op]: { success: true, errorMsg: null, errorCode: null } };
     } else if (op === "getProfile") {
-      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: 2, userClass: "doctor", isAdmin: 0 } } } };
+      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: dmGroups.reduce((s, g) => s + g.numUnseenMessages, 0), userClass: "doctor", isAdmin: 0 } } } };
     } else { data = null; }
     setTimeout(() => { res.writeHead(200, { "Content-Type": "application/json", ...cors }); res.end(JSON.stringify({ data })); }, 150);
   });
