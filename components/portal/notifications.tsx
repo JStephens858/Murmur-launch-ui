@@ -9,6 +9,7 @@ import { formatTimeAgo } from "@/lib/format";
 import {
   markSeenLocally,
   notificationHref,
+  notificationLines,
   type NotificationType,
   type PortalNotification,
   useClearNotifications,
@@ -63,6 +64,7 @@ function NotificationRow({
   const href = notificationHref(n);
   const unread = n.seen === 0;
   const Kind = KIND_ICON[n.notificationType] ?? QuestionMarkIcon;
+  const lines = notificationLines(n);
 
   const body = (
     <>
@@ -94,13 +96,28 @@ function NotificationRow({
         </span>
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
+        {lines.title && (
+          <span
+            className={cn(
+              "leading-snug font-semibold",
+              !unread && "text-muted-foreground",
+            )}
+          >
+            {lines.title}
+          </span>
+        )}
+        {lines.subtitle && (
+          <span className="text-muted-foreground text-sm leading-snug">
+            {lines.subtitle}
+          </span>
+        )}
         <span
           className={cn(
             "leading-snug",
             unread ? "text-foreground" : "text-muted-foreground",
           )}
         >
-          {n.notificationText}
+          {lines.body}
         </span>
         <time
           dateTime={n.createdDate}

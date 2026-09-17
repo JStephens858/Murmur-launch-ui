@@ -13,7 +13,8 @@ import type { MurmurResponse, StoreData } from "./types";
 /**
  * Notifications, the way the app does them (NotificationsView.swift):
  * getNotifications2 in pages of 20 keyed by date, row text composed by the
- * server, an icon per kind, and every refresh followed by
+ * server (title / subtitle / text2, falling back to the older single
+ * notificationText), an icon per kind, and every refresh followed by
  * markNotificationsSeen up to the newest row. "Clear all" is
  * markNotificationsCleared, after which the server stops returning them.
  */
@@ -45,7 +46,12 @@ export interface PortalNotification {
   notificationPostId: string | null;
   notificationCreatorId: string | null;
   createdDate: string;
+  /** Legacy single-line text; the fallback when notificationText2 is empty. */
   notificationText: string;
+  /** Structured text (2026-09): any may be "" and is then not shown. */
+  notificationTitle: string;
+  notificationSubtitle: string;
+  notificationText2: string;
   /** The creator's avatar, joined in by the server. */
   notificationImageUrl: string | null;
   /** 0 unseen, 1 seen, 2 cleared (never returned). */
@@ -81,6 +87,9 @@ const GET_NOTIFICATIONS = /* GraphQL */ `
           notificationCreatorId
           createdDate
           notificationText
+          notificationTitle
+          notificationSubtitle
+          notificationText2
           notificationImageUrl
           seen
         }
@@ -251,4 +260,18 @@ export function notificationHref(n: PortalNotification): string | null {
     default:
       return null;
   }
+}
+
+/**
+ * What a row displays. Title and subtitle are optional lines the server
+ * may leave empty; the body prefers the new notificationText2 and falls
+ * back to the legacy notificationText while the two coexist.
+ */
+export function notificationLines(n: PortalNotification) {
+  const clean = (s: string | null | undefined) => (s ?? "").trim();
+  return {
+    title: clean(n.notificationTitle) || null,
+    subtitle: clean(n.notificationSubtitle) || null,
+    body: clean(n.notificationText2) || clean(n.notificationText),
+  };
 }
