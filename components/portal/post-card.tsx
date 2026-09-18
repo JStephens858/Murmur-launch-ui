@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
+import { TextBadgeCheckmarkIcon } from "./icons";
 
 /* User media hosts are unbounded; plain <img>, see avatar.tsx. */
 /* eslint-disable @next/next/no-img-element */
@@ -194,7 +195,8 @@ export default function PostCard({ postId }: { postId: string }) {
         )}
 
         {hasPoll && (
-          <span className="text-primary text-sm font-medium">
+          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
+            <TextBadgeCheckmarkIcon className="size-4" />
             Take the poll
           </span>
         )}
