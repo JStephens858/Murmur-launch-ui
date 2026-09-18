@@ -41,14 +41,14 @@ for spec in args.dropFirst(2) {
   }
   guard let image = NSImage(systemSymbolName: name, accessibilityDescription: nil)?
     .withSymbolConfiguration(.init(pointSize: 100, weight: weight, scale: .medium))
-  else { print("MISSING \(name)"); exit(1) }
+  else { print("MISSING \(name)"); continue }
   let rep = image.representations[0] as NSObject
   guard let path = rep.perform(NSSelectorFromString("outlinePath"))?.takeUnretainedValue() as? NSBezierPath,
         let glyph = rep.perform(NSSelectorFromString("vectorGlyph"))?.takeUnretainedValue() as? NSObject,
         let cap = glyph.value(forKey: "capHeight") as? CGFloat,
         let baseline = glyph.value(forKey: "baselineOffset") as? CGFloat,
         let scale = glyph.value(forKey: "scale") as? CGFloat
-  else { print("NOPATH \(name)"); exit(1) }
+  else { print("NOPATH \(name)"); continue }
 
   let bounds = path.bounds
   let top = bounds.minY

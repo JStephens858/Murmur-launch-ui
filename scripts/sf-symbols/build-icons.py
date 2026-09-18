@@ -14,6 +14,7 @@ midpoint of the cap height above the baseline. At 100pt every symbol shares a
 sources line up without any per-icon fudging.
 
 usage: python3 scripts/sf-symbols/build-icons.py [--ios ../Murmur-ios-app]
+Add a symbol by appending its name to app-symbols.txt and re-running.
 Needs macOS with Xcode command-line tools (swiftc). Only the macOS host
 matters; the Next app never runs this.
 """
@@ -68,6 +69,36 @@ SF_SYMBOLS = [
     ("QuestionMarkIcon", "questionmark", "regular"),
 ]
 
+# Every other symbol the app references, one name per line, exported at
+# regular weight with a component name derived from the symbol name
+# ("text.badge.checkmark" -> TextBadgeCheckmarkIcon). Names the running
+# macOS doesn't know are skipped and listed at the end.
+APP_SYMBOLS_FILE = os.path.join(HERE, "app-symbols.txt")
+
+
+def component_name(symbol):
+    return "".join(part[:1].upper() + part[1:] for part in re.split(r"[.\-]", symbol)) + "Icon"
+
+
+def extra_symbols():
+    if not os.path.exists(APP_SYMBOLS_FILE):
+        return []
+    covered = {(name, weight) for _, name, weight in SF_SYMBOLS}
+    taken = {comp for comp, _, _ in SF_SYMBOLS}
+    out = []
+    with open(APP_SYMBOLS_FILE) as f:
+        for line in f:
+            name = line.strip()
+            if not name or name.startswith("#") or (name, "regular") in covered:
+                continue
+            comp = component_name(name)
+            if comp in taken:
+                continue
+            taken.add(comp)
+            out.append((comp, name, "regular"))
+    return out
+
+
 # (component name, symbolset name, scale). Layers are emitted in template
 # order; `hierarchical-N:primary|secondary` classes decide the fill variable.
 # The pulse is 1.5x because HomeView draws it at 30pt beside 20pt tab icons.
@@ -117,14 +148,21 @@ def export_sf(tmp):
     src = os.path.join(HERE, "export-symbols.swift")
     exe = os.path.join(tmp, "export")
     subprocess.run(["swiftc", "-O", src, "-o", exe], check=True)
-    specs = [f"{name}:{weight}" for _, name, weight in SF_SYMBOLS]
+    wanted = SF_SYMBOLS + extra_symbols()
+    specs = [f"{name}:{weight}" for _, name, weight in wanted]
     res = subprocess.run([exe, tmp, *specs], capture_output=True, text=True)
     if res.returncode != 0:
         sys.stderr.write(res.stdout + res.stderr)
         raise SystemExit("symbol export failed")
+    missing = [l.split(" ", 1)[1] for l in res.stdout.splitlines() if l.startswith(("MISSING", "NOPATH"))]
+    if missing:
+        print("skipped (unknown to this macOS):", ", ".join(missing))
     icons = []
-    for comp, name, weight in SF_SYMBOLS:
-        with open(os.path.join(tmp, f"{name}-{weight}.json")) as f:
+    for comp, name, weight in wanted:
+        path = os.path.join(tmp, f"{name}-{weight}.json")
+        if not os.path.exists(path):
+            continue
+        with open(path) as f:
             g = json.load(f)
         # Path units are 2x alignment units; bring everything to alignment units.
         s = 0.5 * fit(g["width"] * 0.5)
