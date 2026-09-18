@@ -134,12 +134,25 @@ export default function PostCard({ postId }: { postId: string }) {
         className="absolute inset-0 z-[1]"
         aria-label={post.title || "Open post"}
       />
-      <Avatar user={author} className="relative z-10 mt-0.5" />
+      <Link
+        href={author ? `/profile/${author.userId}` : "#"}
+        className="relative z-10 mt-0.5 shrink-0"
+        aria-label={
+          author
+            ? `${author.displayName || author.username}'s profile`
+            : undefined
+        }
+      >
+        <Avatar user={author} />
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="text-muted-foreground flex flex-wrap items-baseline gap-x-1.5 text-sm">
-          <span className="text-foreground font-bold">
+          <Link
+            href={author ? `/profile/${author.userId}` : "#"}
+            className="text-foreground relative z-10 font-bold hover:underline"
+          >
             {author?.displayName || author?.username || "…"}
-          </span>
+          </Link>
           {author?.username && <span>@{author.username}</span>}
           <span aria-hidden>·</span>
           <time dateTime={when} title={new Date(when).toLocaleString()}>

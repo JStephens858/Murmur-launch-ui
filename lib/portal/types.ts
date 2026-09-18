@@ -7,6 +7,7 @@
 
 export type MediaType = "text" | "image" | "video" | "poll" | "file";
 
+/** PublicUser: what any query's store says about a person. */
 export interface PortalUser {
   userId: string;
   username: string;
@@ -14,9 +15,25 @@ export interface PortalUser {
   isDeleted: boolean;
   profilePicThumbnailUrl: string | null;
   profilePicMediumUrl: string | null;
+  coverPicMediumUrl?: string | null;
   specialty: string | null;
   flair: string | null;
   location: string | null;
+  bio?: string | null;
+  disclosures?: string | null;
+  interests?: string | null;
+  invitedByUsername?: string | null;
+  link?: string | null;
+  createdDate?: string;
+  userClass?: string;
+  isEmployee?: boolean;
+  rank?: number | null;
+  score?: number | null;
+  progressToNextRank?: number | null;
+  /** From getUserProfileCounters, merged in by the profile page. */
+  likedPostCount?: number;
+  bestAnswerCount?: number;
+  postOfTheWeekCount?: number;
 }
 
 export interface PortalPost {

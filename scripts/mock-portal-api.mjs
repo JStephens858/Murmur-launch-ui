@@ -16,7 +16,8 @@ import { createServer } from "node:http";
 const PORT = 4100;
 const uuid = (n, p = "a") => `${p.repeat(8).slice(0, 8)}-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const svg = (label, color) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675"><rect width="1200" height="675" fill="${color}"/><text x="50%" y="50%" font-family="sans-serif" font-size="72" fill="white" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`)}`;
-const users = [1,2,3,4].map((n) => ({ userId: uuid(n,"b"), username: ["cathlab_kate","d_ramirez","ep_priya","vasc_tom"][n-1], displayName: ["Kate Morgan, MD","Diego Ramirez, MD","Priya Nair, MD","Tom Okafor, MD"][n-1], isDeleted: false, profilePicThumbnailUrl: null, profilePicMediumUrl: null, specialty: ["Interventional Cardiology","Structural Heart","Electrophysiology","Vascular Surgery"][n-1], flair: null, location: null }));
+const users = [1,2,3,4].map((n) => ({ userId: uuid(n,"b"), username: ["cathlab_kate","d_ramirez","ep_priya","vasc_tom"][n-1], displayName: ["Kate Morgan, MD","Diego Ramirez, MD","Priya Nair, MD","Tom Okafor, MD"][n-1], isDeleted: false, profilePicThumbnailUrl: null, profilePicMediumUrl: null, coverPicMediumUrl: null, specialty: ["Interventional Cardiology","Structural Heart","Electrophysiology","Vascular Surgery"][n-1], flair: null, location: ["Boise, ID","Austin, TX","Seattle, WA","Denver, CO"][n-1], bio: n === 1 ? "Interventional cardiologist. Complex PCI, CTO, calcium modification." : n === 4 ? "Vascular surgeon with an interest in limb salvage." : null, disclosures: n === 1 ? "Speaker, Boston Scientific." : null, interests: n === 1 ? "CTO, IVUS, Impella" : null, invitedByUsername: n === 1 ? "d_ramirez" : null, link: n === 1 ? "https://example.com/kate" : null, createdDate: new Date(2023, n, 10).toISOString(), userClass: "doctor", isEmployee: false, rank: n, score: n * 120, progressToNextRank: 40 }));
+const follows = { [uuid(1,"b")]: [uuid(2,"b"), uuid(3,"b")], [uuid(2,"b")]: [uuid(1,"b")], [uuid(3,"b")]: [uuid(1,"b"), uuid(4,"b")], [uuid(4,"b")]: [] }; // who each user follows
 const cats = (g) => [
   { categoryId: uuid(g * 10 + 1, "5"), order: 1, key: "cases", name: "Cases", subtitle: null, parentCategoryId: null, categoryDisplayStyle: "header", hasChildren: 0, displayStyle: "post_card" },
   { categoryId: uuid(g * 10 + 2, "5"), order: 2, key: "library", name: "Library", subtitle: "Reference material", parentCategoryId: null, categoryDisplayStyle: "browser", hasChildren: 1, displayStyle: "simple_reference" },
@@ -159,7 +160,25 @@ createServer((req, res) => {
       const g = dmGroups.find((x) => x.postGroupId === variables.postGroupId); if (g) g.numUnseenMessages = 0;
       data = { setLastSeenForPostGroup: { success: true, errorMsg: null, errorCode: null } };
     } else if (op === "getFollowers") {
-      data = { getFollowers: { success: true, errorMsg: null, errorCode: null, results: { followingIds: [users[1].userId, users[2].userId], followerIds: [users[3].userId] }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+      const id = variables.userId; const followingIds = follows[id] ?? []; const followerIds = Object.entries(follows).filter(([, l]) => l.includes(id)).map(([u]) => u);
+      data = { getFollowers: { success: true, errorMsg: null, errorCode: null, results: { followingIds, followerIds }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "followUser") {
+      const me = users[0].userId; follows[me] = variables.follow ? [...new Set([...follows[me], variables.userId])] : follows[me].filter((x) => x !== variables.userId);
+      data = { followUser: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getUsers") {
+      data = { getUsers: { success: true, errorMsg: null, errorCode: null, results: { userIds: variables.userIds }, store: { users: users.filter((u) => variables.userIds.includes(u.userId)), posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "getUserProfileCounters") {
+      const n = users.findIndex((u) => u.userId === variables.userId) + 1;
+      data = { getUserProfileCounters: { success: true, errorMsg: null, errorCode: null, results: { likedPostCount: n * 17, bestAnswerCount: n, postOfTheWeekCount: n - 1 } } };
+    } else if (op === "getPostsForUser" || op === "getBookmarkedPostsForUser") {
+      const mine = op === "getPostsForUser" ? posts.filter((p) => p.creatorUserId === variables.userId) : posts.filter((p) => p.bookmarkedByMe);
+      const sorted = mine.slice().sort((a, b) => b.createdDate.localeCompare(a.createdDate)).filter((p) => !variables.beforeDate || p.createdDate < variables.beforeDate);
+      const page = sorted.slice(0, variables.count ?? 10);
+      data = { [op]: { success: true, errorMsg: null, errorCode: null, endOfList: sorted.length <= page.length, results: { total: mine.length, postIds: page.map((p) => p.postId) }, store: storeFor(page, false) } };
+    } else if (op === "getCVItemsForUser") {
+      const n = users.findIndex((u) => u.userId === variables.userId) + 1;
+      const items = n === 1 ? [{ itemId: uuid(1, "e1"), userId: variables.userId, indexInList: 0, itemType: "training", itemTypeName: "Training", title: "Interventional Cardiology Fellowship", practiceType: null, discipline: null, companyName: "Cleveland Clinic", location: "Cleveland, OH", description: null, start: "2010", end: "2012", isCurrent: false }, { itemId: uuid(2, "e1"), userId: variables.userId, indexInList: 1, itemType: "practice", itemTypeName: "Practice", title: "Director, Cath Lab", practiceType: "Hospital", discipline: null, companyName: "St. Luke's", location: "Boise, ID", description: "High-volume structural and coronary program.", start: "2015", end: null, isCurrent: true }] : [];
+      data = { getCVItemsForUser: { success: true, results: { userId: variables.userId, items } } };
     } else if (op === "searchUsersForText") {
       const q = (variables.searchText ?? "").toLowerCase();
       data = { searchUsersForText: { success: true, errorMsg: null, errorCode: null, results: { userIds: users.filter((u) => u.displayName.toLowerCase().includes(q) || u.username.includes(q)).map((u) => u.userId) }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };

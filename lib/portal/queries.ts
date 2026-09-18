@@ -21,9 +21,21 @@ export const STORE_FRAGMENT = /* GraphQL */ `
       isDeleted
       profilePicThumbnailUrl
       profilePicMediumUrl
+      coverPicMediumUrl
       specialty
       flair
       location
+      bio
+      disclosures
+      interests
+      invitedByUsername
+      link
+      createdDate
+      userClass
+      isEmployee
+      rank
+      score
+      progressToNextRank
     }
     mediaElements {
       postId

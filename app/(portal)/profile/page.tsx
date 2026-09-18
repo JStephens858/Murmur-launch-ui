@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
 
-import PortalPageHeader, {
-  PortalPlaceholder,
-} from "@/components/portal/page-header";
+import OwnProfile from "@/components/portal/own-profile";
 
 export const metadata: Metadata = { title: "Profile" };
 
 export default function ProfilePage() {
-  return (
-    <>
-      <PortalPageHeader title="Profile" />
-      <PortalPlaceholder>Your profile will appear here.</PortalPlaceholder>
-    </>
-  );
+  return <OwnProfile />;
 }

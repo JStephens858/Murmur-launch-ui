@@ -167,7 +167,13 @@ function AuthorRow({
   const when = post.publishedDate ?? post.createdDate;
   return (
     <div className="flex items-center gap-3">
-      <Avatar user={author} className={compact ? "size-8" : "size-11"} />
+      <Link
+        href={`/profile/${post.creatorUserId}`}
+        className="shrink-0"
+        aria-label="Profile"
+      >
+        <Avatar user={author} className={compact ? "size-8" : "size-11"} />
+      </Link>
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="truncate font-bold">
           {author?.displayName || author?.username || "…"}
