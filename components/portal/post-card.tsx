@@ -195,7 +195,7 @@ export default function PostCard({ postId }: { postId: string }) {
         )}
 
         {hasPoll && (
-          <span className="text-muted-foreground flex items-center gap-1.5 text-sm">
+          <span className="text-primary flex items-center gap-1.5 text-sm font-medium">
             <TextBadgeCheckmarkIcon className="size-4" />
             Take the poll
           </span>
