@@ -1,11 +1,16 @@
 "use client";
 
+import type {
+  InfiniteData,
+  UseInfiniteQueryResult,
+} from "@tanstack/react-query";
 import { useEffect, useMemo, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { usePostList } from "@/lib/portal/feed";
 import { PortalAuthError } from "@/lib/portal/graphql";
 import { FEED_GROUP_ID } from "@/lib/portal/queries";
+import type { PortalHashtag } from "@/lib/portal/types";
 
 import PostCard, { PostCardSkeleton } from "./post-card";
 
@@ -49,32 +54,37 @@ export function PortalError({
   );
 }
 
+/** The shape both post lists' infinite queries share. */
+type PostIdPages = UseInfiniteQueryResult<
+  InfiniteData<{ postIds: string[] }, unknown>,
+  unknown
+>;
+
 /**
- * A list of posts from one group: pages of post ids from getPostsInGroup,
- * each rendered from the entity store. A sentinel below the list requests
- * the next page well before it scrolls into view, so the reader rarely
- * sees a spinner. The home feed is this with the sentinel group id.
+ * Pages of post ids rendered from the entity store. A sentinel below the
+ * list requests the next page well before it scrolls into view, so the
+ * reader rarely sees a spinner. The feed, the group pages and Explore are
+ * all this with a different query behind it.
  */
-export function PostList({
-  postGroupId,
-  categoryIds = [],
+export function InfinitePostList({
+  query,
   emptyText = "Nothing here yet.",
   excludePostId,
+  onHashtagClick,
 }: {
-  postGroupId: string;
-  categoryIds?: string[];
+  query: PostIdPages;
   emptyText?: string;
   /** A post shown elsewhere on the page (the pinned post) to skip here. */
   excludePostId?: string | null;
+  onHashtagClick?: (tag: PortalHashtag) => void;
 }) {
-  const feed = usePostList(postGroupId, categoryIds);
   const sentinel = useRef<HTMLDivElement>(null);
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = feed;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
   const postIds = useMemo(() => {
     const seen = new Set<string>();
     const ids: string[] = [];
-    for (const page of feed.data?.pages ?? []) {
+    for (const page of query.data?.pages ?? []) {
       for (const id of page.postIds) {
         if (!seen.has(id) && id !== excludePostId) {
           seen.add(id);
@@ -83,7 +93,7 @@ export function PostList({
       }
     }
     return ids;
-  }, [feed.data, excludePostId]);
+  }, [query.data, excludePostId]);
 
   useEffect(() => {
     const el = sentinel.current;
@@ -98,9 +108,9 @@ export function PostList({
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  if (feed.status === "pending" || (feed.isError && !feed.data)) {
-    if (feed.isError) {
-      return <PortalError error={feed.error} retry={() => feed.refetch()} />;
+  if (query.status === "pending" || (query.isError && !query.data)) {
+    if (query.isError) {
+      return <PortalError error={query.error} retry={() => query.refetch()} />;
     }
     return (
       <div aria-busy="true" aria-label="Loading posts">
@@ -117,7 +127,7 @@ export function PostList({
   return (
     <div>
       {postIds.map((id) => (
-        <PostCard key={id} postId={id} />
+        <PostCard key={id} postId={id} onHashtagClick={onHashtagClick} />
       ))}
       <div ref={sentinel} aria-hidden />
       {isFetchingNextPage && <PostCardSkeleton />}
@@ -126,10 +136,36 @@ export function PostList({
           You&apos;re all caught up.
         </p>
       )}
-      {feed.isError && (
-        <PortalError error={feed.error} retry={() => feed.fetchNextPage()} />
+      {query.isError && (
+        <PortalError error={query.error} retry={() => query.fetchNextPage()} />
       )}
     </div>
+  );
+}
+
+/**
+ * A list of posts from one group: pages of post ids from getPostsInGroup.
+ * The home feed is this with the sentinel group id.
+ */
+export function PostList({
+  postGroupId,
+  categoryIds = [],
+  emptyText = "Nothing here yet.",
+  excludePostId,
+}: {
+  postGroupId: string;
+  categoryIds?: string[];
+  emptyText?: string;
+  /** A post shown elsewhere on the page (the pinned post) to skip here. */
+  excludePostId?: string | null;
+}) {
+  const feed = usePostList(postGroupId, categoryIds);
+  return (
+    <InfinitePostList
+      query={feed}
+      emptyText={emptyText}
+      excludePostId={excludePostId}
+    />
   );
 }
 

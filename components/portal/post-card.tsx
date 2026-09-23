@@ -14,6 +14,7 @@ import {
   usePostGroup,
   useUser,
 } from "@/lib/portal/store";
+import type { PortalHashtag } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
@@ -29,13 +30,27 @@ export function postDetailHref(postId: string) {
   return `/postDetail/${postId}`;
 }
 
-function HashtagChip({ hashtagId }: { hashtagId: string }) {
+/** A tag on the card; a button that filters by it where the page can (Explore). */
+function HashtagChip({
+  hashtagId,
+  onClick,
+}: {
+  hashtagId: string;
+  onClick?: (tag: PortalHashtag) => void;
+}) {
   const tag = useHashtag(hashtagId);
   if (!tag) return null;
+  const className =
+    "text-accent-foreground bg-accent rounded-full px-2.5 py-0.5 text-xs font-medium";
+  if (!onClick) return <span className={className}>#{tag.hashtag}</span>;
   return (
-    <span className="text-accent-foreground bg-accent rounded-full px-2.5 py-0.5 text-xs font-medium">
+    <button
+      type="button"
+      onClick={() => onClick(tag)}
+      className={cn(className, "hover:bg-primary/20 transition-colors")}
+    >
       #{tag.hashtag}
-    </span>
+    </button>
   );
 }
 
@@ -78,7 +93,13 @@ export function Counter({
  * moment, so opening it is instant. The app instead fetches on tap behind a
  * spinner.
  */
-export default function PostCard({ postId }: { postId: string }) {
+export default function PostCard({
+  postId,
+  onHashtagClick,
+}: {
+  postId: string;
+  onHashtagClick?: (tag: PortalHashtag) => void;
+}) {
   const client = useQueryClient();
   const post = usePost(postId);
   const author = useUser(post?.creatorUserId);
@@ -204,7 +225,7 @@ export default function PostCard({ postId }: { postId: string }) {
         {post.hashtagIds && post.hashtagIds.length > 0 && (
           <div className="relative z-10 flex flex-wrap gap-1.5">
             {post.hashtagIds.map((id) => (
-              <HashtagChip key={id} hashtagId={id} />
+              <HashtagChip key={id} hashtagId={id} onClick={onHashtagClick} />
             ))}
           </div>
         )}

@@ -90,6 +90,10 @@ export const STORE_FRAGMENT = /* GraphQL */ `
       commentsLocked
       categoryKey
       promotedPostType
+      baseUserPostScore
+      weightedUserPostScore
+      baseComputedPostScore
+      weightedComputedPostScore
     }
     hashtags {
       hashtagId

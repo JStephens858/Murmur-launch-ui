@@ -106,6 +106,30 @@ createServer((req, res) => {
       const before = new Date(variables.beforeDate + "Z").getTime(), v = op === "markNotificationsSeen" ? 1 : 2;
       for (const n of notifications) if (new Date(n.createdDate).getTime() <= before && n.seen < v) n.seen = v;
       data = { [op]: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getExplorePostsForUser") {
+      // Sections: a fixed per-section list paged by afterPostId; past the end the real backend throws, so do we.
+      // No sections: the score path, ranked by baseUserPostScore (or baseComputedPostScore with hashtags), paged by maximumScore/maximumDate.
+      const scored = posts.map((p, i) => ({ ...p, baseUserPostScore: 1000 - i * 7, weightedUserPostScore: 1000 - i * 7, baseComputedPostScore: 900 - i * 5, weightedComputedPostScore: 900 - i * 5 }));
+      const withStore = (ps, sections) => ({ getExplorePostsForUser: { success: true, errorMsg: null, errorCode: null, results: { postIdsBySection: sections }, store: { ...storeFor(ps, false), posts: ps.map((p) => ({ ...lite(p), baseUserPostScore: p.baseUserPostScore, weightedUserPostScore: p.weightedUserPostScore, baseComputedPostScore: p.baseComputedPostScore, weightedComputedPostScore: p.weightedComputedPostScore })) } } });
+      if (variables.exploreSectionCounts?.length) {
+        const isPoll = (p) => media.some((m) => m.postId === p.postId && m.mediaType === "poll");
+        const lists = { poll: scored.filter(isPoll), case: scored.filter((p) => p.title && !isPoll(p)), tipsAndTricks: scored.filter((p) => !p.title && !isPoll(p)).slice(0, 13) };
+        const sections = []; const ps = [];
+        for (const req of variables.exploreSectionCounts) {
+          const list = lists[req.exploreSection] ?? [];
+          const start = req.afterPostId ? list.findIndex((p) => p.postId === req.afterPostId) + 1 : 0;
+          if (start + req.count > list.length) { res.writeHead(200, { "Content-Type": "application/json", ...cors }); return res.end(JSON.stringify({ errors: [{ message: "Cannot read properties of undefined (reading 'postId')" }] })); }
+          const page = list.slice(start, start + req.count); ps.push(...page);
+          sections.push({ exploreSection: req.exploreSection, postIds: page.map((p) => p.postId) });
+        }
+        data = withStore(ps, sections);
+      } else {
+        const score = variables.hashtagIds?.length ? (p) => p.baseComputedPostScore : (p) => p.baseUserPostScore;
+        const max = variables.maximumScore ?? 2147483647, maxDate = new Date((variables.maximumDate ?? "3000-01-01T00:00:00") + "Z").getTime();
+        let list = scored.filter((p) => !variables.hashtagIds?.length || p.hashtagIds.some((h) => variables.hashtagIds.includes(h)));
+        list = list.filter((p) => score(p) < max || (score(p) === max && new Date(p.createdDate).getTime() < maxDate)).sort((a, b) => score(b) - score(a)).slice(0, variables.count ?? 10);
+        data = withStore(list, [{ exploreSection: "general", postIds: list.map((p) => p.postId) }]);
+      }
     } else if (op === "getVideosForUser") {
       const vids = posts.filter((p) => media.some((m) => m.postId === p.postId && m.mediaType === "video"));
       const pageOf = (list, last, count) => { const start = last ? list.findIndex((p) => p.postId === last) + 1 : 0; return list.slice(start, start + count); };

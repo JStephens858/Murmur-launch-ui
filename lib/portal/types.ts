@@ -63,6 +63,11 @@ export interface PortalPost {
   commentsLocked: number;
   categoryKey: string | null;
   promotedPostType: string | null;
+  /** Explore scores, set only on posts returned by getExplorePostsForUser. */
+  baseUserPostScore?: number | null;
+  weightedUserPostScore?: number | null;
+  baseComputedPostScore?: number | null;
+  weightedComputedPostScore?: number | null;
 }
 
 export interface PortalPollOption {
