@@ -468,6 +468,35 @@ function PersonFollowRow({
   );
 }
 
+/** Section labels for CV item type ids; mirrors the iOS app's fallback names. */
+const CV_TYPE_NAMES: Record<string, string> = {
+  undergrad: "University",
+  graduate: "Post Graduate",
+  medSchool: "Medical School",
+  otherSchool: "Other Education",
+  internship: "Internship",
+  residency: "Residency",
+  fellowship: "Fellowship",
+  otherTraining: "Other Training",
+  specialty: "Specialty",
+  subSpecialty: "SubSpecialty",
+  areaOfFocus: "Area of Focus",
+  otherSpecialty: "Other Specialty",
+  practice: "Practice",
+  otherEmployment: "Other Employment",
+  hospitalAffiliation: "Hospital Affiliation",
+  license: "License",
+  organization: "Organization",
+  otherExperience: "Other Experience",
+};
+
+function cvTypeName(itemType: string): string {
+  if (CV_TYPE_NAMES[itemType]) return CV_TYPE_NAMES[itemType];
+  if (!itemType || itemType === "generic") return "Experience";
+  const spaced = itemType.replace(/([a-z])([A-Z])/g, "$1 $2");
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
 function Experience({ userId, isOwn }: { userId: string; isOwn: boolean }) {
   const cv = useCVItems(userId);
   if (cv.status === "pending")
@@ -485,11 +514,10 @@ function Experience({ userId, isOwn }: { userId: string; isOwn: boolean }) {
     );
   }
   const groups = new Map<string, CVItem[]>();
-  for (const item of items)
-    groups.set(item.itemTypeName, [
-      ...(groups.get(item.itemTypeName) ?? []),
-      item,
-    ]);
+  for (const item of items) {
+    const name = cvTypeName(item.itemType);
+    groups.set(name, [...(groups.get(name) ?? []), item]);
+  }
   return (
     <div className="flex flex-col gap-5 px-4 py-4">
       {[...groups].map(([name, list]) => (

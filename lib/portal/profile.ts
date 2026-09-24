@@ -332,7 +332,6 @@ export interface CVItem {
   itemId: string;
   indexInList: number;
   itemType: string;
-  itemTypeName: string;
   title: string | null;
   practiceType: string | null;
   discipline: string | null;
@@ -353,7 +352,6 @@ const GET_CV = /* GraphQL */ `
           itemId
           indexInList
           itemType
-          itemTypeName
           title
           practiceType
           discipline
