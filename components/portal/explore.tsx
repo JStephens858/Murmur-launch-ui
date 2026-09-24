@@ -19,11 +19,13 @@ const EMPTY: Record<ExploreChoice, string> = {
   case: "No cases yet.",
   poll: "No polls yet.",
   tipsAndTricks: "No tips & tricks yet.",
+  journal: "No journal posts yet.",
+  question: "No questions yet.",
 };
 
 /**
  * The Explore tab: a chooser like the videos page's (All posts, Cases,
- * Polls, Tips & Tricks) over one post list, with an optional hashtag chip
+ * Polls, Tips & Tricks, Journal, Question) over one post list, with an optional hashtag chip
  * tacked on the end. Tapping a tag on a card applies it. The backend's
  * hashtag list has no sections, so while a tag is active the list is
  * "everything with this tag" and the section choices are disabled.

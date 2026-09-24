@@ -113,7 +113,7 @@ createServer((req, res) => {
       const withStore = (ps, sections) => ({ getExplorePostsForUser: { success: true, errorMsg: null, errorCode: null, results: { postIdsBySection: sections }, store: { ...storeFor(ps, false), posts: ps.map((p) => ({ ...lite(p), baseUserPostScore: p.baseUserPostScore, weightedUserPostScore: p.weightedUserPostScore, baseComputedPostScore: p.baseComputedPostScore, weightedComputedPostScore: p.weightedComputedPostScore })) } } });
       if (variables.exploreSectionCounts?.length) {
         const isPoll = (p) => media.some((m) => m.postId === p.postId && m.mediaType === "poll");
-        const lists = { poll: scored.filter(isPoll), case: scored.filter((p) => p.title && !isPoll(p)), tipsAndTricks: scored.filter((p) => !p.title && !isPoll(p)).slice(0, 13) };
+        const lists = { poll: scored.filter(isPoll), case: scored.filter((p) => p.title && !isPoll(p)), tipsAndTricks: scored.filter((p) => !p.title && !isPoll(p)).slice(0, 13), journal: scored.filter((p, i) => i % 4 === 1), question: scored.filter((p) => /\?/.test(p.postText ?? "")).slice(0, 12) };
         const sections = []; const ps = [];
         for (const req of variables.exploreSectionCounts) {
           const list = lists[req.exploreSection] ?? [];

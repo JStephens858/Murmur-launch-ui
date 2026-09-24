@@ -15,7 +15,7 @@ import type { MurmurResponse, PortalPost, StoreData } from "./types";
  * really two queries behind one name (MurmurAPI.getExplorePostsForUser and
  * the backend's getExplorePostsForUser / _HashtagsAndInterests).
  *
- * - Cases, Polls and Tips & Tricks ask for one *section* of the user's
+ * - Cases, Polls, Tips & Tricks, Journal and Question ask for one *section* of the user's
  *   nightly-computed explore list (`exploreSectionCounts`), paged by the
  *   last post id received in that section (`afterPostId`). The app's
  *   ExploreView2 asks for all three at once (4, 4 and 10); here each tab
@@ -31,13 +31,21 @@ import type { MurmurResponse, PortalPost, StoreData } from "./types";
  *   fetchMorePosts is commented out, so it only ever shows the first page.
  */
 
-export type ExploreChoice = "all" | "case" | "poll" | "tipsAndTricks";
+export type ExploreChoice =
+  | "all"
+  | "case"
+  | "poll"
+  | "tipsAndTricks"
+  | "journal"
+  | "question";
 
 export const EXPLORE_CHOICES: { value: ExploreChoice; label: string }[] = [
   { value: "all", label: "All posts" },
   { value: "case", label: "Cases" },
   { value: "poll", label: "Polls" },
   { value: "tipsAndTricks", label: "Tips & Tricks" },
+  { value: "journal", label: "Journal" },
+  { value: "question", label: "Question" },
 ];
 
 export const EXPLORE_PAGE_SIZE = 10;
