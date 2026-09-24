@@ -180,7 +180,7 @@ export default function Notifications() {
   const markSeen = useMarkNotificationsSeen();
   const clearAll = useClearNotifications();
   const sentinel = useRef<HTMLLIElement>(null);
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = list;
+  const { fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = list;
 
   const notifications = (() => {
     const seen = new Set<string>();
@@ -213,13 +213,16 @@ export default function Notifications() {
     if (!el || !hasNextPage) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !isFetchingNextPage) fetchNextPage();
+        // Not while any fetch is running: asking for the next page cancels
+        // an in-flight refetch of the first, and a reload that shrinks the
+        // list can bring this sentinel into view mid-refetch.
+        if (entry.isIntersecting && !isFetching) fetchNextPage();
       },
       { rootMargin: LOAD_AHEAD },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [fetchNextPage, hasNextPage, isFetching]);
 
   return (
     <>

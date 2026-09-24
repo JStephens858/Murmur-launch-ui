@@ -4,7 +4,8 @@
  * lastPostIdReceived, an ad insertion mixed in) and getFullPostData (media,
  * comments, a quoted post), getNotifications2 (45 rows of every kind, paged
  * by beforeDate), markNotificationsSeen / markNotificationsCleared, and
- * getProfile (badge counts). GET /calls lists every operation received.
+ * getProfile (badge counts). GET /calls lists every operation received; GET
+ * /notify adds a fresh unread notification, for testing badge-driven reloads.
  *
  *   node scripts/mock-portal-api.mjs   # :4100
  *   NEXT_PUBLIC_MURMUR_API_SERVER=http://localhost:4100/api npx next dev -p 3100
@@ -83,6 +84,11 @@ createServer((req, res) => {
   const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,content-type", "Access-Control-Allow-Methods": "POST,OPTIONS" };
   if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
   if (req.url === "/calls") { res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify(calls)); }
+  if (req.url === "/notify") { // test hook: a fresh unread notification, as if pushed while the page is open
+    const n = notifications.length + 1, creator = users[n % 4];
+    notifications.unshift({ notificationId: uuid(n, "7"), userId: users[0].userId, notificationType: "likePost", notificationDestinationId: posts[0].postId, notificationPostId: posts[0].postId, notificationCreatorId: creator.userId, createdDate: new Date().toISOString(), notificationText: `${creator.displayName} liked your post`, notificationTitle: "", notificationSubtitle: "", notificationText2: `${creator.displayName} liked your post (new ${n})`, notificationImageUrl: svg(creator.displayName[0], "#de046c"), seen: 0 });
+    res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify({ added: n }));
+  }
   let body = ""; req.on("data", (c) => body += c); req.on("end", () => {
     const { query, variables } = JSON.parse(body);
     const op = (query.match(/(?:query|mutation)\s+(\w+)/) || [])[1];

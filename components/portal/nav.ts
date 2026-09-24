@@ -1,4 +1,7 @@
+import type { QueryClient } from "@tanstack/react-query";
 import type { ComponentType } from "react";
+
+import { reloadNotifications } from "@/lib/portal/notifications";
 
 import {
   BellFillIcon,
@@ -27,6 +30,11 @@ export interface PortalNavItem {
   activeIcon: ComponentType<IconProps>;
   /** Which unread count from the profile badges this item, if any. */
   badge?: "numNotifications" | "numDirectMessages";
+  /**
+   * Reloads the item's data. Runs when its route is clicked while already
+   * open and the badge says there is something new to show.
+   */
+  reload?: (client: QueryClient) => void;
 }
 
 /**
@@ -61,6 +69,7 @@ export const portalNav: PortalNavItem[] = [
     icon: BellIcon,
     activeIcon: BellFillIcon,
     badge: "numNotifications",
+    reload: reloadNotifications,
   },
   {
     label: "Groups",

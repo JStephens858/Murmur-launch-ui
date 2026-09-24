@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { isActivePath, portalNav } from "./nav";
 import NavBadge from "./nav-badge";
 import { PostButton } from "./post-button";
+import { useNavItemClick } from "./use-nav-item-click";
 
 /**
  * Phone-width navigation: a hamburger in the upper right opens a drawer
@@ -26,6 +27,7 @@ import { PostButton } from "./post-button";
 export default function PortalMobileNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const navClick = useNavItemClick();
 
   return (
     <>
@@ -52,7 +54,10 @@ export default function PortalMobileNav() {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      onClick={() => setOpen(false)}
+                      onClick={(event) => {
+                        navClick(item)?.(event);
+                        setOpen(false);
+                      }}
                       className={cn(
                         "hover:bg-foreground/10 flex items-center gap-4 rounded-full px-3 py-2.5 text-lg transition-colors",
                         active && "font-bold",

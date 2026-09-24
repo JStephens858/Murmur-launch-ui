@@ -62,3 +62,8 @@ description: Build, run, and drive the Murmur website (Next.js) to verify change
   breaks `next build`; `rm -rf .next/dev`), and in puppeteer intercept
   `/auth/access-token` to respond `{"token":"x"}` and rewrite `/postDetail/*`
   navigations to the preview page. `GET :4100/calls` shows what was fetched.
+- To exercise "already on this route" nav behaviour from a preview page, run
+  `history.replaceState(null, "", "/notifications")` in the page: this Next
+  syncs `usePathname` with native replaceState, so the sidebar item goes
+  active. `GET :4100/notify` adds a fresh unread notification so the badge
+  (polled every 60s) comes back after mark-seen.

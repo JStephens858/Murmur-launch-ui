@@ -10,6 +10,7 @@ import { MurmurLogoComboIcon } from "./icons";
 import { isActivePath, portalNav } from "./nav";
 import NavBadge from "./nav-badge";
 import { PostButton } from "./post-button";
+import { useNavItemClick } from "./use-nav-item-click";
 
 /**
  * Left-hand navigation for the physician portal, laid out the way X does it:
@@ -19,6 +20,7 @@ import { PostButton } from "./post-button";
  */
 export default function PortalSidebar() {
   const pathname = usePathname();
+  const navClick = useNavItemClick();
 
   return (
     <header className="sticky top-0 hidden h-dvh w-[72px] shrink-0 flex-col items-center px-2 py-2 sm:flex xl:w-[275px] xl:items-start xl:px-3">
@@ -48,6 +50,7 @@ export default function PortalSidebar() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   aria-label={item.label}
+                  onClick={navClick(item)}
                   className={cn(
                     "hover:bg-foreground/10 flex w-fit items-center gap-5 rounded-full p-3 text-xl transition-colors xl:pr-6",
                     active && "font-bold",

@@ -1,4 +1,5 @@
 import {
+  type QueryClient,
   useInfiniteQuery,
   useMutation,
   useQueryClient,
@@ -168,6 +169,24 @@ export function useNotifications() {
     // The app refetches on open only if the list is older than five minutes.
     staleTime: 5 * 60_000,
   });
+}
+
+/**
+ * Reloads the list from the top, as the app does on pull-to-refresh: keep
+ * only the first page so a long-scrolled list is not refetched page by
+ * page, refetch it, and re-read the profile so the badge follows.
+ */
+export function reloadNotifications(client: QueryClient) {
+  client.setQueryData<{ pages: NotificationsPage[]; pageParams: unknown[] }>(
+    notificationsKey,
+    (data) =>
+      data && {
+        pages: data.pages.slice(0, 1),
+        pageParams: data.pageParams.slice(0, 1),
+      },
+  );
+  void client.invalidateQueries({ queryKey: notificationsKey });
+  void client.invalidateQueries({ queryKey: currentUserKey });
 }
 
 async function genericMutation(doc: string, key: string, beforeDate: string) {
