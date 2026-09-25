@@ -7,7 +7,9 @@ import {
   EXPLORE_CHOICES,
   type ExploreChoice,
   useExplorePosts,
+  useTrendingHashtags,
 } from "@/lib/portal/explore";
+import { useHashtag } from "@/lib/portal/store";
 import type { PortalHashtag } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
@@ -23,10 +25,77 @@ const EMPTY: Record<ExploreChoice, string> = {
   question: "No questions yet.",
 };
 
+function TrendingChip({
+  hashtagId,
+  selected,
+  onClick,
+}: {
+  hashtagId: string;
+  selected: boolean;
+  onClick: (tag: PortalHashtag) => void;
+}) {
+  const tag = useHashtag(hashtagId);
+  if (!tag) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(tag)}
+      aria-pressed={selected}
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-sm font-medium transition-colors",
+        selected
+          ? "border-primary/50 bg-primary/15 text-foreground"
+          : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
+    >
+      #{tag.hashtag}
+    </button>
+  );
+}
+
+/**
+ * The app's TrendingHashtagsView: the "Trending hashtags" heading over the
+ * wrapped chips from getTrendingHashtags. Tapping one applies it as the
+ * page's hashtag filter, which is what the app's push to the hashtag post
+ * list amounts to. Hidden while loading or when there are none, as the app
+ * hides it when the list is empty.
+ */
+function TrendingHashtags({
+  activeId,
+  onSelect,
+}: {
+  activeId: string | null;
+  onSelect: (tag: PortalHashtag) => void;
+}) {
+  const trending = useTrendingHashtags();
+  if (!trending.data?.length) return null;
+  return (
+    <section
+      aria-label="Trending hashtags"
+      className="border-border/40 flex flex-col gap-2 border-b px-4 py-3"
+    >
+      <h2 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+        Trending hashtags
+      </h2>
+      <div className="flex flex-wrap gap-1.5">
+        {trending.data.map((id) => (
+          <TrendingChip
+            key={id}
+            hashtagId={id}
+            selected={id === activeId}
+            onClick={onSelect}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /**
  * The Explore tab: a chooser like the videos page's (All posts, Cases,
  * Polls, Tips & Tricks, Journal, Question) over one post list, with an optional hashtag chip
- * tacked on the end. Tapping a tag on a card applies it. The backend's
+ * tacked on the end, over the app's trending hashtags strip. Tapping a tag
+ * on a card or in the strip applies it. The backend's
  * hashtag list has no sections, so while a tag is active the list is
  * "everything with this tag" and the section choices are disabled.
  */
@@ -39,6 +108,8 @@ export default function PortalExplore() {
     setTag(next);
     if (next) setChoice("all");
   };
+  const toggleTag = (next: PortalHashtag) =>
+    applyTag(next.hashtagId === tag?.hashtagId ? null : next);
 
   return (
     <>
@@ -90,13 +161,15 @@ export default function PortalExplore() {
           </button>
         )}
       </div>
+      <TrendingHashtags
+        activeId={tag?.hashtagId ?? null}
+        onSelect={toggleTag}
+      />
       <InfinitePostList
         key={`${choice}:${tag?.hashtagId ?? ""}`}
         query={query}
         emptyText={tag ? `No posts tagged #${tag.hashtag} yet.` : EMPTY[choice]}
-        onHashtagClick={(next) =>
-          applyTag(next.hashtagId === tag?.hashtagId ? null : next)
-        }
+        onHashtagClick={toggleTag}
       />
     </>
   );

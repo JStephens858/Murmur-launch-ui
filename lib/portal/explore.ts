@@ -1,6 +1,7 @@
 import {
   type QueryClient,
   useInfiniteQuery,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 
@@ -268,6 +269,59 @@ export function useExplorePosts(
     queryFn: ({ pageParam }) =>
       fetchExplorePage(client, choice, hashtagId, pageParam),
     getNextPageParam: (last) => last.next ?? undefined,
+    staleTime: 5 * 60_000,
+  });
+}
+
+/**
+ * The app's getTrendingHashtags: the ten hashtags whose posts from the last
+ * 25 days have the highest summed score, for everyone, not per reader. The
+ * hashtag rows land in the store; the query's data is the ordered ids.
+ */
+const GET_TRENDING_HASHTAGS = /* GraphQL */ `
+  query getTrendingHashtags {
+    getTrendingHashtags {
+      success
+      errorMsg
+      errorCode
+      results {
+        hashtagIds
+      }
+      store {
+        ...portalStore
+      }
+    }
+  }
+  ${STORE_FRAGMENT}
+`;
+
+interface GetTrendingHashtagsData {
+  getTrendingHashtags: MurmurResponse & {
+    results: { hashtagIds: (string | null)[] } | null;
+    store: StoreData | null;
+  };
+}
+
+export function useTrendingHashtags() {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: ["explore", "trendingHashtags"],
+    queryFn: async () => {
+      const data = await portalQuery<GetTrendingHashtagsData>(
+        GET_TRENDING_HASHTAGS,
+      );
+      const res = data.getTrendingHashtags;
+      if (!res.success) {
+        throw new PortalApiError(
+          res.errorMsg ?? "Couldn't load trending hashtags",
+          res.errorCode,
+        );
+      }
+      ingestStore(client, res.store);
+      return (res.results?.hashtagIds ?? []).filter(
+        (id): id is string => typeof id === "string",
+      );
+    },
     staleTime: 5 * 60_000,
   });
 }

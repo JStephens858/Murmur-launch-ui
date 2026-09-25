@@ -112,6 +112,8 @@ createServer((req, res) => {
       const before = new Date(variables.beforeDate + "Z").getTime(), v = op === "markNotificationsSeen" ? 1 : 2;
       for (const n of notifications) if (new Date(n.createdDate).getTime() <= before && n.seen < v) n.seen = v;
       data = { [op]: { success: true, errorMsg: null, errorCode: null } };
+    } else if (op === "getTrendingHashtags") {
+      data = { getTrendingHashtags: { success: true, errorMsg: null, errorCode: null, results: { hashtagIds: [hashtags[1].hashtagId, hashtags[0].hashtagId, hashtags[2].hashtagId] }, store: { users: [], posts: [], mediaElements: [], hashtags, postGroups: [] } } };
     } else if (op === "getExplorePostsForUser") {
       // Sections: a fixed per-section list paged by afterPostId; past the end the real backend throws, so do we.
       // No sections: the score path, ranked by baseUserPostScore (or baseComputedPostScore with hashtags), paged by maximumScore/maximumDate.
