@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/components/sections/footer/default";
 import Navbar from "@/components/sections/navbar/default";
 import { auth0 } from "@/lib/auth0";
+import { shareMetadata } from "@/lib/metadata";
 
 import LoginForm from "./login-form";
 
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   // A sign-in form has nothing to index, and keeping it out of results keeps
   // it off the list of pages worth throwing credential stuffing at.
   robots: { index: false, follow: false },
+  ...shareMetadata("/login"),
 };
 
 /**

@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+import { shareMetadata } from "@/lib/metadata";
+
 import Audiences from "../components/sections/audiences/default";
 import CTA from "../components/sections/cta/default";
 import FAQ from "../components/sections/faq/default";
@@ -6,6 +10,12 @@ import Hero from "../components/sections/hero/default";
 import Navbar from "../components/sections/navbar/default";
 import { LayoutLines } from "../components/ui/layout-lines";
 import { PhonePair } from "../components/ui/phone-pair";
+
+// Title and description come from the root layout; this only pins the share
+// card's URL to the home page instead of inheriting none.
+export const metadata: Metadata = {
+  ...shareMetadata("/"),
+};
 
 export default function Home() {
   return (

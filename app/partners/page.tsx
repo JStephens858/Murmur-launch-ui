@@ -18,11 +18,13 @@ import Hero from "@/components/sections/hero/default";
 import Navbar from "@/components/sections/navbar/default";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/site";
+import { shareMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   title: "Partners",
   description:
     "Partner with MurmurMD to support the physician community and better understand physicians' concerns, preferences, and unmet needs.",
+  ...shareMetadata("/partners"),
 };
 
 /**

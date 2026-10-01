@@ -3,8 +3,6 @@ export const siteConfig = {
   // TODO: replace with the real production domain when decided
   url: "https://murmurmd.com",
   getStartedUrl: "/get-the-app",
-  // TODO: replace with a MurmurMD-branded OG image
-  ogImage: "/og.jpg",
   description:
     "MurmurMD is the professional community where physicians share cases, compare outcomes, query their peers, and learn from each other.",
   appStoreUrl:

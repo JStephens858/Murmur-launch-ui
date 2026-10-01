@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import Footer from "@/components/sections/footer/default";
 import Navbar from "@/components/sections/navbar/default";
 import VideosBrowser from "@/components/sections/videos/browser";
+import { shareMetadata } from "@/lib/metadata";
 import { getPublicVideos, type PublicVideosPage } from "@/lib/murmur-api";
 
 export const metadata: Metadata = {
   title: "Videos",
   description:
     "Long-form conversations with physicians and short clips from the MurmurMD community — watch them here or in the app.",
+  ...shareMetadata("/videolibrary"),
 };
 
 export const revalidate = 300;

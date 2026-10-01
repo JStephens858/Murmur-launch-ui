@@ -5,6 +5,7 @@ import PublicPost from "@/components/legacy/public-post";
 import { siteConfig } from "@/config/site";
 import { truncateString } from "@/lib/format";
 import { parsePostRef } from "@/lib/legacy-urls";
+import { SHARE_CARDS } from "@/lib/metadata";
 import type { PublicPost as PublicPostData } from "@/lib/murmur-legacy";
 import { getPublicPostData, mutationTimeoutMs } from "@/lib/murmur-legacy";
 
@@ -37,7 +38,7 @@ export const dynamic = "force-dynamic";
 
 /** The preview image legacy fell back to; copied into public/ so links already
  *  shared keep the same card art. */
-const FALLBACK_OG_IMAGE = "/Logo-registered-whitebg.png";
+const FALLBACK_OG_IMAGE = SHARE_CARDS.default.url;
 
 function firstParam(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) return value[0] ?? null;

@@ -7,6 +7,7 @@ import Analytics from "@/components/analytics";
 import BackgroundLines from "@/components/ui/background-lines";
 import ThemeLab from "@/components/ui/theme-lab";
 import { inter } from "@/lib/fonts";
+import { shareMetadata } from "@/lib/metadata";
 
 import { siteConfig } from "../config/site";
 
@@ -31,30 +32,7 @@ export const metadata: Metadata = {
     },
   ],
   creator: "MurmurMD",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: siteConfig.url,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    siteName: siteConfig.name,
-    images: [
-      {
-        url: siteConfig.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: siteConfig.xHandle,
-    creator: siteConfig.xHandle,
-    title: siteConfig.name,
-    description: siteConfig.description,
-    images: [siteConfig.ogImage],
-  },
+  ...shareMetadata(),
   icons: {
     icon: "/favicon.svg",
     apple: "/apple-touch-icon.png",

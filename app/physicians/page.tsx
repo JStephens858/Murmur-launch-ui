@@ -5,11 +5,13 @@ import Footer from "@/components/sections/footer/default";
 import Hero from "@/components/sections/hero/default";
 import Items from "@/components/sections/items/default";
 import Navbar from "@/components/sections/navbar/default";
+import { shareMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   title: "Physicians",
   description:
     "Why physicians join MurmurMD: case discussions, outcome reviews, recommendations, and polls in a verified physicians-only community.",
+  ...shareMetadata("/physicians"),
 };
 
 export default function PhysiciansPage() {

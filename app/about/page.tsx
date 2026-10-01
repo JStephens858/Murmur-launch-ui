@@ -4,11 +4,13 @@ import CTA from "@/components/sections/cta/default";
 import Footer from "@/components/sections/footer/default";
 import Hero from "@/components/sections/hero/default";
 import Navbar from "@/components/sections/navbar/default";
+import { shareMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = {
   title: "About",
   description:
     "MurmurMD is the professional community built by physicians and powered by collaboration — cases, outcomes, recommendations, and polls.",
+  ...shareMetadata("/about"),
 };
 
 export default function AboutPage() {
