@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   creator: "MurmurMD",
   ...shareMetadata(),
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
     apple: "/apple-touch-icon.png",
   },
 };

@@ -1,3 +1,16 @@
+# Licence
+
+The MurmurMD website — its content, copy, images, brand assets (the MurmurMD
+name, wordmark and brain glyph), and the application code written for it — is
+Copyright (c) MurmurMD. All rights reserved.
+
+The site was started from the [Launch UI](https://launchuicomponents.com)
+Next.js template (basic tier). The template's components, several of which
+remain in `components/ui/` and `components/sections/` in modified form, are
+used under the MIT licence below, which is reproduced as that licence requires.
+
+---
+
 MIT License
 
 Copyright (c) 2024 Mikolaj Dobrucki
