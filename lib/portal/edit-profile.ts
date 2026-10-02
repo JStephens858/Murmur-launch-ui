@@ -335,7 +335,15 @@ export async function uploadProfileImage(jpeg: Blob): Promise<void> {
     const upload = new tus.Upload(jpeg, {
       endpoint: slot.uploadFileUrl,
       headers: { authorization: token },
-      metadata: { filename: slot.fileKey, filetype: "image/jpeg" },
+      // The upload server's finish hook processes an upload only when its
+      // tus metadata names the API's fileKey; that is how the row in
+      // uploadingFiles gets claimed and the picture applied to the user.
+      // TUSKit sends the same key; filename and filetype are tus convention.
+      metadata: {
+        fileKey: slot.fileKey,
+        filename: slot.fileKey,
+        filetype: "image/jpeg",
+      },
       retryDelays: [0, 1000, 3000],
       onError: (error) =>
         reject(new Error(`Photo upload failed: ${error.message}`)),

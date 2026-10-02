@@ -101,7 +101,7 @@ function EditProfileForm({
 
   const [draft, setDraft] = useState<EditableProfile>(() => ({ ...initial }));
   const [photo, setPhoto] = useState<File | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -133,7 +133,7 @@ function EditProfileForm({
   const save = async () => {
     if (!dirty || saving || usernameBad) return;
     setSaving(true);
-    setPhotoError(null);
+    setSaveError(null);
     try {
       // Text first, then the photo, as the app does.
       if (Object.keys(changes).length > 0) {
@@ -160,16 +160,16 @@ function EditProfileForm({
       }
       router.push("/profile");
     } catch (e) {
-      if (photo && !(e instanceof Error && e.message.startsWith("Photo"))) {
-        // The text save failed; the photo was never attempted.
-      } else if (photo) {
-        setPhotoError(e instanceof Error ? e.message : "Photo upload failed");
-      }
+      // Any failure, text or photo, is shown; the text mutation's own error
+      // is also surfaced through update.error.
+      setSaveError(
+        e instanceof Error ? e.message : "Couldn't save your profile",
+      );
       setSaving(false);
     }
   };
 
-  const error = update.error ?? (photoError ? new Error(photoError) : null);
+  const error = saveError ? new Error(saveError) : update.error;
   const currentPic =
     previewUrl ?? initial.profilePicMediumUrl ?? initial.profilePicThumbnailUrl;
 
@@ -226,7 +226,7 @@ function EditProfileForm({
           onChange={(e) => {
             const f = e.target.files?.[0] ?? null;
             setPhoto(f);
-            setPhotoError(null);
+            setSaveError(null);
             e.target.value = "";
           }}
         />
