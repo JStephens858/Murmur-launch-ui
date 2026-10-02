@@ -80,14 +80,22 @@ for (const g of dmGroups) { const list = dmPosts[g.postGroupId].slice().sort((a,
 const dmStore = (ps) => ({ users, posts: ps, mediaElements: media.filter((m) => ps.some((p) => p.postId === m.postId)), hashtags: [], postGroups: [] });
 let msgCounter = 500;
 let calls = [];
+const uploads = {};
 createServer((req, res) => {
-  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,content-type", "Access-Control-Allow-Methods": "POST,OPTIONS" };
+  const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization,content-type,tus-resumable,upload-length,upload-metadata,upload-offset,x-requested-with,x-http-method-override", "Access-Control-Allow-Methods": "POST,PATCH,HEAD,OPTIONS", "Access-Control-Expose-Headers": "location,upload-offset,upload-length,tus-resumable" };
   if (req.method === "OPTIONS") { res.writeHead(204, cors); return res.end(); }
   if (req.url === "/calls") { res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify(calls)); }
   if (req.url === "/notify") { // test hook: a fresh unread notification, as if pushed while the page is open
     const n = notifications.length + 1, creator = users[n % 4];
     notifications.unshift({ notificationId: uuid(n, "7"), userId: users[0].userId, notificationType: "likePost", notificationDestinationId: posts[0].postId, notificationPostId: posts[0].postId, notificationCreatorId: creator.userId, createdDate: new Date().toISOString(), notificationText: `${creator.displayName} liked your post`, notificationTitle: "", notificationSubtitle: "", notificationText2: `${creator.displayName} liked your post (new ${n})`, notificationImageUrl: svg(creator.displayName[0], "#de046c"), seen: 0 });
     res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify({ added: n }));
+  }
+  if (req.url.startsWith("/files/")) { // tus stand-in for v1.uploads.murmurmd.com: POST creates, PATCH appends, done => new profile pic
+    const key = req.url.slice(7).split("?")[0]; const tusHdr = { "Tus-Resumable": "1.0.0", ...cors };
+    if (req.method === "OPTIONS") { res.writeHead(204, tusHdr); return res.end(); }
+    if (req.method === "POST") { uploads[key] = { length: Number(req.headers["upload-length"]), received: 0, auth: req.headers.authorization ?? null }; calls.push({ op: "tus:create", variables: { key, length: uploads[key].length }, auth: uploads[key].auth }); res.writeHead(201, { ...tusHdr, Location: `http://localhost:${PORT}/files/${key}` }); return res.end(); }
+    if (req.method === "HEAD") { const u = uploads[key]; if (!u) { res.writeHead(404, tusHdr); return res.end(); } res.writeHead(200, { ...tusHdr, "Upload-Offset": String(u.received), "Upload-Length": String(u.length) }); return res.end(); }
+    if (req.method === "PATCH") { const u = uploads[key]; if (!u) { res.writeHead(404, tusHdr); return res.end(); } let n = 0; req.on("data", (c) => n += c.length); return req.on("end", () => { u.received += n; calls.push({ op: "tus:patch", variables: { key, received: u.received, length: u.length } }); if (u.received >= u.length) { users[0].profilePicMediumUrl = svg("New " + key.slice(0, 4), "#de046c"); users[0].profilePicThumbnailUrl = users[0].profilePicMediumUrl; } res.writeHead(204, { ...tusHdr, "Upload-Offset": String(u.received) }); res.end(); }); }
   }
   let body = ""; req.on("data", (c) => body += c); req.on("end", () => {
     const { query, variables } = JSON.parse(body);
@@ -222,7 +230,19 @@ createServer((req, res) => {
       const g = dmGroups.find((x) => x.postGroupId === variables.postGroupId);
       if (g) g.memberUserIds = op === "addUsersToPostGroup" ? [...new Set([...g.memberUserIds, ...variables.userIds])] : g.memberUserIds.filter((id) => !variables.userIds.includes(id));
       data = { [op]: { success: true, errorMsg: null, errorCode: null } };
-    } else if (op === "getProfile") {
+    } else if (op === "updateUser") {
+      const me = users[0];
+      if (variables.username != null && users.some((u) => u !== me && u.username === variables.username)) {
+        data = { updateUser: { success: false, errorMsg: "duplicate username", errorCode: 504, results: {}, store: { users: [], posts: [], mediaElements: [] } } };
+      } else {
+        for (const k of ["username","firstName","lastName","npi","specialty","location","flair","interests","bio","disclosures"]) if (variables[k] != null) me[k] = variables[k];
+        me.displayName = `${me.firstName ?? ""} ${me.lastName ?? ""}`.trim() || me.displayName;
+        data = { updateUser: { success: true, errorMsg: null, errorCode: null, results: { user: { ...me } }, store: { users: [me], posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+      }
+    } else if (op === "getUploadFileUrls") {
+      const fileUrls = variables.requests.map((r, i) => { const key = `${uuid(Date.now() % 100000 + i, "f")}.jpg`; return { uploadType: r.uploadType, uploadFileUrl: `http://localhost:${PORT}/files/${key}?sig=mock`, fileKey: key }; });
+      data = { getUploadFileUrls: { success: true, errorMsg: null, errorCode: null, results: { fileUrls } } };
+    } else if (op === "getProfile" || op === "getProfileForEdit") {
       data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: dmGroups.reduce((s, g) => s + g.numUnseenMessages, 0), userClass: "doctor", isAdmin: 0 } } } };
     } else { data = null; }
     setTimeout(() => { res.writeHead(200, { "Content-Type": "application/json", ...cors }); res.end(JSON.stringify({ data })); }, 150);

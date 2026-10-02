@@ -49,7 +49,8 @@ function jwtExpiry(token: string): number | null {
   }
 }
 
-async function accessToken(): Promise<string> {
+/** The signed-in physician's API token, for callers that talk to services other than GraphQL (the upload server). */
+export async function accessToken(): Promise<string> {
   if (cachedToken && Date.now() < cachedToken.expiresAt - 30_000) {
     return cachedToken.token;
   }
