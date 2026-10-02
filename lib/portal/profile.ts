@@ -367,9 +367,11 @@ const GET_CV = /* GraphQL */ `
   }
 `;
 
+export const cvItemsKey = (userId: string) => ["cv", userId] as const;
+
 export function useCVItems(userId: string) {
   return useQuery({
-    queryKey: ["cv", userId],
+    queryKey: cvItemsKey(userId),
     queryFn: async (): Promise<CVItem[]> => {
       const data = await portalQuery<{
         getCVItemsForUser: {

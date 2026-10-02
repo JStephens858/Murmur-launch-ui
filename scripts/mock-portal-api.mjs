@@ -79,6 +79,13 @@ mkMsg(dmGroups[1].postGroupId, 101, users[3].userId, "Thanks! Looking forward to
 for (const g of dmGroups) { const list = dmPosts[g.postGroupId].slice().sort((a, b) => b.createdDate.localeCompare(a.createdDate)); g.lastPostId = list[0].postId; g.lastPostDate = list[0].createdDate; }
 const dmStore = (ps) => ({ users, posts: ps, mediaElements: media.filter((m) => ps.some((p) => p.postId === m.postId)), hashtags: [], postGroups: [] });
 let msgCounter = 500;
+const CV_ITEM_TYPES = [["undergrad","University"],["graduate","Post Graduate"],["medSchool","Medical School"],["otherSchool","Other Education"],["internship","Internship"],["residency","Residency"],["fellowship","Fellowship"],["otherTraining","Other Training"],["specialty","Specialty"],["subSpecialty","SubSpecialty"],["areaOfFocus","Area of Focus"],["otherSpecialty","Other Specialty"],["practice","Practice"],["otherEmployment","Other Employment"],["hospitalAffiliation","Hospital Affiliation"],["license","License"],["organization","Organization"],["otherExperience","Other Experience"]].map(([id, name], i) => ({ id, name, indexInList: i, display: 2 }));
+let cvSeq = 1;
+const cvItems = { [users[0].userId]: [
+  { itemId: uuid(1, "e1"), userId: users[0].userId, indexInList: 1, itemType: "fellowship", title: "Cleveland Clinic", practiceType: null, discipline: null, companyName: null, location: null, description: "Interventional Cardiology", start: "2010", end: "2012", isCurrent: false },
+  { itemId: uuid(2, "e1"), userId: users[0].userId, indexInList: 2, itemType: "practice", title: "St. Luke's", practiceType: "Hospital", discipline: null, companyName: null, location: "Boise, ID", description: "Director, Cath Lab", start: "2015", end: null, isCurrent: true },
+  { itemId: uuid(3, "e1"), userId: users[0].userId, indexInList: 3, itemType: "areaOfFocus", title: "CTO", practiceType: null, discipline: null, companyName: null, location: null, description: null, start: null, end: null, isCurrent: false },
+] };
 let calls = [];
 const uploads = {};
 createServer((req, res) => {
@@ -220,9 +227,13 @@ createServer((req, res) => {
       const page = sorted.slice(0, variables.count ?? 10);
       data = { [op]: { success: true, errorMsg: null, errorCode: null, endOfList: sorted.length <= page.length, results: { total: mine.length, postIds: page.map((p) => p.postId) }, store: storeFor(page, false) } };
     } else if (op === "getCVItemsForUser") {
-      const n = users.findIndex((u) => u.userId === variables.userId) + 1;
-      const items = n === 1 ? [{ itemId: uuid(1, "e1"), userId: variables.userId, indexInList: 0, itemType: "fellowship", title: "Interventional Cardiology Fellowship", practiceType: null, discipline: null, companyName: "Cleveland Clinic", location: "Cleveland, OH", description: null, start: "2010", end: "2012", isCurrent: false }, { itemId: uuid(2, "e1"), userId: variables.userId, indexInList: 1, itemType: "practice", title: "Director, Cath Lab", practiceType: "Hospital", discipline: null, companyName: "St. Luke's", location: "Boise, ID", description: "High-volume structural and coronary program.", start: "2015", end: null, isCurrent: true }] : [];
-      data = { getCVItemsForUser: { success: true, results: { userId: variables.userId, items } } };
+      data = { getCVItemsForUser: { success: true, results: { userId: variables.userId, items: cvItems[variables.userId] ?? [] } } };
+    } else if (op === "getCVItemTypes") {
+      data = { getCVItemTypes: { success: true, results: { itemTypes: CV_ITEM_TYPES } } };
+    } else if (op === "setCVItemsForUser") { // replace-all, as the backend: unknown ids get fresh ones
+      const existing = new Set((cvItems[users[0].userId] ?? []).map((i) => i.itemId));
+      cvItems[users[0].userId] = variables.items.map((it, i) => ({ itemId: it.itemId && existing.has(it.itemId) ? it.itemId : uuid(1000 + cvSeq++, "e1"), userId: users[0].userId, indexInList: it.indexInList, itemType: it.itemType, title: it.title || null, practiceType: null, discipline: null, companyName: null, location: null, description: it.description || null, start: it.start || null, end: it.end || null, isCurrent: !!it.isCurrent }));
+      data = { setCVItemsForUser: { success: true, errorMsg: null, errorCode: null, results: { items: cvItems[users[0].userId] } } };
     } else if (op === "searchUsersForText") {
       const q = (variables.searchText ?? "").toLowerCase();
       data = { searchUsersForText: { success: true, errorMsg: null, errorCode: null, results: { userIds: users.filter((u) => u.displayName.toLowerCase().includes(q) || u.username.includes(q)).map((u) => u.userId) }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };

@@ -20,8 +20,6 @@ import { useCurrentUser } from "@/lib/portal/current-user";
 import { useCreateConversation } from "@/lib/portal/messages";
 import {
   ANONYMOUS_USER_ID,
-  type CVItem,
-  useCVItems,
   useEnsureUsers,
   useFollowers,
   useFollowUser,
@@ -34,6 +32,7 @@ import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
 import BackButton from "./back-button";
+import Experience from "./experience";
 import { PortalError } from "./feed";
 import PortalPageHeader from "./page-header";
 import PostCard, { PostCardSkeleton } from "./post-card";
@@ -465,103 +464,5 @@ function PersonFollowRow({
       </Link>
       {!hideFollow && <FollowButton userId={userId} className="mr-2" />}
     </li>
-  );
-}
-
-/** Section labels for CV item type ids; mirrors the iOS app's fallback names. */
-const CV_TYPE_NAMES: Record<string, string> = {
-  undergrad: "University",
-  graduate: "Post Graduate",
-  medSchool: "Medical School",
-  otherSchool: "Other Education",
-  internship: "Internship",
-  residency: "Residency",
-  fellowship: "Fellowship",
-  otherTraining: "Other Training",
-  specialty: "Specialty",
-  subSpecialty: "SubSpecialty",
-  areaOfFocus: "Area of Focus",
-  otherSpecialty: "Other Specialty",
-  practice: "Practice",
-  otherEmployment: "Other Employment",
-  hospitalAffiliation: "Hospital Affiliation",
-  license: "License",
-  organization: "Organization",
-  otherExperience: "Other Experience",
-};
-
-function cvTypeName(itemType: string): string {
-  if (CV_TYPE_NAMES[itemType]) return CV_TYPE_NAMES[itemType];
-  if (!itemType || itemType === "generic") return "Experience";
-  const spaced = itemType.replace(/([a-z])([A-Z])/g, "$1 $2");
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
-}
-
-function Experience({ userId, isOwn }: { userId: string; isOwn: boolean }) {
-  const cv = useCVItems(userId);
-  if (cv.status === "pending")
-    return <p className="text-muted-foreground px-4 py-8">Loading...</p>;
-  if (cv.isError)
-    return <PortalError error={cv.error} retry={() => cv.refetch()} />;
-  const items = cv.data ?? [];
-  if (items.length === 0) {
-    return (
-      <p className="text-muted-foreground px-4 py-8">
-        {isOwn
-          ? "Add your training, practice, and credentials so colleagues can find common ground."
-          : "No experience added yet."}
-      </p>
-    );
-  }
-  const groups = new Map<string, CVItem[]>();
-  for (const item of items) {
-    const name = cvTypeName(item.itemType);
-    groups.set(name, [...(groups.get(name) ?? []), item]);
-  }
-  return (
-    <div className="flex flex-col gap-5 px-4 py-4">
-      {[...groups].map(([name, list]) => (
-        <section key={name} className="flex flex-col gap-2">
-          <h2 className="text-muted-foreground text-xs font-medium uppercase">
-            {name}
-          </h2>
-          <ul className="flex flex-col gap-2">
-            {list.map((item) => (
-              <li
-                key={item.itemId}
-                className="border-border/60 bg-card/50 rounded-2xl border p-3"
-              >
-                <p className="font-semibold">
-                  {item.title ||
-                    item.companyName ||
-                    item.discipline ||
-                    item.practiceType}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {[
-                    item.companyName && item.title ? item.companyName : null,
-                    item.location,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                {(item.start || item.end) && (
-                  <p className="text-muted-foreground text-sm">
-                    {item.start ?? ""}
-                    {item.start || item.end ? " – " : ""}
-                    {item.isCurrent ? "present" : (item.end ?? "")}
-                  </p>
-                )}
-                {item.description && (
-                  <p className="mt-1 text-sm whitespace-pre-line">
-                    {item.description}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
   );
 }
