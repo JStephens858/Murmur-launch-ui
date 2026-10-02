@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { formatCount, formatDurationMs, formatTimeAgo } from "@/lib/format";
+import { useBookmarkPost, useLikePost } from "@/lib/portal/actions";
 import { prefetchFullPost } from "@/lib/portal/feed";
 import {
   useHashtag,
@@ -14,7 +15,7 @@ import {
   usePostGroup,
   useUser,
 } from "@/lib/portal/store";
-import type { PortalHashtag } from "@/lib/portal/types";
+import type { PortalHashtag, PortalPost } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
@@ -59,27 +60,106 @@ export function Counter({
   count,
   active,
   label,
+  onClick,
+  disabled,
+  verbs,
 }: {
   icon: typeof Heart;
   count: number | null | undefined;
   active?: boolean;
   label: string;
+  /** With a handler the counter is a toggle button; without, a plain count. */
+  onClick?: () => void;
+  disabled?: boolean;
+  /** What pressing does in each state, for the button's label. */
+  verbs?: { do: string; undo: string };
 }) {
-  return (
-    <span
-      className={cn(
-        "flex items-center gap-1.5 text-sm tabular-nums",
-        active ? "text-primary" : "text-muted-foreground",
-      )}
-      aria-label={`${count ?? 0} ${label}`}
-    >
+  const className = cn(
+    "flex items-center gap-1.5 text-sm tabular-nums",
+    active ? "text-primary" : "text-muted-foreground",
+  );
+  const body = (
+    <>
       <Icon
         className="size-4"
         fill={active ? "currentColor" : "none"}
         aria-hidden
       />
       {count ? formatCount(count) : null}
-    </span>
+    </>
+  );
+  if (!onClick) {
+    return (
+      <span className={className} aria-label={`${count ?? 0} ${label}`}>
+        {body}
+      </span>
+    );
+  }
+  const verb = active ? verbs?.undo : verbs?.do;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={active}
+      aria-label={verb ? `${verb} · ${count ?? 0} ${label}` : undefined}
+      className={cn(
+        className,
+        "hover:text-primary -m-1 rounded-md p-1 transition-colors disabled:opacity-60",
+      )}
+    >
+      {body}
+    </button>
+  );
+}
+
+/** The like toggle for one post; also used on comments, which can be liked. */
+export function LikeCounter({ post }: { post: PortalPost }) {
+  const like = useLikePost();
+  const liked = !!post.likedByMe;
+  return (
+    <Counter
+      icon={Heart}
+      count={post.numLikes}
+      active={liked}
+      label="likes"
+      verbs={{ do: "Like", undo: "Unlike" }}
+      disabled={like.isPending}
+      onClick={() => like.mutate({ postId: post.postId, on: !liked })}
+    />
+  );
+}
+
+export function BookmarkCounter({ post }: { post: PortalPost }) {
+  const bookmark = useBookmarkPost();
+  const marked = !!post.bookmarkedByMe;
+  return (
+    <Counter
+      icon={Bookmark}
+      count={post.numBookmarks}
+      active={marked}
+      label="bookmarks"
+      verbs={{ do: "Bookmark", undo: "Remove bookmark" }}
+      disabled={bookmark.isPending}
+      onClick={() => bookmark.mutate({ postId: post.postId, on: !marked })}
+    />
+  );
+}
+
+/** The comments / likes / bookmarks row under a post, on the card and the post page. */
+export function PostCounters({
+  post,
+  className,
+}: {
+  post: PortalPost;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center gap-6", className)}>
+      <Counter icon={MessageCircle} count={post.numComments} label="comments" />
+      <LikeCounter post={post} />
+      <BookmarkCounter post={post} />
+    </div>
   );
 }
 
@@ -230,25 +310,7 @@ export default function PostCard({
           </div>
         )}
 
-        <div className="relative z-10 mt-1 flex items-center gap-6">
-          <Counter
-            icon={MessageCircle}
-            count={post.numComments}
-            label="comments"
-          />
-          <Counter
-            icon={Heart}
-            count={post.numLikes}
-            active={!!post.likedByMe}
-            label="likes"
-          />
-          <Counter
-            icon={Bookmark}
-            count={post.numBookmarks}
-            active={!!post.bookmarkedByMe}
-            label="bookmarks"
-          />
-        </div>
+        <PostCounters post={post} className="relative z-10 mt-1" />
       </div>
     </article>
   );

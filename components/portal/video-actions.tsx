@@ -33,7 +33,7 @@ export default function VideoActions({ postId }: { postId: string }) {
         aria-pressed={liked}
         aria-label={liked ? "Unlike" : "Like"}
         disabled={!post || like.isPending}
-        onClick={() => like.mutate({ postId, like: !liked })}
+        onClick={() => like.mutate({ postId, on: !liked })}
         className={cn(
           "gap-1.5 rounded-full tabular-nums",
           liked && "text-primary",

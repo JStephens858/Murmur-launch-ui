@@ -151,6 +151,6 @@ export const config = {
      * need /.well-known/*, /info/* and /health-check* to reach this proxy, so
      * they must not be excluded here.
      */
-    "/((?!_next/static|_next/image|favicon.svg|apple-touch-icon.png|.*\\.(?:png|jpg|jpeg|svg|gif|webp|mp4|m3u8)).*)",
+    "/((?!_next/static|_next/image|.*\\.(?:png|jpg|jpeg|svg|gif|webp|mp4|m3u8)).*)",
   ],
 };

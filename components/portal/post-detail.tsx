@@ -1,6 +1,6 @@
 "use client";
 
-import { Bookmark, FileIcon, Heart, MessageCircle } from "lucide-react";
+import { FileIcon } from "lucide-react";
 import Link from "next/link";
 
 import { VideoPlayer } from "@/components/ui/video-player";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import { PortalError } from "./feed";
 import PollElement from "./poll";
-import { Counter, PostCardSkeleton } from "./post-card";
+import { LikeCounter, PostCardSkeleton, PostCounters } from "./post-card";
 
 /* User media hosts are unbounded; plain <img>, see avatar.tsx. */
 /* eslint-disable @next/next/no-img-element */
@@ -243,12 +243,7 @@ function Comment({ postId }: { postId: string }) {
       <AuthorRow post={post} compact />
       <PostBody post={post} />
       <div className="flex items-center gap-6">
-        <Counter
-          icon={Heart}
-          count={post.numLikes}
-          active={!!post.likedByMe}
-          label="likes"
-        />
+        <LikeCounter post={post} />
       </div>
     </li>
   );
@@ -342,25 +337,10 @@ export default function PostDetail({ postId }: { postId: string }) {
           : null}
       </p>
 
-      <div className="border-border/40 flex items-center gap-8 border-y py-3">
-        <Counter
-          icon={MessageCircle}
-          count={post.numComments}
-          label="comments"
-        />
-        <Counter
-          icon={Heart}
-          count={post.numLikes}
-          active={!!post.likedByMe}
-          label="likes"
-        />
-        <Counter
-          icon={Bookmark}
-          count={post.numBookmarks}
-          active={!!post.bookmarkedByMe}
-          label="bookmarks"
-        />
-      </div>
+      <PostCounters
+        post={post}
+        className="border-border/40 gap-8 border-y py-3"
+      />
 
       {full.status === "error" && (
         <PortalError error={full.error} retry={() => full.refetch()} />

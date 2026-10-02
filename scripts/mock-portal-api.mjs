@@ -150,6 +150,10 @@ createServer((req, res) => {
       const p = posts.find((x) => x.postId === variables.postId);
       if (p) { p.numLikes += variables.like ? 1 : -1; p.likedByMe = variables.like; }
       data = { likePost: { success: true, errorMsg: null, errorCode: null, store: storeFor(p ? [p] : [], false) } };
+    } else if (op === "bookmarkPost") {
+      const p = posts.find((x) => x.postId === variables.postId);
+      if (p) { p.numBookmarks += variables.bookmark ? 1 : -1; p.bookmarkedByMe = variables.bookmark; }
+      data = { bookmarkPost: { success: true, errorMsg: null, errorCode: null, store: storeFor(p ? [p] : [], false) } };
     } else if (op === "getPollResults") {
       data = { getPollResults: { success: true, errorMsg: null, errorCode: null, results: pollPayload(variables.mediaElementId, "me") } };
     } else if (op === "selectPollOption") {
