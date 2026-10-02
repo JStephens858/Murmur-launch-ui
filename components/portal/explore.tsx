@@ -1,7 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
 import {
   EXPLORE_CHOICES,
@@ -14,6 +15,7 @@ import type { PortalHashtag } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
 import { InfinitePostList } from "./feed";
+import { exploreHashtagHref } from "./hashtag-chip";
 import PortalPageHeader from "./page-header";
 
 const EMPTY: Record<ExploreChoice, string> = {
@@ -100,13 +102,30 @@ function TrendingHashtags({
  * "everything with this tag" and the section choices are disabled.
  */
 export default function PortalExplore() {
-  const [choice, setChoice] = useState<ExploreChoice>("all");
-  const [tag, setTag] = useState<PortalHashtag | null>(null);
+  const router = useRouter();
+  const params = useSearchParams();
+  // The URL is the source of truth for the tag filter: chips on the feed and
+  // the post page link to /explore?hashtagId=…&hashtag=…, and tapping a tag
+  // here writes the same address, so either way the page is shareable.
+  const urlTagId = params.get("hashtagId");
+  const urlTagName = params.get("hashtag");
+  const tag = useMemo<PortalHashtag | null>(
+    () =>
+      urlTagId ? { hashtagId: urlTagId, hashtag: urlTagName ?? "" } : null,
+    [urlTagId, urlTagName],
+  );
+
+  // The backend's hashtag list has no sections, so a tag forces "All posts";
+  // the reader's own choice is kept for when the tag is cleared.
+  const [chosen, setChosen] = useState<ExploreChoice>("all");
+  const choice: ExploreChoice = tag ? "all" : chosen;
   const query = useExplorePosts(choice, tag?.hashtagId ?? null);
 
   const applyTag = (next: PortalHashtag | null) => {
-    setTag(next);
-    if (next) setChoice("all");
+    // replace, not push: one history entry per visit, not per toggle.
+    router.replace(next ? exploreHashtagHref(next) : "/explore", {
+      scroll: false,
+    });
   };
   const toggleTag = (next: PortalHashtag) =>
     applyTag(next.hashtagId === tag?.hashtagId ? null : next);
@@ -133,7 +152,7 @@ export default function PortalExplore() {
                   disabled ? "Not available with a hashtag filter" : undefined
                 }
                 onClick={() => {
-                  if (!disabled) setChoice(value);
+                  if (!disabled) setChosen(value);
                 }}
                 className={cn(
                   "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",

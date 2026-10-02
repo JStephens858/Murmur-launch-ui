@@ -8,7 +8,6 @@ import { formatDurationMs } from "@/lib/format";
 import { useAutoplayVideo } from "@/lib/portal/autoplay";
 import { useFullPost } from "@/lib/portal/feed";
 import {
-  useHashtag,
   useMediaElement,
   useMediaElements,
   usePost,
@@ -20,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
 import { PortalError } from "./feed";
+import HashtagChip from "./hashtag-chip";
 import PollElement from "./poll";
 import { LikeCounter, PostCardSkeleton, PostCounters } from "./post-card";
 
@@ -195,21 +195,12 @@ function AuthorRow({
 
 function Hashtags({ ids }: { ids: string[] }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {ids.map((id) => (
-        <Hashtag key={id} id={id} />
+        <HashtagChip key={id} hashtagId={id} />
       ))}
     </div>
   );
-}
-
-function Hashtag({ id }: { id: string }) {
-  const tag = useHashtag(id);
-  return tag ? (
-    <span className="text-accent-foreground bg-accent rounded-full px-2.5 py-0.5 text-xs font-medium">
-      #{tag.hashtag}
-    </span>
-  ) : null;
 }
 
 function QuotedPost({ postId }: { postId: string }) {

@@ -9,7 +9,6 @@ import { formatCount, formatDurationMs, formatTimeAgo } from "@/lib/format";
 import { useBookmarkPost, useLikePost } from "@/lib/portal/actions";
 import { prefetchFullPost } from "@/lib/portal/feed";
 import {
-  useHashtag,
   useMediaElements,
   usePost,
   usePostGroup,
@@ -19,6 +18,7 @@ import type { PortalHashtag, PortalPost } from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
+import HashtagChip from "./hashtag-chip";
 import { TextBadgeCheckmarkIcon } from "./icons";
 
 /* User media hosts are unbounded; plain <img>, see avatar.tsx. */
@@ -29,30 +29,6 @@ const VISIBLE_PREFETCH_MS = 800;
 
 export function postDetailHref(postId: string) {
   return `/postDetail/${postId}`;
-}
-
-/** A tag on the card; a button that filters by it where the page can (Explore). */
-function HashtagChip({
-  hashtagId,
-  onClick,
-}: {
-  hashtagId: string;
-  onClick?: (tag: PortalHashtag) => void;
-}) {
-  const tag = useHashtag(hashtagId);
-  if (!tag) return null;
-  const className =
-    "text-accent-foreground bg-accent rounded-full px-2.5 py-0.5 text-xs font-medium";
-  if (!onClick) return <span className={className}>#{tag.hashtag}</span>;
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(tag)}
-      className={cn(className, "hover:bg-primary/20 transition-colors")}
-    >
-      #{tag.hashtag}
-    </button>
-  );
 }
 
 export function Counter({
@@ -303,7 +279,7 @@ export default function PostCard({
         )}
 
         {post.hashtagIds && post.hashtagIds.length > 0 && (
-          <div className="relative z-10 flex flex-wrap gap-1.5">
+          <div className="relative z-10 flex flex-wrap gap-2">
             {post.hashtagIds.map((id) => (
               <HashtagChip key={id} hashtagId={id} onClick={onHashtagClick} />
             ))}
