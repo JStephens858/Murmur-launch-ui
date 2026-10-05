@@ -54,6 +54,7 @@ export interface PortalPost {
   hashtagIds: string[] | null;
   commentIds: (string | null)[];
   quotedPostId: string | null;
+  clonedPostId?: string | null;
   numLikes: number | null;
   numComments: number | null;
   numBookmarks: number | null;
@@ -93,6 +94,7 @@ export interface PortalMediaElement {
   attachmentTitle: string | null;
   attachmentImage: string | null;
   attachmentDescription: string | null;
+  attachmentBaseUrl?: string | null;
   attachmentDestinationUrl: string | null;
   /** JSON; for polls, the option list — see lib/portal/polls.ts. */
   properties: string | null;

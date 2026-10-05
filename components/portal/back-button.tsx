@@ -24,6 +24,12 @@ export function PortalNavigationTracker() {
   return null;
 }
 
+/** Navigates back the way BackButton does, for pages that leave on their own. */
+export function useGoBack(fallback = "/feed") {
+  const router = useRouter();
+  return () => (visited.length > 1 ? router.back() : router.push(fallback));
+}
+
 /**
  * Returns to the page that opened this one — feed, explore, notifications,
  * whichever — or to the feed when the page was opened directly.
@@ -33,13 +39,11 @@ export default function BackButton({
 }: {
   fallback?: string;
 }) {
-  const router = useRouter();
+  const goBack = useGoBack(fallback);
   return (
     <button
       type="button"
-      onClick={() =>
-        visited.length > 1 ? router.back() : router.push(fallback)
-      }
+      onClick={goBack}
       className="hover:bg-foreground/10 -ml-2 flex size-9 items-center justify-center rounded-full"
       aria-label="Back"
     >

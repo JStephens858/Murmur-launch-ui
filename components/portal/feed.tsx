@@ -13,6 +13,7 @@ import { FEED_GROUP_ID } from "@/lib/portal/queries";
 import type { PortalHashtag } from "@/lib/portal/types";
 
 import PostCard, { PostCardSkeleton } from "./post-card";
+import UploadingPosts from "./uploading-posts";
 
 /** How far below the viewport the next page starts loading. */
 const LOAD_AHEAD = "800px";
@@ -161,11 +162,14 @@ export function PostList({
 }) {
   const feed = usePostList(postGroupId, categoryIds);
   return (
-    <InfinitePostList
-      query={feed}
-      emptyText={emptyText}
-      excludePostId={excludePostId}
-    />
+    <>
+      {categoryIds.length === 0 && <UploadingPosts postGroupId={postGroupId} />}
+      <InfinitePostList
+        query={feed}
+        emptyText={emptyText}
+        excludePostId={excludePostId}
+      />
+    </>
   );
 }
 

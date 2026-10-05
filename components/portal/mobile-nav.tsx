@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { isActivePath, portalNav } from "./nav";
+import { composeHref, isActivePath, portalNav } from "./nav";
 import NavBadge from "./nav-badge";
 import { PostButton } from "./post-button";
 import { useNavItemClick } from "./use-nav-item-click";
@@ -77,7 +77,10 @@ export default function PortalMobileNav() {
           <PostButton showLabel="always" className="mt-6" />
         </SheetContent>
       </Sheet>
-      <PostButton className="fixed right-4 bottom-5 z-40 sm:hidden" />
+      {/* Not over the composer itself, where it would cover the toolbar. */}
+      {!isActivePath(pathname, composeHref) && (
+        <PostButton className="fixed right-4 bottom-5 z-40 sm:hidden" />
+      )}
     </>
   );
 }

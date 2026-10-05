@@ -4,7 +4,12 @@
  * lastPostIdReceived, an ad insertion mixed in) and getFullPostData (media,
  * comments, a quoted post), getNotifications2 (45 rows of every kind, paged
  * by beforeDate), markNotificationsSeen / markNotificationsCleared, and
- * getProfile (badge counts). GET /calls lists every operation received; GET
+ * getProfile (badge counts), and the composer's calls: createPost for feed posts
+ * (held unpublished until their tus uploads land, then published 3 s later),
+ * getPostUploadStatus, getMyModeratorStatus, getAppSponsorshipModStats,
+ * searchForUsernamesThatMatch / searchForHashtagsThatMatch and
+ * getOpenGraphValues. MOCK_IS_ADMIN=<n> and MOCK_CONTENT_CREATOR=1 set the
+ * signed-in user's flags. GET /calls lists every operation received; GET
  * /notify adds a fresh unread notification, for testing badge-driven reloads.
  *
  *   node scripts/mock-portal-api.mjs   # :4100
@@ -100,9 +105,9 @@ createServer((req, res) => {
   if (req.url.startsWith("/files/")) { // tus stand-in for v1.uploads.murmurmd.com: POST creates, PATCH appends, done => new profile pic
     const key = req.url.slice(7).split("?")[0]; const tusHdr = { "Tus-Resumable": "1.0.0", ...cors };
     if (req.method === "OPTIONS") { res.writeHead(204, tusHdr); return res.end(); }
-    if (req.method === "POST") { const meta = Object.fromEntries((req.headers["upload-metadata"] ?? "").split(",").filter(Boolean).map((kv) => { const [k, v] = kv.trim().split(" "); return [k, v ? Buffer.from(v, "base64").toString() : ""]; })); uploads[key] = { length: Number(req.headers["upload-length"]), received: 0, auth: req.headers.authorization ?? null, fileKey: meta.fileKey ?? null }; calls.push({ op: "tus:create", variables: { key, length: uploads[key].length, fileKey: uploads[key].fileKey }, auth: uploads[key].auth }); res.writeHead(201, { ...tusHdr, Location: `http://localhost:${PORT}/files/${key}` }); return res.end(); }
+    if (req.method === "POST") { const meta = Object.fromEntries((req.headers["upload-metadata"] ?? "").split(",").filter(Boolean).map((kv) => { const [k, v] = kv.trim().split(" "); return [k, v ? Buffer.from(v, "base64").toString() : ""]; })); uploads[key] = { length: Number(req.headers["upload-length"]), received: 0, auth: req.headers.authorization ?? null, fileKey: meta.fileKey ?? null, postId: meta.postId ?? null, meta }; calls.push({ op: "tus:create", variables: { key, length: uploads[key].length, meta: uploads[key].meta }, auth: uploads[key].auth }); res.writeHead(201, { ...tusHdr, Location: `http://localhost:${PORT}/files/${key}` }); return res.end(); }
     if (req.method === "HEAD") { const u = uploads[key]; if (!u) { res.writeHead(404, tusHdr); return res.end(); } res.writeHead(200, { ...tusHdr, "Upload-Offset": String(u.received), "Upload-Length": String(u.length) }); return res.end(); }
-    if (req.method === "PATCH") { const u = uploads[key]; if (!u) { res.writeHead(404, tusHdr); return res.end(); } let n = 0; req.on("data", (c) => n += c.length); return req.on("end", () => { u.received += n; calls.push({ op: "tus:patch", variables: { key, received: u.received, length: u.length } }); if (u.received >= u.length && u.fileKey) { /* as the real server: no fileKey in metadata, nothing happens */ users[0].profilePicMediumUrl = svg("New " + key.slice(0, 4), "#de046c"); users[0].profilePicThumbnailUrl = users[0].profilePicMediumUrl; } res.writeHead(204, { ...tusHdr, "Upload-Offset": String(u.received) }); res.end(); }); }
+    if (req.method === "PATCH") { const u = uploads[key]; if (!u) { res.writeHead(404, tusHdr); return res.end(); } let n = 0; req.on("data", (c) => n += c.length); return req.on("end", () => { u.received += n; calls.push({ op: "tus:patch", variables: { key, received: u.received, length: u.length } }); if (u.received >= u.length && u.fileKey && u.postId) { const p = posts.find((x) => x.postId === u.postId); if (p) { p.pendingFileKeys = (p.pendingFileKeys ?? []).filter((k) => k !== u.fileKey); if (!p.pendingFileKeys.length) setTimeout(() => { p.isPublished = true; p.publishedDate = new Date().toISOString(); }, 3000); } } else if (u.received >= u.length && u.fileKey) { /* as the real server: no fileKey in metadata, nothing happens */ users[0].profilePicMediumUrl = svg("New " + key.slice(0, 4), "#de046c"); users[0].profilePicThumbnailUrl = users[0].profilePicMediumUrl; } res.writeHead(204, { ...tusHdr, "Upload-Offset": String(u.received) }); res.end(); }); }
   }
   let body = ""; req.on("data", (c) => body += c); req.on("end", () => {
     const { query, variables } = JSON.parse(body);
@@ -197,6 +202,54 @@ createServer((req, res) => {
       const start = variables.lastPostIdReceived ? Math.max(0, list.findIndex((p) => p.postId === variables.lastPostIdReceived)) : 0; // the server's cursor page includes the cursor post
       const page = list.slice(start, start + (variables.count ?? 20));
       data = { getPostsInDMGroup: { success: true, errorMsg: null, errorCode: null, endOfList: start + (variables.count ?? 20) >= list.length, results: { postIds: page.map((p) => p.postId) }, store: dmStore(page) } };
+    } else if (op === "createPost" && !dmGroups.some((g) => g.postGroupId === variables.postGroupId)) {
+      // A feed post (new, follow-up, clone or edit). Elements naming a fileKey hold it
+      // unpublished until their tus uploads finish, as the real server does.
+      const els = variables.mediaElements ?? [];
+      const editing = variables.isEditingPost && posts.find((p) => p.postId === variables.isEditingPost);
+      const id = editing ? editing.postId : uuid(9000 + posts.length, "a");
+      const now = new Date().toISOString();
+      for (let i = media.length - 1; i >= 0; i--) if (media[i].postId === id && !els.some((e) => e.mediaElementId === media[i].mediaElementId)) media.splice(i, 1);
+      const pending = els.flatMap((e) => [e.fileKey, e.previewImageFileKey]).filter(Boolean);
+      for (const e of els) {
+        const prev = media.find((m) => m.mediaElementId === e.mediaElementId);
+        const row = { postId: id, mediaElementId: e.mediaElementId, indexInPost: e.indexInPost, mediaType: e.mediaType, mediaText: e.mediaText, properties: e.properties ?? null, mediaUrl: prev?.mediaUrl ?? null, streamUrl: prev?.streamUrl ?? null, duration: prev?.duration ?? null, fileSize: null, mediaPreviewImageUrl: prev?.mediaPreviewImageUrl ?? null, attachmentTitle: e.attachmentTitle ?? null, attachmentImage: e.attachmentImage ?? null, attachmentDescription: e.attachmentDescription ?? null, attachmentBaseUrl: e.attachmentBaseUrl ?? null, attachmentDestinationUrl: e.attachmentDestinationUrl ?? null, pollResults: null, pollTotalVotesCast: null };
+        if (e.fileKey) { row.mediaUrl = svg(`Uploaded ${e.mediaType}`, "#3b5b7a"); row.mediaPreviewImageUrl = row.mediaUrl; }
+        if (prev) Object.assign(prev, row); else media.push(row);
+      }
+      const ordered = els.filter((e) => e.indexInPost >= 0).sort((a, b) => a.indexInPost - b.indexInPost);
+      const title = els.find((e) => e.indexInPost === -1)?.mediaText ?? null;
+      const firstText = ordered.find((e) => e.mediaType === "text")?.mediaText ?? null;
+      const anon = !!variables.anonymous;
+      const post = Object.assign(editing || { postId: id, rootPostId: null, parentPostId: variables.parentPostId ?? null, depth: 0, isDeleted: false, createdDate: now, commentIds: [], numLikes: 0, numComments: 0, numBookmarks: 0, numUniqueViews: 0, likedByMe: 0, bookmarkedByMe: 0, commentsLocked: 0, promotedPostType: null, hashtagIds: [] }, {
+        postGroupId: variables.postGroupId, categoryKey: variables.categoryKey ?? null, quotedPostId: variables.quotedPostId ?? null, clonedPostId: variables.clonedPostId ?? null,
+        creatorUserId: anon ? "37a4cf81-47af-46f2-96f0-b6c719366573" : (variables.postAsUserId ?? users[0].userId),
+        title, postText: firstText, mediaElementIds: els.map((e) => e.mediaElementId),
+        hashtagIds: hashtags.filter((h) => els.some((e) => (e.mediaText ?? "").includes("#" + h.hashtag))).map((h) => h.hashtagId),
+        mediaPreviewUrl: media.find((m) => m.postId === id && m.mediaUrl && (m.mediaType === "image" || m.mediaType === "video"))?.mediaUrl ?? null,
+        isPublished: pending.length === 0, publishedDate: pending.length ? null : now, pendingFileKeys: pending,
+      });
+      if (!editing) posts.unshift(post);
+      data = { createPost: { success: true, errorMsg: null, errorCode: null, anonymousPostToken: anon ? "mock-anon-token-" + id : null, results: { postId: id }, store: storeFor([post], true) } };
+    } else if (op === "getPostUploadStatus") {
+      const ps = posts.filter((p) => variables.postIds.includes(p.postId));
+      data = { getPostUploadStatus: { success: true, errorMsg: null, errorCode: null, results: ps.map((p) => ({ postId: p.postId, publishedDate: p.publishedDate, isPublished: p.isPublished, isDeleted: p.isDeleted })), store: storeFor(ps, true) } };
+    } else if (op === "getMyModeratorStatus") {
+      const mine = [groups[0]]; // the signed-in user moderates Interventional Cardiology (groupSettings lists them)
+      data = { getMyModeratorStatus: { success: true, errorMsg: null, errorCode: null, results: { myModerationStatuses: mine.map((g) => ({ postGroupId: g.postGroupId, moderators: [{ userId: users[0].userId, canChangeCategory: 1, canPostClones: 1 }] })) } } };
+    } else if (op === "getAppSponsorshipModStats") {
+      data = { getAppSponsorshipModStats: { success: true, results: { bounties: [
+        { sponsorshipBountyId: uuid(1, "b0"), bountyTopicId: uuid(1, "b1"), bountyTopic: "IVUS-guided PCI", bountyProperties: JSON.stringify({ examples: ["stent sizing", "calcium"] }), partnerName: "Acme Imaging", groupName: groups[0].groupName, postGroupId: groups[0].postGroupId, bountyPostValue: 150 },
+        { sponsorshipBountyId: uuid(2, "b0"), bountyTopicId: null, bountyTopic: null, bountyProperties: null, partnerName: "Valve Co", groupName: groups[1].groupName, postGroupId: groups[1].postGroupId, bountyPostValue: 75 },
+      ] } } };
+    } else if (op === "searchForUsernamesThatMatch") {
+      const q = (variables.searchText ?? "").toLowerCase();
+      data = { searchForUsernamesThatMatch: { success: true, errorMsg: null, errorCode: null, results: { userIds: users.filter((u) => u.username.includes(q) || u.displayName.toLowerCase().includes(q)).map((u) => u.userId) }, store: { users, posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
+    } else if (op === "searchForHashtagsThatMatch") {
+      const q = (variables.searchText ?? "").toLowerCase();
+      data = { searchForHashtagsThatMatch: { success: true, errorMsg: null, errorCode: null, results: { hashtagIds: hashtags.filter((h) => h.hashtag.toLowerCase().startsWith(q)).map((h) => h.hashtagId) }, store: { users: [], posts: [], mediaElements: [], hashtags, postGroups: [] } } };
+    } else if (op === "getOpenGraphValues") {
+      data = { getOpenGraphValues: { success: true, errorMsg: null, errorCode: null, results: variables.urls.map((u) => { const host = new URL(u).host; return { title: `Page at ${host}`, description: "A description from the page's Open Graph tags.", image: svg(host, "#1e5c8a"), baseUrl: host, destination: u }; }) } };
     } else if (op === "createPost") {
       const text = (variables.mediaElements ?? []).find((m) => m.mediaType === "text")?.mediaText ?? "";
       const post = mkMsg(variables.postGroupId, ++msgCounter, users[0].userId, text, 0);
@@ -251,10 +304,10 @@ createServer((req, res) => {
         data = { updateUser: { success: true, errorMsg: null, errorCode: null, results: { user: { ...me } }, store: { users: [me], posts: [], mediaElements: [], hashtags: [], postGroups: [] } } };
       }
     } else if (op === "getUploadFileUrls") {
-      const fileUrls = variables.requests.map((r, i) => { const key = `${uuid(Date.now() % 100000 + i, "f")}.jpg`; return { uploadType: r.uploadType, uploadFileUrl: `http://localhost:${PORT}/files/${key}?sig=mock`, fileKey: key }; });
+      const fileUrls = variables.requests.map((r, i) => { const key = `${uuid(Date.now() % 100000 + i, "f")}.${(r.contentType ?? "image/jpeg").split("/")[1]}`; return { uploadType: r.uploadType, uploadFileUrl: `http://localhost:${PORT}/files/${key}?sig=mock`, fileKey: key }; });
       data = { getUploadFileUrls: { success: true, errorMsg: null, errorCode: null, results: { fileUrls } } };
     } else if (op === "getProfile" || op === "getProfileForEdit") {
-      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: dmGroups.reduce((s, g) => s + g.numUnseenMessages, 0), userClass: "doctor", isAdmin: 0 } } } };
+      data = { getProfile: { success: true, errorMsg: null, errorCode: null, results: { user: { ...users[0], numNotifications: notifications.filter((n) => n.seen === 0).length, numDirectMessages: dmGroups.reduce((s, g) => s + g.numUnseenMessages, 0), userClass: "doctor", isAdmin: Number(process.env.MOCK_IS_ADMIN ?? 0), isContentCreator: !!process.env.MOCK_CONTENT_CREATOR } } } };
     } else { data = null; }
     setTimeout(() => { res.writeHead(200, { "Content-Type": "application/json", ...cors }); res.end(JSON.stringify({ data })); }, 150);
   });

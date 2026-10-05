@@ -19,6 +19,7 @@ export interface CurrentUser {
   /** admin | doctor | staff | sponsor | observer | industry | public | HCP | hospitalAdmin */
   userClass: string;
   isAdmin: number;
+  isContentCreator: boolean | null;
 }
 
 const GET_PROFILE = /* GraphQL */ `
@@ -37,6 +38,7 @@ const GET_PROFILE = /* GraphQL */ `
           numDirectMessages
           userClass
           isAdmin
+          isContentCreator
         }
       }
     }

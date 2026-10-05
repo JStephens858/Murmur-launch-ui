@@ -6,6 +6,8 @@ import Link from "next/link";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { formatDurationMs } from "@/lib/format";
 import { useAutoplayVideo } from "@/lib/portal/autoplay";
+import { canEditPost, canQuotePost } from "@/lib/portal/compose";
+import { useCurrentUser } from "@/lib/portal/current-user";
 import { useFullPost } from "@/lib/portal/feed";
 import {
   useMediaElement,
@@ -20,6 +22,8 @@ import { cn } from "@/lib/utils";
 import Avatar from "./avatar";
 import { PortalError } from "./feed";
 import HashtagChip from "./hashtag-chip";
+import { SquareAndPencilIcon, TextQuoteIcon } from "./icons";
+import { composeHref } from "./nav";
 import PollElement from "./poll";
 import { LikeCounter, PostCardSkeleton, PostCounters } from "./post-card";
 
@@ -282,6 +286,32 @@ function PostBody({
  * feed's prefetch usually filled already; useFullPost fetches it otherwise
  * and refreshes it in the background when stale.
  */
+/** Edit and "Post follow-up", for whoever the app offers them to. */
+function AuthorActions({ post }: { post: PortalPost }) {
+  const me = useCurrentUser().data;
+  const edit = canEditPost(post, me);
+  const quote = canQuotePost(post, me);
+  if (!edit && !quote) return null;
+  const pill =
+    "border-border hover:bg-foreground/[0.04] flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium transition-colors";
+  return (
+    <div className="flex flex-wrap gap-2">
+      {edit && (
+        <Link href={`${composeHref}?edit=${post.postId}`} className={pill}>
+          <SquareAndPencilIcon className="size-4" />
+          Edit
+        </Link>
+      )}
+      {quote && (
+        <Link href={`${composeHref}?quote=${post.postId}`} className={pill}>
+          <TextQuoteIcon className="size-4" />
+          Post follow-up
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export default function PostDetail({ postId }: { postId: string }) {
   const full = useFullPost(postId);
   const post = usePost(postId);
@@ -327,6 +357,8 @@ export default function PostDetail({ postId }: { postId: string }) {
           ? " · updating…"
           : null}
       </p>
+
+      <AuthorActions post={post} />
 
       <PostCounters
         post={post}

@@ -51,6 +51,7 @@ export const STORE_FRAGMENT = /* GraphQL */ `
       attachmentTitle
       attachmentImage
       attachmentDescription
+      attachmentBaseUrl
       attachmentDestinationUrl
       properties
       pollResults {
@@ -81,6 +82,7 @@ export const STORE_FRAGMENT = /* GraphQL */ `
       hashtagIds
       commentIds
       quotedPostId
+      clonedPostId
       numLikes
       numComments
       numBookmarks
