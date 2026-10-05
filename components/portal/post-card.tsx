@@ -24,6 +24,14 @@ import { TextBadgeCheckmarkIcon } from "./icons";
 /* User media hosts are unbounded; plain <img>, see avatar.tsx. */
 /* eslint-disable @next/next/no-img-element */
 
+/**
+ * For rows raised above the card's post link: the gaps between their
+ * controls fall through to the link, so only the controls themselves catch
+ * clicks.
+ */
+const PASS_THROUGH =
+  "pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
+
 /** How long a card sits on screen before its full post is prefetched. */
 const VISIBLE_PREFETCH_MS = 800;
 
@@ -214,7 +222,7 @@ export default function PostCard({
       />
       <Link
         href={author ? `/profile/${author.userId}` : "#"}
-        className="relative z-10 mt-0.5 shrink-0"
+        className="relative z-10 mt-0.5 shrink-0 self-start rounded-full"
         aria-label={
           author
             ? `${author.displayName || author.username}'s profile`
@@ -227,11 +235,13 @@ export default function PostCard({
         <div className="text-muted-foreground flex flex-wrap items-baseline gap-x-1.5 text-sm">
           <Link
             href={author ? `/profile/${author.userId}` : "#"}
-            className="text-foreground relative z-10 font-bold hover:underline"
+            className="group relative z-10 flex min-w-0 items-baseline gap-x-1.5"
           >
-            {author?.displayName || author?.username || "…"}
+            <span className="text-foreground font-bold group-hover:underline">
+              {author?.displayName || author?.username || "…"}
+            </span>
+            {author?.username && <span>@{author.username}</span>}
           </Link>
-          {author?.username && <span>@{author.username}</span>}
           <span aria-hidden>·</span>
           <time dateTime={when} title={new Date(when).toLocaleString()}>
             {formatTimeAgo(when)}
@@ -279,14 +289,19 @@ export default function PostCard({
         )}
 
         {post.hashtagIds && post.hashtagIds.length > 0 && (
-          <div className="relative z-10 flex flex-wrap gap-2">
+          <div
+            className={cn("relative z-10 flex flex-wrap gap-2", PASS_THROUGH)}
+          >
             {post.hashtagIds.map((id) => (
               <HashtagChip key={id} hashtagId={id} onClick={onHashtagClick} />
             ))}
           </div>
         )}
 
-        <PostCounters post={post} className="relative z-10 mt-1" />
+        <PostCounters
+          post={post}
+          className={cn("relative z-10 mt-1", PASS_THROUGH)}
+        />
       </div>
     </article>
   );
