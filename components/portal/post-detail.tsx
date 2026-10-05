@@ -170,7 +170,7 @@ function AuthorRow({
   const author = useUser(post.creatorUserId);
   const when = post.publishedDate ?? post.createdDate;
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex min-w-0 items-center gap-3">
       <Link
         href={`/profile/${post.creatorUserId}`}
         className="shrink-0"
@@ -335,7 +335,7 @@ export default function PostDetail({ postId }: { postId: string }) {
       <div className="flex items-center justify-between gap-3">
         <AuthorRow post={post} />
         {group?.groupName && (
-          <span className="text-accent-alt shrink-0 text-xs">
+          <span className="text-accent-alt max-w-[40%] shrink-0 truncate text-xs">
             {group.groupName}
           </span>
         )}

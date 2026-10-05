@@ -8,6 +8,10 @@ const nextConfig = {
   turbopack: {
     root,
   },
+  // Dev only: lets a phone on the LAN load the dev server by IP. Without it
+  // Next blocks the dev chunks for any host but localhost, the page never
+  // hydrates, and nothing client-side works (menus, the sign-in link).
+  allowedDevOrigins: ["192.168.*.*"],
   images: {
     remotePatterns: [
       {
