@@ -5,6 +5,11 @@ import { cn } from "@/lib/utils";
    next/image's remotePatterns; plain <img> as elsewhere on the site. */
 /* eslint-disable @next/next/no-img-element */
 
+/** The letter shown when someone has no picture. */
+export function avatarInitial(user: PortalUser | undefined) {
+  return (user?.displayName || user?.username || "?").charAt(0).toUpperCase();
+}
+
 export default function Avatar({
   user,
   className,
@@ -13,9 +18,7 @@ export default function Avatar({
   className?: string;
 }) {
   const src = user?.profilePicThumbnailUrl ?? user?.profilePicMediumUrl ?? null;
-  const initial = (user?.displayName || user?.username || "?")
-    .charAt(0)
-    .toUpperCase();
+  const initial = avatarInitial(user);
   return (
     <span
       className={cn(

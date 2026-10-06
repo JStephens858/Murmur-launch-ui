@@ -16,8 +16,11 @@ import {
   useMarkNotificationsSeen,
   useNotifications,
 } from "@/lib/portal/notifications";
+import { useEnsureUsers } from "@/lib/portal/profile";
+import { useUser } from "@/lib/portal/store";
 import { cn } from "@/lib/utils";
 
+import { avatarInitial } from "./avatar";
 import { PortalError } from "./feed";
 import {
   AtIcon,
@@ -65,24 +68,36 @@ function NotificationRow({
   const unread = n.seen === 0;
   const Kind = KIND_ICON[n.notificationType] ?? QuestionMarkIcon;
   const lines = notificationLines(n);
+  const creator = useUser(n.notificationCreatorId);
+  const image =
+    n.notificationImageUrl ??
+    creator?.profilePicThumbnailUrl ??
+    creator?.profilePicMediumUrl ??
+    null;
 
   const body = (
     <>
-      <span className="relative shrink-0">
+      {/* self-start: as a flex item the wrapper would otherwise stretch to
+          the row's height, dropping the kind badge below the avatar. */}
+      <span className="relative shrink-0 self-start">
         <span
           className={cn(
-            "border-primary/70 bg-muted flex size-12 items-center justify-center overflow-hidden rounded-full border-2 shadow-sm",
+            "border-primary/70 bg-muted text-muted-foreground flex size-12 items-center justify-center overflow-hidden rounded-full border-2 text-base font-semibold shadow-sm",
             !unread && "opacity-60",
           )}
           aria-hidden
         >
-          {n.notificationImageUrl && (
+          {image ? (
             <img
-              src={n.notificationImageUrl}
+              src={image}
               alt=""
               className="size-full object-cover"
               loading="lazy"
             />
+          ) : (
+            // No picture: the creator's initial, as avatars show it in the
+            // feed (blank until the creator has loaded).
+            creator && avatarInitial(creator)
           )}
         </span>
         <span
@@ -195,6 +210,16 @@ export default function Notifications() {
     }
     return out;
   })();
+  // Notification responses come with an empty store, so creators with no
+  // picture are fetched (only those missing) for their initial.
+  useEnsureUsers([
+    ...new Set(
+      notifications
+        .filter((n) => !n.notificationImageUrl && n.notificationCreatorId)
+        .map((n) => n.notificationCreatorId as string),
+    ),
+  ]);
+
   const newest = notifications[0]?.createdDate;
   const anyUnread = notifications.some((n) => n.seen === 0);
 
