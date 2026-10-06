@@ -5,7 +5,6 @@ import { ThemeProvider } from "next-themes";
 
 import Analytics from "@/components/analytics";
 import BackgroundLines from "@/components/ui/background-lines";
-import ThemeLab from "@/components/ui/theme-lab";
 import { inter } from "@/lib/fonts";
 import { shareMetadata } from "@/lib/metadata";
 
@@ -56,7 +55,6 @@ export default function RootLayout({
           <Analytics />
           <BackgroundLines />
           {children}
-          {process.env.NODE_ENV === "development" && <ThemeLab />}
         </ThemeProvider>
       </body>
     </html>

@@ -5,8 +5,8 @@ import * as React from "react";
 /**
  * Ambient background: a slowly tumbling 3D wireframe knot drawn as thin
  * line strands on a fixed full-viewport canvas. Stroke colors come from
- * the theme tokens (--brand, --accent-alt) so every theme-lab variant
- * tints its own art. Honors prefers-reduced-motion by rendering a single static
+ * the theme tokens (--brand, --accent-alt), so light and dark mode each
+ * tint the art. Honors prefers-reduced-motion by rendering a single static
  * frame. Sits behind all content (z-index -1; body background propagates
  * to the root, so the canvas isn't painted over).
  *
@@ -129,14 +129,14 @@ export default function BackgroundLines() {
     };
     window.addEventListener("resize", onResize);
 
-    // Re-read colors when the theme class or theme-lab attribute changes.
+    // Re-read colors when the theme class (light/dark) changes.
     const observer = new MutationObserver(() => {
       colors = readThemeColors();
       if (reducedMotion) draw(12000);
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class", "data-theme"],
+      attributeFilter: ["class"],
     });
 
     return () => {

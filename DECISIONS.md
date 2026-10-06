@@ -315,10 +315,10 @@ The flat id is the app's form — dashes stripped — and the cookie may arrive 
 **Decision:** `/videos` is now a real server-rendered page (grid + modal pattern from the videos2 prototype) fed by the `getPublicVideosForSite` GraphQL query — unauthenticated (Josh flipped it to `requiresUserData: false` in the Apollo server) with 5-minute ISR. Mapping conventions: video media element joined to post by `postId`; card title is `post.title`, falling back to the first line of `postText`; author joined via `creatorUserId`; `duration` is in **milliseconds**; preview prefers the CloudFront-resized `post.mediaPreviewUrl` over the raw S3 `mediaPreviewImageUrl`. Pagination cursors (`lastLongPostId`/`lastShortPostId`) are returned by the lib but load-more UI is not built yet. The `/videos1`/`/videos2` prototypes and mock catalog remain until a final look verdict, then get deleted.
 **Status:** Active
 
-## 2026-07-02 — Theme lab for visual experiments
+## 2026-07-02 — Theme lab for visual experiments (retired 2026-10-06)
 **Decision:** Candidate looks are CSS-variable variant blocks in `styles/themes.css`, selected by `data-theme` on `<html>` via a dev-only floating picker (`components/ui/theme-lab.tsx`, localStorage-persisted, excluded from production). Backgrounds stay the paper/ink grays in every variant — Josh likes those — variants only change accent economy (primary buttons, links, rings, radius). Starter variants: teal-forward, plum accents, ink minimal. Winners get promoted into `:root`/`.dark` in `globals.css`; structural (layout-level) experiments still use branches/worktrees instead.
 **Why:** Iterating by editing `globals.css` in place makes side-by-side comparison impossible and reverting error-prone.
-**Status:** Active
+**Status:** Retired 2026-10-06. The plum look won and lives in `globals.css`; the picker, `styles/themes.css` and its teal and ink variants were removed at Josh's request.
 
 ## 2026-07-02 — GraphQL API calls: server-side, plain fetch, Auth0 bearer
 **Decision:** The website calls the MurmurMD GraphQL API (Apollo server, endpoint in `MURMUR_API_SERVER` env var; localhost:4000/api in dev) from the server side, passing the signed-in user's Auth0 access token as a Bearer header. `lib/murmur-api.ts` uses plain `fetch` with typed wrappers per query — no Apollo Client dependency until the query surface justifies it. First consumer: `getProfile` on `/account`. Optional `AUTH0_AUDIENCE`/`AUTH0_SCOPE` env vars are wired for when the API requires audience-scoped JWTs.
