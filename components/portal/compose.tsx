@@ -216,7 +216,7 @@ function DraftLoader({
 }
 
 /** Whether this device has a camera input worth offering (phones, tablets). */
-function useCoarsePointer() {
+export function useCoarsePointer() {
   return useSyncExternalStore(
     () => () => {},
     () => window.matchMedia("(pointer: coarse)").matches,

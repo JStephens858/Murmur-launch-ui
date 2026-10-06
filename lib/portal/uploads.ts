@@ -38,6 +38,8 @@ export interface UploadingPost {
   /** Object URL of the first photo or video, for the card. */
   thumbUrl: string | null;
   thumbIsVideo: boolean;
+  /** False for a direct message, which shows its progress in the conversation. */
+  inFeed: boolean;
   bytesSent: number;
   bytesTotal: number;
   status: "uploading" | "processing" | "failed" | "slow";
@@ -46,6 +48,7 @@ export interface UploadingPost {
 
 interface Entry extends UploadingPost {
   uploads: (PendingUpload & { sent: number; done: boolean })[];
+  onPublished?: () => void;
 }
 
 const entries = new Map<string, Entry>();
@@ -54,7 +57,7 @@ const listeners = new Set<() => void>();
 
 function emit() {
   snapshot = [...entries.values()].map(
-    ({ uploads: _uploads, ...rest }) => rest,
+    ({ uploads: _uploads, onPublished: _onPublished, ...rest }) => rest,
   );
   listeners.forEach((l) => l());
 }
@@ -66,16 +69,28 @@ function subscribe(listener: () => void) {
 
 const EMPTY: UploadingPost[] = [];
 
-/** Every post still uploading or processing, oldest first. */
-export function useUploadingPosts(postGroupId?: string): UploadingPost[] {
-  const all = useSyncExternalStore(
+function useAllUploading() {
+  return useSyncExternalStore(
     subscribe,
     () => snapshot,
     () => EMPTY,
   );
+}
+
+/**
+ * Posts still uploading or processing, oldest first: a group's own, or for
+ * the feed every one meant for it (direct messages show in their thread).
+ */
+export function useUploadingPosts(postGroupId?: string): UploadingPost[] {
+  const all = useAllUploading();
   return postGroupId && postGroupId !== FEED_GROUP_ID
     ? all.filter((p) => p.postGroupId === postGroupId)
-    : all;
+    : all.filter((p) => p.inFeed);
+}
+
+/** One post's upload, while it lasts. */
+export function useUploadingPost(postId: string): UploadingPost | undefined {
+  return useAllUploading().find((p) => p.postId === postId);
 }
 
 function update(postId: string, patch: Partial<Entry>) {
@@ -195,6 +210,7 @@ async function watchUntilPublished(client: QueryClient, postId: string) {
         const post = client.getQueryData<PortalPost>(entityKey.post(postId));
         if (post) placePublishedPost(client, post);
         void client.invalidateQueries({ queryKey: ["postFull", postId] });
+        entries.get(postId)?.onPublished?.();
         finish(postId);
         return;
       }
@@ -290,11 +306,20 @@ async function runAll(client: QueryClient, postId: string) {
 export function startUploads(
   client: QueryClient,
   result: SubmitResult,
-  card: { label: string; thumb: Blob | null; thumbIsVideo: boolean },
+  card: {
+    label: string;
+    thumb: Blob | null;
+    thumbIsVideo: boolean;
+    /** Default true; a direct message passes false. */
+    inFeed?: boolean;
+    /** Runs once the server has published the post. */
+    onPublished?: () => void;
+  },
 ) {
   const { postId, post, uploads } = result;
   if (!uploads.length && post?.isPublished) {
     placePublishedPost(client, post);
+    card.onPublished?.();
     return;
   }
   guardUnload();
@@ -304,6 +329,8 @@ export function startUploads(
     label: card.label,
     thumbUrl: card.thumb ? URL.createObjectURL(card.thumb) : null,
     thumbIsVideo: card.thumbIsVideo,
+    inFeed: card.inFeed ?? true,
+    onPublished: card.onPublished,
     bytesSent: 0,
     bytesTotal: uploads.reduce((n, u) => n + u.blob.size, 0),
     status: uploads.length ? "uploading" : "processing",

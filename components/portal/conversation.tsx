@@ -1,10 +1,17 @@
 "use client";
 
-import { Users } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RotateCw, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VideoPlayer } from "@/components/ui/video-player";
 import { useCurrentUser } from "@/lib/portal/current-user";
 import { useMembers } from "@/lib/portal/groups";
@@ -15,11 +22,19 @@ import {
 } from "@/lib/portal/messages";
 import { useMediaElements, usePost, useUser } from "@/lib/portal/store";
 import type { PortalMediaElement } from "@/lib/portal/types";
+import {
+  retryUploads,
+  type UploadingPost,
+  useUploadingPost,
+} from "@/lib/portal/uploads";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
 import BackButton from "./back-button";
+import { useCoarsePointer } from "./compose";
+import { useObjectUrl } from "./compose-items";
 import { PortalError } from "./feed";
+import { CameraOnRectangleIcon, PlayCircleFillIcon } from "./icons";
 import PortalPageHeader from "./page-header";
 
 /* Message media are user uploads on the API's media hosts; plain <img>. */
@@ -112,6 +127,59 @@ function MessageMedia({ element }: { element: PortalMediaElement }) {
 }
 
 /**
+ * A message's photo or video while it uploads: the sender's own copy from
+ * this browser, with the progress over it, until the server publishes it.
+ */
+function UploadingMedia({ upload }: { upload: UploadingPost }) {
+  const client = useQueryClient();
+  const pct = upload.bytesTotal
+    ? Math.round((upload.bytesSent / upload.bytesTotal) * 100)
+    : 100;
+  const status = {
+    uploading: `Uploading… ${pct}%`,
+    processing: "Processing…",
+    slow: "Still processing…",
+    failed: upload.error ?? "Upload failed",
+  }[upload.status];
+  return (
+    <div className="relative max-w-full overflow-hidden rounded-xl">
+      {upload.thumbUrl &&
+        (upload.thumbIsVideo ? (
+          <video
+            src={upload.thumbUrl}
+            muted
+            playsInline
+            preload="metadata"
+            className="max-h-[250px] max-w-full opacity-70"
+          />
+        ) : (
+          <img
+            src={upload.thumbUrl}
+            alt=""
+            className="max-h-[250px] max-w-full opacity-70"
+          />
+        ))}
+      <span
+        role="status"
+        className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-black/60 px-2 py-1 text-xs text-white"
+      >
+        {status}
+        {upload.status === "failed" && (
+          <button
+            type="button"
+            onClick={() => retryUploads(client, upload.postId)}
+            aria-label="Retry upload"
+            className="rounded-full p-0.5 hover:bg-white/20"
+          >
+            <RotateCw className="size-3.5" />
+          </button>
+        )}
+      </span>
+    </div>
+  );
+}
+
+/**
  * ConversationCell: a bubble on the right for mine, the left for others,
  * the sender's name above the first of a run and their avatar beside the
  * last, both only in group conversations. The time shows on hover; the
@@ -133,8 +201,11 @@ function Message({
   const post = usePost(postId);
   const author = useUser(post?.creatorUserId);
   const elements = useMediaElements(post?.mediaElementIds ?? []);
+  const upload = useUploadingPost(postId);
   if (!post) return null;
   const body = elements.filter((e): e is PortalMediaElement => !!e);
+  const isMedia = (e: PortalMediaElement) =>
+    e.mediaType === "image" || e.mediaType === "video";
   const showAvatar = !mine && groupChat;
   return (
     <li
@@ -170,10 +241,17 @@ function Message({
           title={new Date(post.createdDate).toLocaleString()}
         >
           {body.length > 0 ? (
-            body.map((e) => <MessageMedia key={e.mediaElementId} element={e} />)
+            body.map((e) =>
+              upload && isMedia(e) ? (
+                <UploadingMedia key={e.mediaElementId} upload={upload} />
+              ) : (
+                <MessageMedia key={e.mediaElementId} element={e} />
+              ),
+            )
           ) : (
             <span className="whitespace-pre-line">{post.postText}</span>
           )}
+          {upload && !body.some(isMedia) && <UploadingMedia upload={upload} />}
         </div>
         <time
           dateTime={post.createdDate}
@@ -310,6 +388,116 @@ function MemberAvatar({ userId }: { userId: string }) {
  * Marks the conversation seen on open and again on leaving (the app does
  * it only on its back button).
  */
+/**
+ * The app's camera.on.rectangle button: Camera or Photo Library on phones
+ * and tablets (its action sheet), straight to the file picker elsewhere.
+ * One photo or video per message.
+ */
+function AttachButton({
+  onPick,
+  disabled,
+}: {
+  onPick: (file: File) => void;
+  disabled: boolean;
+}) {
+  const coarse = useCoarsePointer();
+  const library = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const take = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file && /^(image|video)\//.test(file.type)) onPick(file);
+  };
+  const button = (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label="Add a photo or video"
+      onClick={coarse ? undefined : () => library.current?.click()}
+      className="text-muted-foreground hover:text-foreground hover:bg-foreground/10 mb-1 flex size-9 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40"
+    >
+      <CameraOnRectangleIcon className="size-6" />
+    </button>
+  );
+  return (
+    <>
+      {coarse ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start">
+            <DropdownMenuItem onSelect={() => camera.current?.click()}>
+              Camera
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => library.current?.click()}>
+              Photo Library
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        button
+      )}
+      <input
+        ref={library}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden"
+        onChange={take}
+      />
+      <input
+        ref={camera}
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+        className="hidden"
+        onChange={take}
+      />
+    </>
+  );
+}
+
+/** The picked photo or video above the text, with a remove button. */
+function AttachmentPreview({
+  file,
+  onRemove,
+}: {
+  file: File;
+  onRemove: () => void;
+}) {
+  const url = useObjectUrl(file);
+  const video = file.type.startsWith("video/");
+  return (
+    <div className="relative mx-3 mt-2 mb-1 self-start">
+      {url &&
+        (video ? (
+          <span className="relative block">
+            <video
+              src={url}
+              muted
+              playsInline
+              preload="metadata"
+              className="border-border/60 max-h-[100px] max-w-[200px] rounded-xl border"
+            />
+            <PlayCircleFillIcon className="absolute inset-0 m-auto size-8 text-white drop-shadow" />
+          </span>
+        ) : (
+          <img
+            src={url}
+            alt=""
+            className="border-border/60 max-h-[100px] max-w-[200px] rounded-xl border"
+          />
+        ))}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Remove attachment"
+        className="bg-background border-border absolute -top-2 -right-2 rounded-full border p-0.5 shadow-sm"
+      >
+        <X className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export default function Conversation({ postGroupId }: { postGroupId: string }) {
   const { data: me } = useCurrentUser();
   const thread = useThread(postGroupId);
@@ -318,6 +506,7 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
   const members = useMembers(postGroupId);
   const memberCount = members.data?.pages[0]?.memberCount ?? 0;
   const [text, setText] = useState("");
+  const [media, setMedia] = useState<File | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const topSentinel = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
@@ -365,9 +554,17 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
 
   const submit = () => {
     const body = text.trim();
-    if (!body || send.isPending) return;
+    if ((!body && !media) || send.isPending) return;
     stickToBottom.current = true;
-    send.mutate(body, { onSuccess: () => setText("") });
+    send.mutate(
+      { text: body, media },
+      {
+        onSuccess: () => {
+          setText("");
+          setMedia(null);
+        },
+      },
+    );
   };
 
   return (
@@ -422,27 +619,36 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
         }}
         className="border-border/40 bg-background flex items-end gap-2 border-t px-3 py-2"
       >
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              submit();
-            }
-          }}
-          placeholder="Enter message"
-          aria-label="Message"
-          rows={1}
-          className="border-border/60 bg-card focus-visible:ring-ring max-h-40 min-h-11 flex-1 resize-none rounded-2xl border px-4 py-2.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
+        <AttachButton
+          onPick={(file) => setMedia(file)}
+          disabled={send.isPending}
         />
+        <div className="border-border/60 bg-card focus-within:ring-ring flex min-w-0 flex-1 flex-col rounded-2xl border focus-within:ring-2">
+          {media && (
+            <AttachmentPreview file={media} onRemove={() => setMedia(null)} />
+          )}
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            placeholder="Enter message"
+            aria-label="Message"
+            rows={1}
+            className="max-h-40 min-h-11 w-full resize-none bg-transparent px-4 py-2.5 text-sm outline-none"
+          />
+        </div>
         <Button
           type="submit"
           variant="glow"
           size="sm"
-          disabled={!text.trim() || send.isPending}
+          disabled={(!text.trim() && !media) || send.isPending}
         >
-          Send
+          {send.isPending ? "Sending…" : "Send"}
         </Button>
       </form>
       {send.isError && (

@@ -77,10 +77,12 @@ export default function PortalMobileNav() {
           <PostButton showLabel="always" className="mt-6" />
         </SheetContent>
       </Sheet>
-      {/* Not over the composer itself, where it would cover the toolbar. */}
-      {!isActivePath(pathname, composeHref) && (
-        <PostButton className="fixed right-4 bottom-5 z-40 sm:hidden" />
-      )}
+      {/* Not over the composer or a conversation, where it would cover the
+          toolbar or the Send button. */}
+      {!isActivePath(pathname, composeHref) &&
+        !pathname.startsWith("/messages/") && (
+          <PostButton className="fixed right-4 bottom-5 z-40 sm:hidden" />
+        )}
     </>
   );
 }

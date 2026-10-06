@@ -6,6 +6,13 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
+import {
+  type ComposeItem,
+  emptyDraft,
+  itemForFile,
+  submitDraft,
+  uuid,
+} from "./compose";
 import { currentUserKey } from "./current-user";
 import { PortalApiError, portalQuery } from "./graphql";
 import { FEED_GROUP_ID, STORE_FRAGMENT } from "./queries";
@@ -16,6 +23,7 @@ import type {
   PortalUser,
   StoreData,
 } from "./types";
+import { startUploads } from "./uploads";
 
 /**
  * Direct messages, as the app does them (DirectMessagesView /
@@ -306,13 +314,55 @@ async function sendTextMessage(
   return res.results?.postId ?? null;
 }
 
-/** Text only for now; the app also uploads one image or video per message. */
+/**
+ * A message is text, one photo or video, or both, as in the app's
+ * ConversationView. Media goes through the composer's pipeline (the
+ * photo re-encoded to JPEG, an upload slot, createPost, then tus), with
+ * the text first and the media second, as saveDM orders them. Its upload
+ * progress shows in the conversation, not the feed.
+ */
+export interface OutgoingMessage {
+  text: string;
+  media?: File | null;
+}
+
+async function sendMediaMessage(
+  client: QueryClient,
+  postGroupId: string,
+  { text, media }: { text: string; media: File },
+) {
+  const mediaItem = itemForFile(media);
+  const items: ComposeItem[] = [
+    ...(text ? [{ kind: "text" as const, id: uuid(), text }] : []),
+    mediaItem,
+  ];
+  const result = await submitDraft(client, {
+    ...emptyDraft({ type: "new" }, postGroupId),
+    items,
+  });
+  // Until the server publishes it, the message may not come back in the
+  // thread's own list, so the thread is refreshed only once it has.
+  startUploads(client, result, {
+    label: text,
+    thumb: media,
+    thumbIsVideo: mediaItem.kind === "video",
+    inFeed: false,
+    onPublished: () => {
+      void client.invalidateQueries({ queryKey: threadHeadKey(postGroupId) });
+      void client.invalidateQueries({ queryKey: conversationsKey });
+    },
+  });
+  return result.postId;
+}
+
 export function useSendMessage(postGroupId: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (text: string) =>
-      sendTextMessage(client, postGroupId, text.trim()),
-    onSuccess: (postId) => {
+    mutationFn: ({ text, media }: OutgoingMessage) =>
+      media
+        ? sendMediaMessage(client, postGroupId, { text: text.trim(), media })
+        : sendTextMessage(client, postGroupId, text.trim()),
+    onSuccess: (postId, { media }) => {
       if (postId) {
         client.setQueryData<ThreadPage>(threadHeadKey(postGroupId), (page) =>
           page && !page.postIds.includes(postId)
@@ -320,6 +370,7 @@ export function useSendMessage(postGroupId: string) {
             : page,
         );
       }
+      if (media) return; // refreshed when it publishes, see sendMediaMessage
       void client.invalidateQueries({ queryKey: threadHeadKey(postGroupId) });
       void client.invalidateQueries({ queryKey: conversationsKey });
     },
