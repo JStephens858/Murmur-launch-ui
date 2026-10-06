@@ -18,13 +18,39 @@ import { DocTextBelowEcgIcon, TextBadgeCheckmarkIcon } from "./icons";
 /* Local object URLs and existing media hosts; plain <img>. */
 /* eslint-disable @next/next/no-img-element */
 
-/** An object URL for a blob, revoked when the blob changes or the item goes. */
+/** Object URLs by blob, shared by everything showing that blob. */
+const objectUrls = new WeakMap<Blob, { url: string; refs: number }>();
+
+/**
+ * An object URL for a blob, revoked once nothing shows the blob any more.
+ * Reference-counted, with the revoke deferred a tick: React mounts twice in
+ * development, and revoking in the first cleanup would break the URL the
+ * second mount is still using.
+ */
 export function useObjectUrl(blob: Blob | null | undefined) {
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
+  const url = useMemo(() => {
+    if (!blob) return null;
+    let entry = objectUrls.get(blob);
+    if (!entry) {
+      entry = { url: URL.createObjectURL(blob), refs: 0 };
+      objectUrls.set(blob, entry);
+    }
+    return entry.url;
+  }, [blob]);
   useEffect(() => {
-    if (!url) return;
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
+    const entry = blob ? objectUrls.get(blob) : undefined;
+    if (!blob || !entry) return;
+    entry.refs++;
+    return () => {
+      entry.refs--;
+      setTimeout(() => {
+        if (entry.refs === 0 && objectUrls.get(blob) === entry) {
+          URL.revokeObjectURL(entry.url);
+          objectUrls.delete(blob);
+        }
+      }, 0);
+    };
+  }, [blob]);
   return url;
 }
 

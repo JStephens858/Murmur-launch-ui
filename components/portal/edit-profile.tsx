@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { entityKey } from "@/lib/portal/store";
 import { cn } from "@/lib/utils";
 
 import BackButton from "./back-button";
+import { useObjectUrl } from "./compose-items";
 import { PortalError } from "./feed";
 import PortalPageHeader from "./page-header";
 
@@ -112,14 +113,7 @@ function EditProfileForm({
   const dirty = Object.keys(changes).length > 0 || photo !== null;
   const usernameBad = draft.username.trim().length === 0;
 
-  const previewUrl = useMemo(
-    () => (photo ? URL.createObjectURL(photo) : null),
-    [photo],
-  );
-  useEffect(() => {
-    if (!previewUrl) return;
-    return () => URL.revokeObjectURL(previewUrl);
-  }, [previewUrl]);
+  const previewUrl = useObjectUrl(photo);
 
   const set = (name: keyof EditableProfile, value: string) =>
     setDraft((d) => ({
