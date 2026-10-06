@@ -102,3 +102,16 @@ export function useMediaElements(ids: string[]) {
       results.map((r) => r.data as PortalMediaElement | undefined),
   });
 }
+
+/** Several posts at once, in the order asked for; undefined gaps. */
+export function usePosts(ids: string[]) {
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: entityKey.post(id),
+      queryFn: skipToken,
+      staleTime: Infinity,
+      gcTime: Infinity,
+    })),
+    combine: (results) => results.map((r) => r.data as PortalPost | undefined),
+  });
+}

@@ -59,6 +59,26 @@ for (let n = 1; n <= TOTAL; n++) {
   cids.forEach((cid, i) => { const ctext = i === 0 ? "Nice result. Did you consider IVUS-guided sizing here?" : "We had a similar case last month; went radial and it worked out fine."; const cmid = uuid(n * 1000 + i, "8"); if (kind === "video") media.push({ postId: cid, mediaElementId: uuid(n * 1000 + i + 50, "8"), indexInPost: 1, mediaType: "video", mediaText: null, properties: null, mediaUrl: null, streamUrl: "https://example.com/stream.m3u8", duration: 61, fileSize: null, mediaPreviewImageUrl: svg("Comment video " + (i + 1), "#6d1849"), attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null }); media.push({ postId: cid, mediaElementId: cmid, indexInPost: 0, mediaType: "text", mediaText: ctext, properties: null, mediaUrl: null, streamUrl: null, duration: null, fileSize: null, mediaPreviewImageUrl: null, attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null }); comments.push({ postId: cid, postGroupId: groups[n % 2].postGroupId, rootPostId: id, parentPostId: id, depth: 1, isDeleted: false, isPublished: true, creatorUserId: users[(n + i + 1) % 4].userId, createdDate: created, publishedDate: created, title: null, postText: ctext, mediaPreviewUrl: null, mediaElementIds: kind === "video" ? [cmid, uuid(n * 1000 + i + 50, "8")] : [cmid], hashtagIds: null, commentIds: [], quotedPostId: null, numLikes: 3 + i, numComments: 0, numBookmarks: 0, numUniqueViews: 12, likedByMe: 0, bookmarkedByMe: 0, commentsLocked: 0, categoryKey: null, promotedPostType: null }); });
   posts.push({ postId: id, postGroupId: groups[n % 2].postGroupId, rootPostId: null, parentPostId: null, depth: 0, isDeleted: false, isPublished: true, creatorUserId: users[n % 4].userId, createdDate: created, publishedDate: created, title: n % 3 === 0 ? `Post ${n}: complex bifurcation, what would you do?` : null, postText: postBody, mediaPreviewUrl: kind === "image" ? svg("Angio frame " + n, "#8a1e5c") : kind === "video" ? svg("Video " + n, "#232a33") : null, mediaElementIds: els, hashtagIds: [hashtags[n % 3].hashtagId, ...(n % 2 ? [hashtags[(n+1) % 3].hashtagId] : [])], commentIds: cids, quotedPostId: n === 6 ? uuid(2) : null, numLikes: (n * 7) % 40, numComments: 2, numBookmarks: n % 4, numUniqueViews: n * 13, likedByMe: n % 5 === 0 ? 1 : 0, bookmarkedByMe: n % 4 === 1 ? 1 : 0, commentsLocked: 0, categoryKey: kind === "poll" ? "poll" : null, promotedPostType: null });
 }
+// Nested replies on post 1, shaped as the backend sends them: every reply in the thread has the
+// post as rootPostId and the reply it answers as parentPostId, and each parent lists its direct
+// replies in commentIds. Includes a later sibling (ordering) and an unpublished reply by the viewer.
+{
+  let seq = 0;
+  const reply = (parent, text, minutesAfter, extra = {}) => {
+    const id = uuid(++seq, "97"), mid = uuid(seq, "98");
+    const created = new Date(new Date(parent.createdDate).getTime() + minutesAfter * 60_000).toISOString();
+    media.push({ postId: id, mediaElementId: mid, indexInPost: 0, mediaType: "text", mediaText: text, properties: null, mediaUrl: null, streamUrl: null, duration: null, fileSize: null, mediaPreviewImageUrl: null, attachmentTitle: null, attachmentImage: null, attachmentDescription: null, attachmentDestinationUrl: null, pollResults: null, pollTotalVotesCast: null });
+    const c = { ...parent, postId: id, rootPostId: parent.rootPostId ?? parent.postId, parentPostId: parent.postId, depth: (parent.depth ?? 0) + 1, creatorUserId: users[seq % 4].userId, createdDate: created, publishedDate: created, postText: text, mediaElementIds: [mid], commentIds: [], numLikes: seq % 4, ...extra };
+    comments.push(c); parent.commentIds.push(id);
+    return c;
+  };
+  const first = comments.find((c) => c.postId === uuid(101, "9"));
+  const a = reply(first, "Yes. IVUS showed a 3.5 mm distal reference, so we went up a size.", 10);
+  const b = reply(a, "Did you post-dilate?", 15);
+  reply(b, "NC balloon at 18 atm, good expansion on the final run.", 20);
+  reply(first, "Agree, IVUS changes management here.", 40);
+  reply(comments.find((c) => c.postId === uuid(102, "9")), "Still uploading my angio for this one.", 5, { isPublished: false, publishedDate: null, creatorUserId: users[0].userId });
+}
 const lite = (p) => ({ ...p, mediaElementIds: p.mediaElementIds, commentIds: p.commentIds });
 const storeFor = (ps, full) => { const all = full ? [...ps, ...comments.filter(c => ps.some(p => p.postId === c.rootPostId)), ...ps.filter(p => p.quotedPostId).map(p => posts.find(q => q.postId === p.quotedPostId)).filter(Boolean)] : ps.map(lite); return { users, posts: all, mediaElements: full ? media.filter(m => all.some(p => p.postId === m.postId)) : [], hashtags, postGroups: [] }; }; // as the backend's getResponseObjectForPosts: post responses carry no groups
 const KINDS = ["likePost","replyPost","newPost","bookmarkPost","newFollower","userMentioned","newDmPost","postGroupAction","systemAnnouncement","newUser","priorityPost"];

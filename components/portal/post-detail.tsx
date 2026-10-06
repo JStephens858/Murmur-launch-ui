@@ -14,6 +14,7 @@ import {
   useMediaElement,
   useMediaElements,
   usePost,
+  usePosts,
   useUser,
 } from "@/lib/portal/store";
 import type { PortalMediaElement, PortalPost } from "@/lib/portal/types";
@@ -236,19 +237,90 @@ function QuotedPost({ postId }: { postId: string }) {
   );
 }
 
-function Comment({ postId }: { postId: string }) {
-  const post = usePost(postId);
-  if (!post || post.isDeleted) return null;
+/** A post's direct replies, oldest first, as Post2.commentsInThreadForm sorts them. */
+function useSortedReplies(commentIds: (string | null)[] | undefined) {
+  const ids = (commentIds ?? []).filter((id): id is string => !!id);
+  const posts = usePosts(ids);
+  return ids
+    .map((id, i) => ({ id, created: posts[i]?.createdDate ?? "" }))
+    .sort((a, b) => a.created.localeCompare(b.created))
+    .map((r) => r.id);
+}
+
+/**
+ * The app's depth lines (CommentView's MurmurCommentDepthWrapper): one thin
+ * vertical rule per level below the page's post, down the comment's side.
+ */
+function DepthLines({ level }: { level: number }) {
+  if (level <= 0) return null;
   return (
-    <li
-      id={`comment-${postId}`}
-      className="border-border/40 flex scroll-mt-16 flex-col gap-2 border-b py-4"
-      style={{ paddingLeft: `${Math.min(post.depth ?? 1, 4) - 1}rem` }}
-    >
-      <AuthorRow post={post} compact />
-      <PostBody post={post} />
-      <div className="flex items-center gap-6">
-        <LikeCounter post={post} />
+    <span className="flex shrink-0 self-stretch pr-3" aria-hidden>
+      {Array.from({ length: level }, (_, i) => (
+        <span key={i} className="bg-muted-foreground/40 ml-1.5 w-px" />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * A comment followed by its replies, in thread order: the app's
+ * commentsInThreadForm, oldest first with each comment's own replies
+ * right after it. `level` 0 is a direct reply to the page's post.
+ */
+function CommentThread({ postId, level }: { postId: string; level: number }) {
+  const post = usePost(postId);
+  const me = useCurrentUser().data;
+  const replies = useSortedReplies(post?.commentIds);
+  if (!post) return null;
+  // Unpublished (media still processing) shows only to its author, as in the app.
+  // Only an explicit false/0 counts; a missing flag means published.
+  const processing = post.isPublished != null && !post.isPublished;
+  const visible = !processing || post.creatorUserId === me?.userId;
+  return (
+    <>
+      {post.isDeleted ? (
+        <li className="text-muted-foreground flex text-sm italic">
+          <DepthLines level={level} />
+          <span className="border-border/40 flex-1 border-b py-3">
+            This post was deleted
+          </span>
+        </li>
+      ) : (
+        visible && <Comment post={post} level={level} processing={processing} />
+      )}
+      {replies.map((id) => (
+        <CommentThread key={id} postId={id} level={level + 1} />
+      ))}
+    </>
+  );
+}
+
+function Comment({
+  post,
+  level,
+  processing,
+}: {
+  post: PortalPost;
+  level: number;
+  processing: boolean;
+}) {
+  return (
+    <li id={`comment-${post.postId}`} className="flex scroll-mt-16">
+      <DepthLines level={level} />
+      {/* The separator sits inside the indent, as in the app, so the depth
+          lines run unbroken down a thread. */}
+      <div className="border-border/40 flex min-w-0 flex-1 flex-col gap-2 border-b py-4">
+        <AuthorRow post={post} compact />
+        {processing ? (
+          <p className="text-muted-foreground italic">
+            [This post is being processed. Please stand by.]
+          </p>
+        ) : (
+          <PostBody post={post} />
+        )}
+        <div className="flex items-center gap-6">
+          <LikeCounter post={post} />
+        </div>
       </div>
     </li>
   );
@@ -326,6 +398,7 @@ export default function PostDetail({ postId }: { postId: string }) {
   const full = useFullPost(postId);
   const post = usePost(postId);
   const group = usePostGroupLoaded(post?.postGroupId);
+  const replyIds = useSortedReplies(post?.commentIds);
 
   if (!post) {
     if (full.status === "error")
@@ -338,7 +411,7 @@ export default function PostDetail({ postId }: { postId: string }) {
   }
 
   const when = post.publishedDate ?? post.createdDate;
-  const commentIds = post.commentIds.filter((id): id is string => !!id);
+  const commentIds = replyIds;
 
   return (
     <article className="flex flex-col gap-4 px-4 py-4">
@@ -383,7 +456,7 @@ export default function PostDetail({ postId }: { postId: string }) {
         <section aria-label="Comments">
           <ul>
             {commentIds.map((id) => (
-              <Comment key={id} postId={id} />
+              <CommentThread key={id} postId={id} level={0} />
             ))}
           </ul>
         </section>
