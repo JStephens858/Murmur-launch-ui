@@ -11,6 +11,7 @@ import {
 } from "@/lib/portal/groups";
 import { usePostGroup } from "@/lib/portal/store";
 import type { PortalPostGroup } from "@/lib/portal/types";
+import { cn } from "@/lib/utils";
 
 import { PortalError } from "./feed";
 import GroupIcon from "./group-icon";
@@ -62,20 +63,27 @@ function GroupRow({ postGroupId }: { postGroupId: string }) {
   );
 
   return (
-    <li className="border-border/40 flex flex-col gap-2 border-b px-4 py-3">
+    <li
+      className={cn(
+        "border-border/40 relative flex flex-col gap-2 border-b px-4 py-3",
+        accessible && "hover:bg-foreground/[0.03] transition-colors",
+      )}
+    >
+      {/* The whole row opens the group, via a stretched link under the
+          join button. As in the app, a private group you can't enter
+          isn't tappable. */}
+      {accessible && (
+        <Link
+          href={`/groups/${postGroupId}`}
+          className="absolute inset-0"
+          aria-label={group.groupName}
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
-        {/* As in the app, a private group you can't enter isn't tappable. */}
-        {accessible ? (
-          <Link
-            href={`/groups/${postGroupId}`}
-            className="min-w-0 flex-1 hover:opacity-90"
-          >
-            {head}
-          </Link>
-        ) : (
-          <div className="min-w-0 flex-1">{head}</div>
-        )}
-        <GroupJoinButton group={group} />
+        <div className="min-w-0 flex-1">{head}</div>
+        <div className="relative z-10">
+          <GroupJoinButton group={group} />
+        </div>
       </div>
       {group.description && (
         <p className="text-muted-foreground text-sm whitespace-pre-line">
