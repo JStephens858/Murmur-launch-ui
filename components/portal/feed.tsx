@@ -72,12 +72,15 @@ export function InfinitePostList({
   emptyText = "Nothing here yet.",
   excludePostId,
   onHashtagClick,
+  contextGroupId,
 }: {
   query: PostIdPages;
   emptyText?: string;
   /** A post shown elsewhere on the page (the pinned post) to skip here. */
   excludePostId?: string | null;
   onHashtagClick?: (tag: PortalHashtag) => void;
+  /** The group this list belongs to; its cards skip "Posted in". */
+  contextGroupId?: string;
 }) {
   const sentinel = useRef<HTMLDivElement>(null);
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = query;
@@ -128,7 +131,12 @@ export function InfinitePostList({
   return (
     <div>
       {postIds.map((id) => (
-        <PostCard key={id} postId={id} onHashtagClick={onHashtagClick} />
+        <PostCard
+          key={id}
+          postId={id}
+          onHashtagClick={onHashtagClick}
+          contextGroupId={contextGroupId}
+        />
       ))}
       <div ref={sentinel} aria-hidden />
       {isFetchingNextPage && <PostCardSkeleton />}
@@ -168,6 +176,7 @@ export function PostList({
         query={feed}
         emptyText={emptyText}
         excludePostId={excludePostId}
+        contextGroupId={postGroupId}
       />
     </>
   );

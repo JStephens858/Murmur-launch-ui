@@ -9,11 +9,11 @@ import { useAutoplayVideo } from "@/lib/portal/autoplay";
 import { canEditPost, canQuotePost } from "@/lib/portal/compose";
 import { useCurrentUser } from "@/lib/portal/current-user";
 import { useFullPost } from "@/lib/portal/feed";
+import { usePostGroupLoaded } from "@/lib/portal/groups";
 import {
   useMediaElement,
   useMediaElements,
   usePost,
-  usePostGroup,
   useUser,
 } from "@/lib/portal/store";
 import type { PortalMediaElement, PortalPost } from "@/lib/portal/types";
@@ -325,7 +325,7 @@ function AuthorActions({ post }: { post: PortalPost }) {
 export default function PostDetail({ postId }: { postId: string }) {
   const full = useFullPost(postId);
   const post = usePost(postId);
-  const group = usePostGroup(post?.postGroupId);
+  const group = usePostGroupLoaded(post?.postGroupId);
 
   if (!post) {
     if (full.status === "error")

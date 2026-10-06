@@ -8,18 +8,23 @@ import { useEffect, useRef } from "react";
 import { formatCount, formatDurationMs, formatTimeAgo } from "@/lib/format";
 import { useBookmarkPost, useLikePost } from "@/lib/portal/actions";
 import { prefetchFullPost } from "@/lib/portal/feed";
-import {
-  useMediaElements,
-  usePost,
-  usePostGroup,
-  useUser,
-} from "@/lib/portal/store";
-import type { PortalHashtag, PortalPost } from "@/lib/portal/types";
+import { usePostGroupLoaded } from "@/lib/portal/groups";
+import { useMediaElements, usePost, useUser } from "@/lib/portal/store";
+import type {
+  PortalHashtag,
+  PortalPost,
+  PortalPostGroup,
+} from "@/lib/portal/types";
 import { cn } from "@/lib/utils";
 
 import Avatar from "./avatar";
+import GroupIcon from "./group-icon";
 import HashtagChip from "./hashtag-chip";
-import { TextBadgeCheckmarkIcon } from "./icons";
+import {
+  ChevronForwardIcon,
+  MegaphoneFillIcon,
+  TextBadgeCheckmarkIcon,
+} from "./icons";
 
 /* User media hosts are unbounded; plain <img>, see avatar.tsx. */
 /* eslint-disable @next/next/no-img-element */
@@ -148,6 +153,34 @@ export function PostCounters({
 }
 
 /**
+ * "Posted in: <group>", the app's PostCardPostGroupView: a small bordered
+ * box with the group's icon, name and sponsor that opens the group's posts.
+ */
+function PostedIn({ group }: { group: PortalPostGroup }) {
+  return (
+    <Link
+      href={`/groups/${group.postGroupId}`}
+      className="border-border/60 bg-muted/50 hover:bg-muted relative z-10 flex max-w-full items-center gap-2.5 self-start rounded-lg border py-1.5 pr-2 pl-1.5 transition-colors"
+    >
+      <GroupIcon iconUrl={group.iconUrl} className="size-8 text-lg" />
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="text-muted-foreground text-xs">Posted in:</span>
+        <span className="truncate text-sm font-semibold">
+          {group.groupName}
+        </span>
+        {!!group.sponsored && group.sponsor && (
+          <span className="text-primary flex items-center gap-1 text-xs">
+            <MegaphoneFillIcon className="size-3 shrink-0" />
+            <span className="truncate">{group.sponsor}</span>
+          </span>
+        )}
+      </span>
+      <ChevronForwardIcon className="text-muted-foreground ml-1 size-3.5 shrink-0" />
+    </Link>
+  );
+}
+
+/**
  * One feed row, X-style: avatar left, everything else right. The whole
  * card is a link to the post page via a stretched overlay; hashtag chips
  * and counters sit above it so they stay individually targetable later.
@@ -160,14 +193,17 @@ export function PostCounters({
 export default function PostCard({
   postId,
   onHashtagClick,
+  contextGroupId,
 }: {
   postId: string;
   onHashtagClick?: (tag: PortalHashtag) => void;
+  /** The group whose own list shows this card; "Posted in" is hidden there. */
+  contextGroupId?: string;
 }) {
   const client = useQueryClient();
   const post = usePost(postId);
   const author = useUser(post?.creatorUserId);
-  const group = usePostGroup(post?.postGroupId);
+  const group = usePostGroupLoaded(post?.postGroupId);
   // Known once the full post is in the store (the feed row only has ids),
   // which the visibility prefetch usually makes true before it matters.
   const elements = useMediaElements(post?.mediaElementIds ?? []);
@@ -246,15 +282,11 @@ export default function PostCard({
           <time dateTime={when} title={new Date(when).toLocaleString()}>
             {formatTimeAgo(when)}
           </time>
-          {group?.groupName && (
-            <Link
-              href={`/groups/${group.postGroupId}`}
-              className="text-accent-alt relative z-10 ml-auto truncate text-xs hover:underline"
-            >
-              {group.groupName}
-            </Link>
-          )}
         </div>
+
+        {group?.groupName && group.postGroupId !== contextGroupId && (
+          <PostedIn group={group} />
+        )}
 
         {post.title && (
           <h2 className="leading-snug font-semibold">{post.title}</h2>

@@ -174,7 +174,10 @@ function GroupBody({
           )}
           {!group.subscribed && <JoinPrompt group={group} />}
           {!current && group.pinnedPostId && (
-            <PinnedPost postId={group.pinnedPostId} />
+            <PinnedPost
+              postId={group.pinnedPostId}
+              postGroupId={group.postGroupId}
+            />
           )}
           <PostList
             postGroupId={group.postGroupId}
@@ -254,7 +257,13 @@ function JoinPrompt({ group }: { group: PortalPostGroup }) {
   );
 }
 
-function PinnedPost({ postId }: { postId: string }) {
+function PinnedPost({
+  postId,
+  postGroupId,
+}: {
+  postId: string;
+  postGroupId: string;
+}) {
   useFullPost(postId);
   const post = usePost(postId);
   if (!post) return null;
@@ -263,7 +272,7 @@ function PinnedPost({ postId }: { postId: string }) {
       <p className="text-muted-foreground px-4 pt-3 text-xs font-medium uppercase">
         Pinned
       </p>
-      <PostCard postId={postId} />
+      <PostCard postId={postId} contextGroupId={postGroupId} />
     </div>
   );
 }

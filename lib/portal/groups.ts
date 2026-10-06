@@ -6,11 +6,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import type { CurrentUser } from "./current-user";
+import { type CurrentUser, currentUserOptions } from "./current-user";
 import { PortalApiError, portalQuery } from "./graphql";
 import { FEED_GROUP_ID } from "./queries";
 import { STORE_FRAGMENT } from "./queries";
-import { entityKey, ingestStore } from "./store";
+import { entityKey, ingestStore, usePostGroup } from "./store";
 import type {
   MurmurResponse,
   PortalPostGroup,
@@ -91,31 +91,94 @@ interface GetAllPostGroupsData {
 
 export const groupsKey = ["groups"] as const;
 
+/**
+ * The group list is small and changes rarely (the app loads it once at
+ * sign-in), so it's fetched the first time something needs it and kept
+ * for a day: a copy is saved per user in localStorage, reused across
+ * reloads and tabs, and refetched on the next use once it's more than a
+ * day old. Joining or leaving refreshes it straight away.
+ */
+const SAVED_KEY = "murmur.groups.v1";
+const MAX_AGE_MS = 24 * 60 * 60_000;
+
+interface SavedGroups {
+  savedAt: number;
+  rows: GroupRow[];
+  store: StoreData | null;
+}
+
+function savedKey(userId: string) {
+  return `${SAVED_KEY}:${userId}`;
+}
+
+/** This user's saved copy, if there is one younger than a day. */
+function readSaved(userId: string): SavedGroups | null {
+  try {
+    const raw = localStorage.getItem(savedKey(userId));
+    const saved = raw ? (JSON.parse(raw) as SavedGroups) : null;
+    if (!saved || !(Date.now() - saved.savedAt < MAX_AGE_MS)) return null;
+    return saved;
+  } catch {
+    return null;
+  }
+}
+
+function writeSaved(userId: string, saved: SavedGroups) {
+  try {
+    localStorage.setItem(savedKey(userId), JSON.stringify(saved));
+  } catch {
+    /* storage full or blocked; the in-memory copy still works */
+  }
+}
+
+/** Drops every saved copy so the next load asks the server. */
+function forgetSavedGroups() {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(`${SAVED_KEY}:`)) localStorage.removeItem(key);
+    }
+  } catch {
+    /* nothing saved */
+  }
+}
+
+async function fetchGroups(): Promise<SavedGroups> {
+  const data = await portalQuery<GetAllPostGroupsData>(GET_ALL_POST_GROUPS);
+  const res = data.getAllPostGroups;
+  if (!res.success) {
+    throw new PortalApiError(
+      res.errorMsg ?? "Couldn't load groups",
+      res.errorCode,
+    );
+  }
+  const rows = res.results
+    .filter((g) => g.groupType !== "direct_message")
+    .sort(
+      (a, b) =>
+        Number(b.subscribed) - Number(a.subscribed) ||
+        a.groupName.localeCompare(b.groupName, undefined, {
+          sensitivity: "base",
+        }),
+    );
+  return { savedAt: Date.now(), rows, store: res.store };
+}
+
 /** Every group the API will show this reader, sorted as the app sorts. */
 export function useGroups() {
   const client = useQueryClient();
   return useQuery({
     queryKey: groupsKey,
-    queryFn: async (): Promise<string[]> => {
-      const data = await portalQuery<GetAllPostGroupsData>(GET_ALL_POST_GROUPS);
-      const res = data.getAllPostGroups;
-      if (!res.success) {
-        throw new PortalApiError(
-          res.errorMsg ?? "Couldn't load groups",
-          res.errorCode,
-        );
+    queryFn: async (): Promise<{ ids: string[]; savedAt: number }> => {
+      // Saved copies are per user; the profile is usually already cached.
+      const me = await client.fetchQuery(currentUserOptions).catch(() => null);
+      let saved = me ? readSaved(me.userId) : null;
+      if (!saved) {
+        saved = await fetchGroups();
+        if (me) writeSaved(me.userId, saved);
       }
-      ingestStore(client, res.store);
-      const rows = res.results
-        .filter((g) => g.groupType !== "direct_message")
-        .sort(
-          (a, b) =>
-            Number(b.subscribed) - Number(a.subscribed) ||
-            a.groupName.localeCompare(b.groupName, undefined, {
-              sensitivity: "base",
-            }),
-        );
-      for (const g of rows) {
+      ingestStore(client, saved.store);
+      for (const g of saved.rows) {
         client.setQueryData<PortalPostGroup>(
           entityKey.group(g.postGroupId),
           (prev) => ({
@@ -124,10 +187,38 @@ export function useGroups() {
           }),
         );
       }
-      return rows.map((g) => g.postGroupId);
+      return {
+        ids: saved.rows.map((g) => g.postGroupId),
+        savedAt: saved.savedAt,
+      };
     },
-    staleTime: 5 * 60_000,
+    select: (data) => data.ids,
+    // Fresh until the copy it came from turns a day old, however long ago
+    // that copy was saved; then the next component to use it refetches.
+    staleTime: (query) =>
+      query.state.data
+        ? Math.max(0, query.state.data.savedAt + MAX_AGE_MS - Date.now())
+        : 0,
+    gcTime: Infinity,
   });
+}
+
+/** Asks the server for the group list again, e.g. after a membership change. */
+export function refreshGroups(client: QueryClient) {
+  forgetSavedGroups();
+  return client.invalidateQueries({ queryKey: groupsKey });
+}
+
+/**
+ * One group's record, loading the group list if it isn't in yet. Post
+ * responses carry no groups (the backend's getResponseObjectForPosts
+ * returns posts, users, media and hashtags only), so a post card can't
+ * count on its group being in the store; the app keeps every group from
+ * getAllPostGroups in memory for the same reason. One shared, cached query.
+ */
+export function usePostGroupLoaded(postGroupId: string | null | undefined) {
+  useGroups();
+  return usePostGroup(postGroupId);
 }
 
 /* ── Access rules (PostGroup.swift userCanAccess / userCanSeeInGroups) ─── */
@@ -317,7 +408,7 @@ export function useJoinGroup() {
     },
     onSettled: () => {
       client.invalidateQueries({ queryKey: ["posts", FEED_GROUP_ID] });
-      client.invalidateQueries({ queryKey: groupsKey });
+      void refreshGroups(client);
     },
   });
 }
