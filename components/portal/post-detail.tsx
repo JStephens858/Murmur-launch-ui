@@ -169,22 +169,26 @@ function AuthorRow({
 }) {
   const author = useUser(post.creatorUserId);
   const when = post.publishedDate ?? post.createdDate;
+  const profileHref = `/profile/${post.creatorUserId}`;
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <Link
-        href={`/profile/${post.creatorUserId}`}
-        className="shrink-0"
-        aria-label="Profile"
-      >
+      <Link href={profileHref} className="shrink-0" aria-label="Profile">
         <Avatar user={author} className={compact ? "size-8" : "size-11"} />
       </Link>
       <div className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate font-bold">
+        <Link
+          href={profileHref}
+          className="self-start truncate font-bold hover:underline"
+        >
           {author?.displayName || author?.username || "…"}
-        </span>
+        </Link>
         <span className="text-muted-foreground truncate text-sm">
-          {author?.username && `@${author.username}`}
-          {author?.specialty && ` · ${author.specialty}`}
+          {author?.username && (
+            // Same destination as the name: one tab stop is enough.
+            <Link href={profileHref} tabIndex={-1} className="hover:underline">
+              @{author.username}
+            </Link>
+          )}
           {compact && (
             <>
               {" · "}
@@ -192,6 +196,12 @@ function AuthorRow({
             </>
           )}
         </span>
+        {/* The author's flair, as the app's PostDetailAuthorView tags it. */}
+        {author?.flair && (
+          <span className="border-border bg-muted text-muted-foreground mt-1 max-w-full self-start truncate rounded-sm border px-1.5 py-px text-xs">
+            {author.flair}
+          </span>
+        )}
       </div>
     </div>
   );
