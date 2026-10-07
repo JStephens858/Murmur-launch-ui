@@ -155,12 +155,17 @@ export function PostCounters({
 /**
  * "Posted in: <group>", the app's PostCardPostGroupView: a small bordered
  * box with the group's icon, name and sponsor that opens the group's posts.
+ *
+ * Every box is at least as wide as the card's text column on a 320px phone
+ * (14.75rem = 236px: the screen less the card's padding, avatar and gap), so
+ * they line up at one width instead of following the group name's length,
+ * and fill the column on the narrowest screens. Longer names still widen it.
  */
 function PostedIn({ group }: { group: PortalPostGroup }) {
   return (
     <Link
       href={`/groups/${group.postGroupId}`}
-      className="border-border/60 bg-muted/50 hover:bg-muted relative z-10 flex max-w-full items-center gap-2.5 self-start rounded-lg border py-1.5 pr-2 pl-1.5 transition-colors"
+      className="border-border/60 bg-muted/50 hover:bg-muted relative z-10 flex max-w-full min-w-[min(100%,14.75rem)] items-center gap-2.5 self-start rounded-lg border py-1.5 pr-2 pl-1.5 transition-colors"
     >
       <GroupIcon iconUrl={group.iconUrl} className="size-8 text-lg" />
       <span className="flex min-w-0 flex-col leading-tight">
@@ -175,7 +180,7 @@ function PostedIn({ group }: { group: PortalPostGroup }) {
           </span>
         )}
       </span>
-      <ChevronForwardIcon className="text-muted-foreground ml-1 size-3.5 shrink-0" />
+      <ChevronForwardIcon className="text-muted-foreground ml-auto size-3.5 shrink-0 pl-1" />
     </Link>
   );
 }
