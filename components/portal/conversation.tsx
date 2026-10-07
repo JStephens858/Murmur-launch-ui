@@ -3,7 +3,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { RotateCw, Users, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -209,6 +215,7 @@ function Message({
   const showAvatar = !mine && groupChat;
   return (
     <li
+      data-msg={postId}
       className={cn(
         "group flex items-end gap-2",
         mine ? "justify-end" : "justify-start",
@@ -511,7 +518,9 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
   const topSentinel = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
   const lastNewest = useRef<string | null>(null);
-  const prevHeight = useRef(0);
+  /** The message at the top of the view and how far down it sat, while reading older messages. */
+  const anchor = useRef<{ id: string; offset: number } | null>(null);
+  const content = useRef<HTMLDivElement>(null);
 
   // Seen on open and on leave.
   const markSeenMutate = markSeen.mutate;
@@ -522,21 +531,68 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
     return () => markSeenMutate(postGroupId);
   }, [loaded, postGroupId, markSeenMutate]);
 
-  // Stay pinned to the bottom when new messages land; keep the viewport
-  // still when older ones are prepended above.
+  /*
+   * Two modes. At the bottom, stay there: new messages, a refetch, or
+   * content growing as photos and link previews load all keep the newest
+   * message in view. Scrolled up, hold still: the message at the top of the
+   * view is remembered on scroll and put back at the same spot whenever
+   * content changes above it (older messages loading, an image above
+   * finishing). The browser's own scroll anchoring is off so the two don't
+   * both correct.
+   */
+  const keepPlace = useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    if (stickToBottom.current) {
+      el.scrollTop = el.scrollHeight;
+      return;
+    }
+    const a = anchor.current;
+    const target = a && el.querySelector<HTMLElement>(`[data-msg="${a.id}"]`);
+    if (!a || !target) return;
+    const offset =
+      target.getBoundingClientRect().top - el.getBoundingClientRect().top;
+    el.scrollTop += offset - a.offset;
+  }, []);
+
+  const recordPlace = () => {
+    const el = scroller.current;
+    if (!el) return;
+    stickToBottom.current =
+      el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    const top = el.getBoundingClientRect().top;
+    const first = [...el.querySelectorAll<HTMLElement>("[data-msg]")].find(
+      (m) => m.getBoundingClientRect().bottom > top,
+    );
+    anchor.current = first?.dataset.msg
+      ? {
+          id: first.dataset.msg,
+          offset: first.getBoundingClientRect().top - top,
+        }
+      : null;
+  };
+
   const newest = thread.postIds.at(-1) ?? null;
   const oldestId = thread.postIds[0] ?? null;
   useLayoutEffect(() => {
-    const el = scroller.current;
-    if (!el) return;
+    // A new message from someone else while reading older ones doesn't move
+    // the view; anything else is keepPlace's call.
     if (newest !== lastNewest.current) {
       lastNewest.current = newest;
-      if (stickToBottom.current) el.scrollTop = el.scrollHeight;
-    } else if (el.scrollHeight !== prevHeight.current && prevHeight.current) {
-      el.scrollTop += el.scrollHeight - prevHeight.current;
+      if (stickToBottom.current) keepPlace();
+      return;
     }
-    prevHeight.current = el.scrollHeight;
-  }, [newest, oldestId, thread.postIds.length]);
+    keepPlace();
+  }, [newest, oldestId, thread.postIds.length, keepPlace]);
+
+  // Messages grow after they render (photos, link previews, videos).
+  useEffect(() => {
+    const inner = content.current;
+    if (!inner) return;
+    const observer = new ResizeObserver(() => keepPlace());
+    observer.observe(inner);
+    return () => observer.disconnect();
+  }, [keepPlace]);
 
   const { hasOlder, isLoadingOlder, loadOlder } = thread;
   useEffect(() => {
@@ -581,36 +637,34 @@ export default function Conversation({ postGroupId }: { postGroupId: string }) {
       />
       <div
         ref={scroller}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          stickToBottom.current =
-            el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-        }}
-        className="min-h-0 flex-1 overflow-y-auto"
+        onScroll={recordPlace}
+        className="min-h-0 flex-1 overflow-y-auto [overflow-anchor:none]"
       >
-        <div ref={topSentinel} aria-hidden />
-        {isLoadingOlder && (
-          <p className="text-muted-foreground py-2 text-center text-xs">
-            Loading...
-          </p>
-        )}
-        {thread.head.status === "pending" && (
-          <p className="text-muted-foreground px-4 py-8">Loading...</p>
-        )}
-        {thread.head.status === "error" && (
-          <PortalError
-            error={thread.head.error}
-            retry={() => thread.head.refetch()}
+        <div ref={content}>
+          <div ref={topSentinel} aria-hidden />
+          {isLoadingOlder && (
+            <p className="text-muted-foreground py-2 text-center text-xs">
+              Loading...
+            </p>
+          )}
+          {thread.head.status === "pending" && (
+            <p className="text-muted-foreground px-4 py-8">Loading...</p>
+          )}
+          {thread.head.status === "error" && (
+            <PortalError
+              error={thread.head.error}
+              retry={() => thread.head.refetch()}
+            />
+          )}
+          {thread.head.isSuccess && thread.postIds.length === 0 && (
+            <p className="text-muted-foreground px-4 py-8">Nothing yet...</p>
+          )}
+          <MessageStream
+            postIds={thread.postIds}
+            myUserId={me?.userId}
+            groupChat={memberCount > 2}
           />
-        )}
-        {thread.head.isSuccess && thread.postIds.length === 0 && (
-          <p className="text-muted-foreground px-4 py-8">Nothing yet...</p>
-        )}
-        <MessageStream
-          postIds={thread.postIds}
-          myUserId={me?.userId}
-          groupChat={memberCount > 2}
-        />
+        </div>
       </div>
       <form
         onSubmit={(e) => {
