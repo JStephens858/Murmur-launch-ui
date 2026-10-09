@@ -35,6 +35,15 @@
  */
 
 import { trustedClientIp } from "./client-ip";
+
+/**
+ * Web sign-up is built but not live: off unless ENABLE_WEB_SIGNUP=true.
+ * Off, /signup is a 404, the Server Action refuses, and /login points to
+ * the app instead of linking here. Read at request time, server side only.
+ */
+export function webSignupEnabled(): boolean {
+  return process.env.ENABLE_WEB_SIGNUP === "true";
+}
 import { fetchMurmurAPI } from "./murmur-api";
 
 const CREATE_USER_WITH_PASSWORD = /* GraphQL */ `

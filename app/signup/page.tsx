@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { connection } from "next/server";
 
 import Footer from "@/components/sections/footer/default";
 import Navbar from "@/components/sections/navbar/default";
 import { auth0 } from "@/lib/auth0";
 import { shareMetadata } from "@/lib/metadata";
+import { webSignupEnabled } from "@/lib/murmur-signup";
 
 import SignupForm from "./signup-form";
 
@@ -21,6 +23,9 @@ export const metadata: Metadata = {
  * the app. See lib/murmur-signup.ts.
  */
 export default async function SignupPage() {
+  // Read the switch per request, so it is never baked in at build time.
+  await connection();
+  if (!webSignupEnabled()) notFound();
   // Already signed in: nothing to create.
   if (await auth0.getSession()) redirect("/account");
 

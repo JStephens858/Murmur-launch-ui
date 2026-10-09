@@ -13,6 +13,7 @@ import {
   passwordProblem,
   SignupError,
   type SignupErrorCode,
+  webSignupEnabled,
 } from "@/lib/murmur-signup";
 
 export interface SignUpState {
@@ -52,6 +53,11 @@ export async function signUp(
   _prev: SignUpState,
   formData: FormData,
 ): Promise<SignUpState> {
+  // Actions can be called directly even with the page hidden, so the switch
+  // is checked here too.
+  if (!webSignupEnabled()) {
+    return { error: "Account creation isn't available on the web yet." };
+  }
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirmPassword") ?? "");

@@ -5,6 +5,7 @@ import Footer from "@/components/sections/footer/default";
 import Navbar from "@/components/sections/navbar/default";
 import { auth0 } from "@/lib/auth0";
 import { shareMetadata } from "@/lib/metadata";
+import { webSignupEnabled } from "@/lib/murmur-signup";
 
 import LoginForm from "./login-form";
 
@@ -49,13 +50,25 @@ export default async function LoginPage({
 
           <LoginForm returnTo={returnTo ?? "/account"} />
 
-          <p className="text-muted-foreground text-sm">
-            New to MurmurMD?{" "}
-            <a href="/signup" className="text-foreground underline">
-              Create an account
-            </a>
-            .
-          </p>
+          {webSignupEnabled() ? (
+            <p className="text-muted-foreground text-sm">
+              New to MurmurMD?{" "}
+              <a href="/signup" className="text-foreground underline">
+                Create an account
+              </a>
+              .
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Don&apos;t have an account? MurmurMD is physicians-only and
+              accounts are created in the app, where we verify you&apos;re a
+              practicing physician.{" "}
+              <a href="/get-the-app" className="text-foreground underline">
+                Get the app
+              </a>
+              .
+            </p>
+          )}
         </div>
       </section>
       <Footer />
