@@ -20,6 +20,18 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return {
+      // Proxy /api to the Murmur API on this same host. As a fallback rewrite
+      // it only applies when no route here matches, so app/api/* still wins.
+      fallback: [
+        {
+          source: "/api/:path*",
+          destination: "http://localhost:4000/api/:path*",
+        },
+      ],
+    };
+  },
   async headers() {
     return [
       {
