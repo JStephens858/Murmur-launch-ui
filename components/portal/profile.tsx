@@ -152,10 +152,28 @@ function Header({
           )}
         </div>
       </div>
+      {/* Right-hand action, styled like Edit Profile and level with it
+          (it hangs 0.5rem below the avatar): log out on your own profile,
+          message on a colleague's. */}
+      {isOwn && (
+        // A form post, so no link prefetch can sign anyone out; /logout
+        // clears the session and lands on the sign-in page.
+        <form method="post" action="/logout" className="translate-y-2">
+          <Button
+            type="submit"
+            variant="glow"
+            size="sm"
+            className="rounded-full"
+          >
+            Log out
+          </Button>
+        </form>
+      )}
       {canMessage && (
         <Button
-          variant="ghost"
-          size="icon"
+          variant="glow"
+          size="sm"
+          className="translate-y-2 rounded-full"
           aria-label="Message"
           disabled={create.isPending}
           onClick={() =>
@@ -165,7 +183,7 @@ function Header({
             )
           }
         >
-          <Mail className="size-5" />
+          <Mail className="size-4" />
         </Button>
       )}
     </div>

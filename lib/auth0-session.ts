@@ -159,3 +159,19 @@ export async function createSessionFromTokens(
     true,
   );
 }
+
+/**
+ * Clears the session cookie (every chunk of it) on a response, through the
+ * same SDK store that wrote it. For /logout: the SDK's own /auth/logout also
+ * clears it but then always round-trips through Auth0's /v2/logout, which
+ * only returns to URLs on the tenant's Allowed Logout URLs list and fails
+ * otherwise. Password sign-in never creates an Auth0 browser session (the
+ * token endpoint is called server to server), so there is nothing there to
+ * end, and clearing the cookie is the whole of logging out.
+ */
+export async function deleteSession(
+  reqCookies: Parameters<AbstractSessionStore["delete"]>[0],
+  resCookies: Parameters<AbstractSessionStore["delete"]>[1],
+): Promise<void> {
+  await getSessionStore().delete(reqCookies, resCookies);
+}

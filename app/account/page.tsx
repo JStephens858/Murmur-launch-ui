@@ -70,9 +70,11 @@ export default async function AccountPage() {
           </p>
         )}
         <div className="flex gap-4">
-          <Button asChild variant="outline">
-            <a href="/auth/logout">Sign out</a>
-          </Button>
+          <form method="post" action="/logout">
+            <Button type="submit" variant="outline">
+              Sign out
+            </Button>
+          </form>
         </div>
       </section>
       <Footer />
