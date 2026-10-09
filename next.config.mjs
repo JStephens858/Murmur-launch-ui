@@ -24,12 +24,17 @@ const nextConfig = {
     return {
       // Proxy /api to the Murmur API on this same host. As a fallback rewrite
       // it only applies when no route here matches, so app/api/* still wins.
-      fallback: [
-        {
-          source: "/api/:path*",
-          destination: "http://localhost:4000/api/:path*",
-        },
-      ],
+      // The target comes from MURMUR_API_SERVER because the API speaks plain
+      // HTTP on a dev machine but HTTPS (USE_SSL) on servers, where its cert
+      // only covers the server's own hostname, not localhost.
+      fallback: process.env.MURMUR_API_SERVER
+        ? [
+            {
+              source: "/api/:path*",
+              destination: `${process.env.MURMUR_API_SERVER}/:path*`,
+            },
+          ]
+        : [],
     };
   },
   async headers() {
