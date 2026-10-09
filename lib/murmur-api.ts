@@ -46,11 +46,13 @@ interface FetchOptions {
    * ported legacy action endpoints, which must not hang a page render.
    */
   signal?: AbortSignal;
+  /** Extra request headers, e.g. the client address sign-up forwards. */
+  headers?: Record<string, string>;
 }
 
 export async function fetchMurmurAPI<T>(
   query: string,
-  { accessToken, variables, next, signal }: FetchOptions = {},
+  { accessToken, variables, next, signal, headers }: FetchOptions = {},
 ): Promise<T> {
   const endpoint = process.env.MURMUR_API_SERVER;
   if (!endpoint) {
@@ -61,6 +63,7 @@ export async function fetchMurmurAPI<T>(
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...headers,
     },
     body: JSON.stringify({ query, variables }),
     ...(signal ? { signal } : {}),

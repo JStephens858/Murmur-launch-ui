@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * Email/password sign-in for physicians who already have an account. There is
- * deliberately no "create account" path here — accounts are made in the iOS
- * app, where physician verification happens. See lib/auth0-password-login.ts.
+ * Email/password sign-in for physicians who already have an account; new
+ * accounts are made at /signup (lib/murmur-signup.ts), with physician
+ * verification in onboarding as in the app. See lib/auth0-password-login.ts.
  */
 export default async function LoginPage({
   searchParams,
@@ -50,11 +50,9 @@ export default async function LoginPage({
           <LoginForm returnTo={returnTo ?? "/account"} />
 
           <p className="text-muted-foreground text-sm">
-            Don&apos;t have an account? MurmurMD is physicians-only and accounts
-            are created in the app, where we verify you&apos;re a practicing
-            physician.{" "}
-            <a href="/get-the-app" className="text-foreground underline">
-              Get the app
+            New to MurmurMD?{" "}
+            <a href="/signup" className="text-foreground underline">
+              Create an account
             </a>
             .
           </p>

@@ -8,7 +8,9 @@
  * (held unpublished until their tus uploads land, then published 3 s later),
  * getPostUploadStatus, getMyModeratorStatus, getAppSponsorshipModStats,
  * searchForUsernamesThatMatch / searchForHashtagsThatMatch and
- * getOpenGraphValues. MOCK_IS_ADMIN=<n> and MOCK_CONTENT_CREATOR=1 set the
+ * getOpenGraphValues; and createUserWithPassword for /signup (409 for taken@example.com, 422 for the
+ * password Weakpass1x, 429 for busy@example.com; run dev with MURMUR_API_SERVER pointed here too).
+ * MOCK_IS_ADMIN=<n> and MOCK_CONTENT_CREATOR=1 set the
  * signed-in user's flags. GET /calls lists every operation received; GET
  * /notify adds a fresh unread notification, for testing badge-driven reloads.
  *
@@ -137,7 +139,7 @@ createServer((req, res) => {
   let body = ""; req.on("data", (c) => body += c); req.on("end", () => {
     const { query, variables } = JSON.parse(body);
     const op = (query.match(/(?:query|mutation)\s+(\w+)/) || [])[1];
-    calls.push({ op, variables, auth: req.headers.authorization ?? null });
+    calls.push({ op, variables: op === "createUserWithPassword" ? { ...variables, password: "(redacted)" } : variables, auth: req.headers.authorization ?? null, clientIp: req.headers["x-murmur-client-ip"] ?? null });
     let data;
     if (op === "getPostsInGroup") {
       const { count, lastPostIdReceived, postGroupId, categoryIds } = variables;
@@ -256,6 +258,13 @@ createServer((req, res) => {
       });
       if (!editing) posts.unshift(post);
       data = { createPost: { success: true, errorMsg: null, errorCode: null, anonymousPostToken: anon ? "mock-anon-token-" + id : null, results: { postId: id }, store: storeFor([post], true) } };
+    } else if (op === "createUserWithPassword") { // web sign-up: 409 taken, 422 weak, 429 busy, else success
+      const { email, password } = variables;
+      const fail = (errorCode, errorMsg) => ({ createUserWithPassword: { success: false, errorMsg, errorCode } });
+      data = email === "taken@example.com" ? fail(409, "The user already exists.")
+        : password === "Weakpass1x" ? fail(422, "PasswordStrengthError: Password is too weak")
+        : email === "busy@example.com" ? fail(429, "Too many signups from this address")
+        : { createUserWithPassword: { success: true, errorMsg: null, errorCode: null } };
     } else if (op === "getPostUploadStatus") {
       const ps = [...posts, ...Object.values(dmPosts).flat()].filter((p) => variables.postIds.includes(p.postId));
       data = { getPostUploadStatus: { success: true, errorMsg: null, errorCode: null, results: ps.map((p) => ({ postId: p.postId, publishedDate: p.publishedDate, isPublished: p.isPublished, isDeleted: p.isDeleted })), store: storeFor(ps, true) } };

@@ -16,6 +16,12 @@ Format:
 
 ---
 
+## 2026-10-07 — Account creation on the web
+**Decision:** `/signup` creates accounts: email, password and confirmation (the app's rules: 8+ characters, an uppercase letter, a lowercase letter, a number), sent to a Server Action. The API owns creation through one public mutation, `createUserWithPassword(email, password)` returning the usual envelope (errorCode 409 email in use, 422 password policy, 400 bad email, 429 rate-limited), which makes the Auth0 email/password user and the `users` row together. The API returns no tokens; the web then signs in exactly as `/login` does and writes its own session. The person's address goes to the API as `X-Murmur-Client-IP` for per-person rate limiting. After sign-up the user goes through onboarding on the site, as in the app (next piece of work; for now they land on `/account`). `/login` links to `/signup`.
+**Why:** Josh wants web sign-up, with onboarding (where physician verification happens) on the site. Creation in the API keeps the Auth0 user and the database row consistent in one place for every client. Tokens stay with the web's own Auth0 client because refresh tokens belong to the client that requested them; tokens minted elsewhere couldn't be refreshed by the web's session. Doing the token steps in the browser was ruled out: the web's sign-in uses its client secret, and tokens live only in the encrypted HttpOnly session cookie.
+**To watch:** the mutation is public, so rate limiting and any CAPTCHA belong in the API; the password must stay out of the API's request logging; the "email in use" message stays soft so the form can't list members.
+**Status:** Active. Supersedes the "accounts only in the iOS app" reasoning of 2026-08-11 (the custom sign-in itself stands).
+
 ## 2026-10-05 — Post composer, ported from the app's PostCreationView
 **Decision:** `/compose/post` is a one-screen composer like the app's: a post is an ordered list of items (text, photo, video, file, poll) under a settings card, with a bottom toolbar (Text, Library, Camera on touch devices, File, Poll). `?group=` starts in a group, `?quote=` makes a follow-up, `?edit=` edits; the post page shows Edit and "Post follow-up" to whoever the app shows them to. Publishing is the app's sequence: images re-encoded to JPEG (2100 px, q 0.7), MD5 of every file, one `getUploadFileUrls`, then one `createPost`; the tus uploads start only after that, with the fileKey, postId and mediaElementId in the metadata. The composer then returns to where it came from, and an "Uploading… / Processing…" card at the top of the feed and of the group polls `getPostUploadStatus` every 5 s until the server publishes, then puts the post at the top of its group and, if followed, the feed. Uploads live at module level so they survive navigating around the portal; closing the tab ends them (a beforeunload prompt warns), leaving the post unpublished on the server as killing the app does. One draft per mode (new, quote of X, edit of X) autosaves to IndexedDB, media included, and is restored with a "Discard draft" action. Extras follow the app's rules: anonymous posting, category picker plus moderators' "Additional categories", "Use as title" (sent as `indexInPost: -1`), admins' poster frame (`previewImagePercent`), "Post as", moderators' clone-a-post link, and content creators' bounties.
 **Why:** The user asked for the app's flow with all item types and extras. Uploading after createPost is how the backend ties files to elements, so the feed card (the app's UploadingFilesView) is the only way not to block the author.
@@ -160,7 +166,7 @@ Format:
 - Auth0's brute-force protection keys off the caller's IP, which is our server unless the `auth0-forwarded-for` header is right. `lib/auth0-password-login.ts` sends it from `trustedClientIp()`, so `MURMUR_XFF_TRUSTED_HOPS` must be correct on the server or the protection lands on the wrong address.
 - There is no password reset or email verification path on the web yet.
 - `lib/auth0-session.ts` reaches into the SDK's private `sessionStore` to build a session from tokens we already hold; the SDK exposes no public equivalent. It throws loudly if that internal shape changes on upgrade.
-**Status:** Active
+**Status:** Active, except its reasoning that accounts are made only in the iOS app: superseded by 2026-10-07 (Account creation on the web).
 
 ## 2026-08-10 — `/post/<id>` is server-rendered, with the `mc` cookie deciding how much shows
 **Decision:** `/post/<postId>?mc=…` renders in Next rather than injecting tags into the old React shell. `generateMetadata` produces the OG/Twitter card; the page renders the post itself — creator, group, date, and media elements in `indexInPost` order, covering text, image, video (HLS via the existing `VideoPlayer`), poll (with result bars) and file.
@@ -258,7 +264,7 @@ The flat id is the app's form — dashes stripped — and the cookie may arrive 
 - Auth0's brute-force protection keys off the caller's IP, which is our server unless the `auth0-forwarded-for` header is right. `lib/auth0-password-login.ts` sends it from `trustedClientIp()`, so `MURMUR_XFF_TRUSTED_HOPS` has to be correct on the server or protection lands on the wrong address.
 - There is no password reset or email verification path on the web yet.
 - `lib/auth0-session.ts` reaches into the SDK's private `sessionStore` to create a session from tokens we already hold; the SDK exposes no public equivalent. It throws loudly if that internal shape changes on upgrade.
-**Status:** Active
+**Status:** Active, except its reasoning that accounts are made only in the iOS app: superseded by 2026-10-07 (Account creation on the web).
 
 ## 2026-07-13 — Hashtag chips filter the videos page; requires backend hashtagId support
 **Decision:** Hashtag chips on /videos are buttons: clicking one (on a card or in the player modal) refetches both video lists filtered to that tag via `getPublicVideosForSite(hashtagId:)`, shows a clear-pill next to the filter tabs, and clicking the selected chip (or the pill) toggles back to the unfiltered view. `/api/videos` gained `hashtagId` and `type=all` params. Fires a "Hashtag Selected" Mixpanel event.
